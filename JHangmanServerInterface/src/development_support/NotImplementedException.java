@@ -1,3 +1,4 @@
+package development_support;
 
 public class NotImplementedException extends RuntimeException {
 

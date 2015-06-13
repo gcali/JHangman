@@ -1,7 +1,9 @@
 package server_interface;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-import game.Game;
+import java.net.InetAddress;
+
+import development_support.NotImplementedException;
+
 
 public class ServerInterface { 
 
@@ -29,7 +31,7 @@ public class ServerInterface {
 		throw new NotImplementedException();
 	}
 	
-	public Game openGame()
+	public InetAddress openGame()
 		throws IllegalStateException,
 			   ConnectionFailureException {
 		throw new NotImplementedException();
