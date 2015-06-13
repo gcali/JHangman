@@ -1,7 +1,11 @@
 package server_interface;
 
+import game.Game;
+
 import java.net.InetAddress;
 
+import rmi_interface.UserAlreadyRegisteredException;
+import rmi_interface.WrongPasswordException;
 import development_support.NotImplementedException;
 
 
@@ -31,9 +35,18 @@ public class ServerInterface {
 		throw new NotImplementedException();
 	}
 	
-	public InetAddress openGame()
+	public Game openGame(int players)
 		throws IllegalStateException,
+		       GameAlreadyExistsException,
 			   ConnectionFailureException {
 		throw new NotImplementedException();
+	}
+	
+	public Game joinGame(String name)
+		throws IllegalStateException,
+			   GameNotFoundException,
+			   ConnectionFailureException {
+		return null;
+		
 	}
 }

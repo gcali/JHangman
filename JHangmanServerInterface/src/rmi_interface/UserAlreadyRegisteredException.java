@@ -1,4 +1,4 @@
-package server_interface;
+package rmi_interface;
 
 public class UserAlreadyRegisteredException extends Exception {
 

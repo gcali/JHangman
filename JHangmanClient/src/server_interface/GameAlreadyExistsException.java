@@ -1,32 +1,32 @@
 package server_interface;
 
-public class WrongPasswordException extends Exception {
+public class GameAlreadyExistsException extends Exception {
 
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1308053763792697237L;
+	private static final long serialVersionUID = 1L;
 
-	public WrongPasswordException() {
+	public GameAlreadyExistsException() {
 		// TODO Auto-generated constructor stub
 	}
 
-	public WrongPasswordException(String message) {
+	public GameAlreadyExistsException(String message) {
 		super(message);
 		// TODO Auto-generated constructor stub
 	}
 
-	public WrongPasswordException(Throwable cause) {
+	public GameAlreadyExistsException(Throwable cause) {
 		super(cause);
 		// TODO Auto-generated constructor stub
 	}
 
-	public WrongPasswordException(String message, Throwable cause) {
+	public GameAlreadyExistsException(String message, Throwable cause) {
 		super(message, cause);
 		// TODO Auto-generated constructor stub
 	}
 
-	public WrongPasswordException(String message, Throwable cause,
+	public GameAlreadyExistsException(String message, Throwable cause,
 			boolean enableSuppression, boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 		// TODO Auto-generated constructor stub
