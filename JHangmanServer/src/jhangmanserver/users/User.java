@@ -1,4 +1,4 @@
-package users;
+package jhangmanserver.users;
 
 import org.jasypt.util.password.StrongPasswordEncryptor;
 
@@ -23,43 +23,44 @@ public class User {
         this.setPassword(password);
     }
     
-    public String getNick() {
+    public synchronized String getNick() {
         return this.nick;
     }
     
-    public void setPassword(String password) {
+    public synchronized void setPassword(String password) {
+
         this.hashedString = encryptor.encryptPassword(password);
     }
     
-    public boolean isPasswordCorrect(String password) {
+    public synchronized boolean isPasswordCorrect(String password) {
         return this.encryptor.checkPassword(password, this.hashedString);
     }
     
-    public void setCallback(ClientCallbackRMI callback) {
+    public synchronized void setCallback(ClientCallbackRMI callback) {
         this.callback = callback;
     }
     
-    public void removeCallback() {
+    public synchronized void removeCallback() {
         this.callback = null;
     }
     
-    public ClientCallbackRMI getCallback(ClientCallbackRMI callback) {
+    public synchronized ClientCallbackRMI getCallback(ClientCallbackRMI callback) {
         return this.callback;
     }
     
-    public void setCookie(int cookie) {
+    public synchronized void setCookie(int cookie) {
         this.cookie = cookie;
     }
     
-    public boolean checkCookie(int cookie) {
+    public synchronized boolean checkCookie(int cookie) {
         return this.cookie == cookie;
     }
     
-    public void setLoggedIn(boolean b) {
+    public synchronized void setLoggedIn(boolean b) {
         this.loggedIn = b;
     }
     
-    public boolean isLoggedIn() {
+    public synchronized boolean isLoggedIn() {
         return this.loggedIn;
     }
     

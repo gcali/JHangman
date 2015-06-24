@@ -6,6 +6,7 @@ import java.rmi.RemoteException;
     public interface RMIServer extends Remote {
         
         public static final String name = "hangman_server_rmi_name";
+        public static final int defaultPort = 55544;
     
         public int login(String nick, String password, ClientCallbackRMI notifier)
             throws UserAlreadyLoggedInException,
