@@ -1,6 +1,4 @@
-package server_interface;
-
-import game.Game;
+package jhangmanclient.server_interface;
 
 import java.net.InetAddress;
 import java.rmi.NotBoundException;
@@ -8,6 +6,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
+import jhangmanclient.game.Game;
 import rmi_interface.RMIServer;
 import rmi_interface.UserAlreadyRegisteredException;
 import rmi_interface.WrongPasswordException;
@@ -100,4 +99,5 @@ import development_support.NotImplementedException;
     		return null;
     		
     	}
+    	
     }

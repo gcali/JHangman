@@ -1,4 +1,4 @@
-package game;
+package jhangmanclient.game;
 
 import java.net.InetAddress;
 

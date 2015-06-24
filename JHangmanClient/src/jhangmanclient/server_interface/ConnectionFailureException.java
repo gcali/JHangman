@@ -1,4 +1,4 @@
-package server_interface;
+package jhangmanclient.server_interface;
 
 public class ConnectionFailureException extends Exception {
 

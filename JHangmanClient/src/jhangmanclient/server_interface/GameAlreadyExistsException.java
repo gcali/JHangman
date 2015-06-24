@@ -1,32 +1,32 @@
-package server_interface;
+package jhangmanclient.server_interface;
 
-public class GameNotFoundException extends Exception {
+public class GameAlreadyExistsException extends Exception {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public GameNotFoundException() {
+	public GameAlreadyExistsException() {
 		// TODO Auto-generated constructor stub
 	}
 
-	public GameNotFoundException(String message) {
+	public GameAlreadyExistsException(String message) {
 		super(message);
 		// TODO Auto-generated constructor stub
 	}
 
-	public GameNotFoundException(Throwable cause) {
+	public GameAlreadyExistsException(Throwable cause) {
 		super(cause);
 		// TODO Auto-generated constructor stub
 	}
 
-	public GameNotFoundException(String message, Throwable cause) {
+	public GameAlreadyExistsException(String message, Throwable cause) {
 		super(message, cause);
 		// TODO Auto-generated constructor stub
 	}
 
-	public GameNotFoundException(String message, Throwable cause,
+	public GameAlreadyExistsException(String message, Throwable cause,
 			boolean enableSuppression, boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 		// TODO Auto-generated constructor stub
