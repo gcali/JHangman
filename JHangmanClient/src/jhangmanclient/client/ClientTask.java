@@ -132,7 +132,6 @@ public class ClientTask implements Runnable {
             int option = getOption();
             done = handleOption(option, server);
         }
-        // TODO Auto-generated method stub
 
     }
     
