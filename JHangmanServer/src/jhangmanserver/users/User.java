@@ -7,7 +7,7 @@ import rmi_interface.ClientCallbackRMI;
 public class User {
     
     private String nick;
-    private String hashedString;
+    private String hashedPassword;
     private StrongPasswordEncryptor encryptor = new StrongPasswordEncryptor();
     private ClientCallbackRMI callback = null;
     private int cookie;
@@ -15,7 +15,7 @@ public class User {
     
     public User(String nick) {
         this.nick = nick;
-        this.hashedString = null;
+        this.hashedPassword = null;
     }
     
     public User(String nick, String password) {
@@ -29,11 +29,11 @@ public class User {
     
     public synchronized void setPassword(String password) {
 
-        this.hashedString = encryptor.encryptPassword(password);
+        this.hashedPassword = encryptor.encryptPassword(password);
     }
     
     public synchronized boolean isPasswordCorrect(String password) {
-        return this.encryptor.checkPassword(password, this.hashedString);
+        return this.encryptor.checkPassword(password, this.hashedPassword);
     }
     
     public synchronized void setCallback(ClientCallbackRMI callback) {
