@@ -4,6 +4,7 @@ import java.awt.LayoutManager;
 
 import javafx.collections.SetChangeListener;
 
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 

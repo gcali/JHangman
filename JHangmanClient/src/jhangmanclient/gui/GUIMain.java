@@ -1,17 +1,14 @@
 package jhangmanclient.gui; 
 
-import java.awt.CardLayout;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
-import java.awt.LayoutManager;
-import java.util.ArrayList;
-import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.border.Border;
 
 import rmi_interface.RMIServer;
 
@@ -67,8 +64,15 @@ public class GUIMain {
     }
 
     private void createPanels() {
+        int borderSize = 10;
+        Border emptyBorder = BorderFactory.createEmptyBorder(borderSize, 
+                                                             borderSize, 
+                                                             borderSize, 
+                                                             borderSize);
         GamePanel gamePanel = new GamePanel(server);
+        gamePanel.setBorder(emptyBorder);
         RegistrationPanel registrationPanel = RegistrationPanel.create();
+        registrationPanel.setBorder(emptyBorder);
         JFrame gameFrame = createFrameFromPanel(gamePanel);
         JFrame registrationFrame = createFrameFromPanel(registrationPanel);
         Changer changer = new ChangeMainFrame(gameFrame, registrationFrame);
@@ -95,7 +99,6 @@ public class GUIMain {
     
     public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
         GUIMain frame = new GUIMain(null);
         frame.start();
     }
