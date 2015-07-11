@@ -2,6 +2,7 @@ package jhangmanclient.gui;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -11,6 +12,10 @@ import javax.swing.JTextField;
 
 public class LabeledField extends Box {
     
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private JLabel labelComponent;
     private JTextField textComponent;
 
@@ -29,16 +34,19 @@ public class LabeledField extends Box {
 
     private void initComponents(String label, boolean hiddenText) {
         JLabel labelComponent = new JLabel(label);
+        Font font = new Font(labelComponent.getFont().getName(), Font.PLAIN, 15);
+        labelComponent.setFont(font);
         labelComponent.setAlignmentX(LEFT_ALIGNMENT);;
         this.labelComponent = labelComponent;
         JTextField textComponent = null;
-        int minimumWidth = 20;
+        int minimumWidth = 15;
         if (hiddenText) {
             textComponent = new JPasswordField(minimumWidth);
         } else {
             textComponent = new JTextField(minimumWidth);
         }
         textComponent.setAlignmentX(LEFT_ALIGNMENT);
+        textComponent.setFont(font);
         textComponent.setBackground(new Color(255,255,255));
         int fixedHeight = (int) textComponent.getPreferredSize().getHeight();
         textComponent.setMaximumSize(new Dimension(Integer.MAX_VALUE, fixedHeight));
