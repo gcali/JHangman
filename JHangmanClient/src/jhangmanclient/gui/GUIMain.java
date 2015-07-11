@@ -95,7 +95,7 @@ public class GUIMain {
     
     public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+//        UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
         GUIMain frame = new GUIMain(null);
         frame.start();
     }
