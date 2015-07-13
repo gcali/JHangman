@@ -45,7 +45,7 @@ public class ClientTask implements Runnable {
             System.err.println("User not logged in");
         }
         try {
-            this.server.logout(this.nick, this.cookie);
+            this.server.logOut(this.nick, this.cookie);
             this.logged = false;
         } catch (RemoteException e) {
             System.err.println("Connection error");
@@ -88,7 +88,7 @@ public class ClientTask implements Runnable {
         String localNick = data.getNick();
         String localPassword = data.getPassword();
         try {
-            this.cookie = this.server.login(localNick, localPassword, null);
+            this.cookie = this.server.logIn(localNick, localPassword, null);
             this.nick = localNick;
             this.logged = true;
         } catch (RemoteException e) {

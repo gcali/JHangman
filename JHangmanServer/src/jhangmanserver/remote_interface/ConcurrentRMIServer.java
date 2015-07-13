@@ -44,7 +44,7 @@ public class ConcurrentRMIServer implements RMIServer {
     }
 
     @Override
-    public int login(String nick, String password, ClientCallbackRMI notifier)
+    public int logIn(String nick, String password, ClientCallbackRMI notifier)
             throws WrongPasswordException, RemoteException, UserAlreadyLoggedInException {
         User user = null;
         synchronized(this.userData){
@@ -69,7 +69,7 @@ public class ConcurrentRMIServer implements RMIServer {
     }
 
     @Override
-    public void logout(String nick, int cookie) throws UserNotLoggedException,
+    public void logOut(String nick, int cookie) throws UserNotLoggedException,
             RemoteException {
         User user = null;
         synchronized(this.userData){

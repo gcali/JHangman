@@ -74,13 +74,13 @@ public class ServerInterface {
 		throw new NotImplementedException();
 	}
 	
-	public void login(String password)
+	public void signin(String password)
 		throws WrongPasswordException,
 			   ConnectionFailureException {
 		throw new NotImplementedException();
 	}
 	
-	public void logout()
+	public void signout()
 			throws IllegalStateException,
 				   ConnectionFailureException {
 		throw new NotImplementedException();

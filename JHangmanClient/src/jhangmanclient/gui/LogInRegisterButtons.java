@@ -6,16 +6,16 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 
-public class SigninRegisterButtons extends Box {
+public class LogInRegisterButtons extends Box {
     
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
-    private JButton signinButton;
+    private JButton logInButton;
     private JButton registerButton;
 
-    public SigninRegisterButtons() {
+    public LogInRegisterButtons() {
         super(BoxLayout.LINE_AXIS);
         initializeComponents();
         handleLayout();
@@ -24,7 +24,7 @@ public class SigninRegisterButtons extends Box {
 
     private void handleLayout() {
         this.add(Box.createHorizontalStrut(20));
-        this.add(this.signinButton);
+        this.add(this.logInButton);
         this.add(createHorizontalStrut(10));
         this.add(this.registerButton);
         this.add(Box.createHorizontalGlue());
@@ -33,10 +33,10 @@ public class SigninRegisterButtons extends Box {
 
 
     private void initializeComponents() {
-        JButton login;
-        login = new JButton("Sign in");
-        login.setActionCommand("signin");
-        this.signinButton = login;
+        JButton logIn;
+        logIn = new JButton("Log in");
+        logIn.setActionCommand("login");
+        this.logInButton = logIn;
         JButton register;
         register = new JButton("Register");
         register.setActionCommand("register");
@@ -44,7 +44,7 @@ public class SigninRegisterButtons extends Box {
     } 
     
     public void addActionListener(ActionListener l) {
-        this.signinButton.addActionListener(l);
+        this.logInButton.addActionListener(l);
         this.registerButton.addActionListener(l);
     } 
 }
