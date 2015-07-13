@@ -1,22 +1,21 @@
 package jhangmanclient.gui;
 
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.function.Consumer;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JPanel;
 
-public class LoginRegisterButtons extends Box {
+public class SigninRegisterButtons extends Box {
     
-    private JButton loginButton;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private JButton signinButton;
     private JButton registerButton;
-    private UserDataAction loginAction = null;
-    private UserDataAction registerAction;
 
-    public LoginRegisterButtons() {
+    public SigninRegisterButtons() {
         super(BoxLayout.LINE_AXIS);
         initializeComponents();
         handleLayout();
@@ -25,7 +24,7 @@ public class LoginRegisterButtons extends Box {
 
     private void handleLayout() {
         this.add(Box.createHorizontalStrut(20));
-        this.add(this.loginButton);
+        this.add(this.signinButton);
         this.add(createHorizontalStrut(10));
         this.add(this.registerButton);
         this.add(Box.createHorizontalGlue());
@@ -35,9 +34,9 @@ public class LoginRegisterButtons extends Box {
 
     private void initializeComponents() {
         JButton login;
-        login = new JButton("Login");
-        login.setActionCommand("login");
-        this.loginButton = login;
+        login = new JButton("Sign in");
+        login.setActionCommand("signin");
+        this.signinButton = login;
         JButton register;
         register = new JButton("Register");
         register.setActionCommand("register");
@@ -45,7 +44,7 @@ public class LoginRegisterButtons extends Box {
     } 
     
     public void addActionListener(ActionListener l) {
-        this.loginButton.addActionListener(l);
+        this.signinButton.addActionListener(l);
         this.registerButton.addActionListener(l);
     } 
 }

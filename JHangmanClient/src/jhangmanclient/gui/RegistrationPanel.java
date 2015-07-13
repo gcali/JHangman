@@ -15,7 +15,7 @@ public class RegistrationPanel extends JPanel implements ActionListener {
     Changer changer = null;
     LabeledField nickComponent;
     LabeledField passwordComponent;
-    LoginRegisterButtons buttons;
+    SigninRegisterButtons buttons;
 
     private RegistrationPanel() {
         super();
@@ -29,11 +29,9 @@ public class RegistrationPanel extends JPanel implements ActionListener {
     }
     
     private void initComponents() { 
-//        this.nickComponent = new NickField();
-//        this.passwordComponent = new PasswordField();
         this.nickComponent = new LabeledField("User", false);
         this.passwordComponent = new LabeledField("Password", true);
-        this.buttons = new LoginRegisterButtons();
+        this.buttons = new SigninRegisterButtons();
         this.buttons.addActionListener(this);
         this.add(this.nickComponent);
         this.add(this.passwordComponent);
