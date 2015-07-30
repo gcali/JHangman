@@ -3,7 +3,7 @@ package jhangmanserver.main;
 import java.rmi.RemoteException;
 
 import rmi_interface.RMIServer;
-import jhangmanserver.remote_interface.ConcurrentRMIServer;
+import jhangmanserver.remote.ConcurrentRMIServer;
 
 public class Launcher {
 

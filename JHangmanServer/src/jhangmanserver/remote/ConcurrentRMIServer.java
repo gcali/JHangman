@@ -1,4 +1,4 @@
-package jhangmanserver.remote_interface;
+package jhangmanserver.remote;
 
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;

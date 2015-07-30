@@ -3,6 +3,10 @@ package jhangmanclient.gui;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -51,11 +55,11 @@ public class GUIMain {
     }
     
     
-    private RMIServer server;
+    private RMIServer remoteServer;
     private Runnable starter;
 
-    public GUIMain(RMIServer server) throws HeadlessException {
-        this.server = server;
+    public GUIMain(RMIServer remoteServer) throws HeadlessException {
+        this.remoteServer = remoteServer;
         init();
     }
 
@@ -69,7 +73,7 @@ public class GUIMain {
                                                              borderSize, 
                                                              borderSize, 
                                                              borderSize);
-        GamePanel gamePanel = new GamePanel(server);
+        GamePanel gamePanel = new GamePanel(remoteServer);
         gamePanel.setBorder(emptyBorder);
         RegistrationPanel registrationPanel = RegistrationPanel.create();
         registrationPanel.setBorder(emptyBorder);
@@ -97,9 +101,34 @@ public class GUIMain {
         this.starter.run();
     }
     
-    public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
+    public static void main(String[] args) throws ClassNotFoundException, 
+                                                  InstantiationException, 
+                                                  IllegalAccessException, 
+                                                  UnsupportedLookAndFeelException {
+        Registry registry = null;
+        try {
+            registry = LocateRegistry.getRegistry(RMIServer.defaultPort);
+        } catch (RemoteException e) {
+            System.out.println("Connection error");
+            throw new RuntimeException(e);
+        }
+        
+        RMIServer server = null;
+        try {
+            server = (RMIServer) registry.lookup(RMIServer.name);
+        } catch (RemoteException e) {
+            System.err.println("Connection error");
+            throw new RuntimeException(e);
+        } catch (NotBoundException e) {
+            System.err.println("No " + RMIServer.name + " found");
+            throw new RuntimeException(e);
+        }
+        
+        assert server != null;
+        
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        GUIMain frame = new GUIMain(null);
+        GUIMain frame = new GUIMain(server);
         frame.start();
     }
+
 }
