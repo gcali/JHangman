@@ -18,7 +18,7 @@ public class GamePanel extends JPanel {
 
     public GamePanel() {
         super();
-        JButton button = new JButton("Cliccami");
+        JButton button = new JButton("Log out");
         this.add(button);
         button.addActionListener(e -> this.changer.changePanel());
     }

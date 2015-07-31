@@ -18,10 +18,16 @@ public class AuthController {
     
     public ReturnCodeObj<LoginResult, GameController> handleLogin(
             String nick, 
-            String password) throws RemoteException {
+            String password,
+            boolean forced) throws RemoteException {
 
         try {
-            int cookie = this.server.logIn(nick, password, null);
+            int cookie;
+            if (!forced) {
+                cookie = this.server.logIn(nick, password, null);
+            } else {
+                cookie = this.server.forceLogIn(nick, password, null);
+            }
             GameController gameController = new GameController(this.server, 
                                                                nick, 
                                                                cookie);

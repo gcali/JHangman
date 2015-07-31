@@ -46,12 +46,9 @@ public class ConcurrentRMIServer implements RMIServer {
     @Override
     public int logIn(String nick, String password, ClientCallbackRMI notifier)
             throws WrongPasswordException, RemoteException, UserAlreadyLoggedInException {
-        User user = null;
-        synchronized(this.userData){
-            user = this.userData.get(nick);
-            if (user == null) {
-                throw new WrongPasswordException("User data incorrect");
-            } 
+        User user = getUser(nick);
+        if (user == null) {
+            throw new WrongPasswordException("User data incorrect");
         }
         int cookie;
         synchronized(user) {
@@ -67,21 +64,49 @@ public class ConcurrentRMIServer implements RMIServer {
         }
         return cookie;
     }
+    
+    public int forceLogIn(String nick, 
+                           String password, 
+                           ClientCallbackRMI notifier)
+                                   throws WrongPasswordException, RemoteException { 
+        User user = getUser(nick);
+        if (user == null) { 
+            throw new WrongPasswordException("User data incorrect");
+        }
+        basicUserLogOut(user);
+        try {
+            return logIn(nick, password, notifier);
+        } catch (UserAlreadyLoggedInException e) {
+            return forceLogIn(nick, password, notifier);
+        }
+    }
 
+    private void basicUserLogOut(User user) {
+        synchronized(user) {
+            user.removeCallback();
+            user.setLoggedIn(false); 
+        }
+    }
+    
+    private User getUser(String nick) {
+        User user = null;
+        synchronized(this.userData) {
+            user = this.userData.get(nick);
+        }
+        return user;
+    }
     @Override
     public void logOut(String nick, int cookie) throws UserNotLoggedException,
             RemoteException {
-        User user = null;
-        synchronized(this.userData){
-            user = this.userData.get(nick);
-        }
+        User user = getUser(nick);
+
         if (user == null) {
             throw new UserNotLoggedException();
         }
+
         synchronized(user) {
             if (user.isLoggedIn() && user.checkCookie(cookie)) {
-                user.removeCallback();
-                user.setLoggedIn(false);
+                basicUserLogOut(user);
             } else {
                 throw new UserNotLoggedException();
             }

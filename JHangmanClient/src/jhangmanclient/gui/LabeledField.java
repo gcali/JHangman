@@ -58,4 +58,8 @@ public class LabeledField extends Box {
     public String getText() {
         return this.textComponent.getText();
     }
+    
+    public void clear() {
+        this.textComponent.setText("");
+    }
 }

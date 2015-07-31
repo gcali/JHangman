@@ -21,6 +21,7 @@ import utility.ReturnCodeObj;
 import jhangmanclient.controller.AuthController;
 import jhangmanclient.controller.GameController;
 import jhangmanclient.controller.LoginResult;
+import jhangmanclient.controller.RegistrationResult;
 
 public class AuthPanel extends JPanel implements ActionListener {
     
@@ -68,32 +69,114 @@ public class AuthPanel extends JPanel implements ActionListener {
         this.changer = changer;
     }
     
-    private void showDialog(String message) {
-        JOptionPane.showMessageDialog(this, message); 
+    private void showErrorDialog(String message) {
+        JOptionPane.showMessageDialog(this, 
+                                      message, 
+                                      "Error", 
+                                      JOptionPane.ERROR_MESSAGE); 
+    }
+
+    private void showMessageDialog(String message) {
+        JOptionPane.showMessageDialog(this, 
+                                      message, 
+                                      "Error", 
+                                      JOptionPane.INFORMATION_MESSAGE); 
+    }
+    
+    private int showQuestionDialog(String message, String yes, String no) {
+        Object [] options = {yes, no};
+        return JOptionPane.showOptionDialog(
+                this, 
+                message, 
+                "", 
+                JOptionPane.YES_NO_OPTION, 
+                JOptionPane.QUESTION_MESSAGE, 
+                null, 
+                options, 
+                options[0]);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         switch (e.getActionCommand()) {
         case "login":
-            String nick = this.nickComponent.getText();
-            String password = this.passwordComponent.getText();
-            try {
-                ReturnCodeObj<LoginResult, GameController> retval = 
-                        this.authController.handleLogin(nick, password);
-                if (retval.getCode() == LoginResult.ALREADY_LOGGED_IN) {
-                   showDialog("User was already logged in");
-                } else if (retval.getCode() == LoginResult.WRONG_DATA) {
-                    showDialog("User data invalid");
-                } else if (retval.getCode() == LoginResult.SUCCESS) {
-                    this.gameControllerSetter.accept(retval.getObj());
-                    this.changer.changePanel();
-                }
-            } catch (RemoteException e1) {
-                showDialog("Couldn't connect to the server");
-            }
+            handleLogin();
             break;
+        case "register":
+            handleRegister();
+        break;
         }
         
+    }
+
+    private void handleRegister() {
+        String nick;
+        String password;
+        nick = this.nickComponent.getText();
+        password = this.passwordComponent.getText();
+        try {
+            RegistrationResult retval = 
+                    this.authController.handleRegistration(nick, password);
+            if (retval == RegistrationResult.ALREADY_REGISTERED) {
+                showErrorDialog("User was already registered");
+            } else if (retval == RegistrationResult.SUCCESS) {
+                showMessageDialog("Registration confirmed");
+            }
+        } catch (RemoteException e1) {
+            showErrorDialog("Couldn't connect to the server");
+        } finally {
+            this.passwordComponent.clear();
+        }
+    }
+
+    private void handleLogin() {
+        String nick;
+        String password;
+        nick = this.nickComponent.getText();
+        password = this.passwordComponent.getText();
+        try {
+            ReturnCodeObj<LoginResult, GameController> retval = 
+                    this.authController.handleLogin(nick, password, false);
+            handleLoginRetval(nick, password, retval);
+        } catch (RemoteException e1) {
+            showErrorDialog("Couldn't connect to the server");
+        } finally {
+            this.passwordComponent.clear();
+        }
+    }
+
+    private void handleLoginRetval(String nick, String password,
+            ReturnCodeObj<LoginResult, GameController> retval) {
+        switch (retval.getCode()) {
+        case ALREADY_LOGGED_IN:
+            int answer = showQuestionDialog(
+                    "User was already logged in; do you want" +
+                    "to force a new login?", "Yes", "No");
+            if (answer == 0) {
+                handleForceLogin(nick, password);
+            }
+            break; 
+        case WRONG_DATA:
+            showErrorDialog("User data invalid");
+            break;
+        case SUCCESS:
+            handleSuccesfullLogin(retval.getObj()); 
+        }
+    }
+
+    private void handleSuccesfullLogin(GameController gameController) {
+        this.nickComponent.clear();
+        this.gameControllerSetter.accept(gameController);
+        this.changer.changePanel();
+    }
+
+    private void handleForceLogin(String nick, String password) {
+        try {
+            ReturnCodeObj<LoginResult, GameController> retval = 
+                    this.authController.handleLogin(nick, password, true);
+            handleLoginRetval(nick, password, retval);
+        } catch (RemoteException e1) {
+            showErrorDialog("Couldn't connect to the server");
+        } 
     } 
 }
