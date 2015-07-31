@@ -22,8 +22,12 @@ import jhangmanclient.controller.AuthController;
 import jhangmanclient.controller.GameController;
 import jhangmanclient.controller.LoginResult;
 
-public class RegistrationPanel extends JPanel implements ActionListener {
+public class AuthPanel extends JPanel implements ActionListener {
     
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     Changer changer = null;
     LabeledField nickComponent;
     LabeledField passwordComponent;
@@ -31,14 +35,14 @@ public class RegistrationPanel extends JPanel implements ActionListener {
     private AuthController authController;
     private Consumer<GameController> gameControllerSetter;
 
-    private RegistrationPanel() {
+    private AuthPanel() {
         super();
     }
     
-    public static RegistrationPanel create(
+    public static AuthPanel create(
             AuthController authController, 
             Consumer<GameController> gameControllerSetter) {
-        RegistrationPanel panel = new RegistrationPanel();
+        AuthPanel panel = new AuthPanel();
         panel.authController = authController;
         panel.gameControllerSetter = gameControllerSetter;
         panel.initLayout();

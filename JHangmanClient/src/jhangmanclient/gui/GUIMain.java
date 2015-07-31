@@ -90,15 +90,15 @@ public class GUIMain {
                                                              borderSize);
         GamePanel gamePanel = new GamePanel();
         gamePanel.setBorder(emptyBorder);
-        RegistrationPanel registrationPanel = RegistrationPanel.create(
+        AuthPanel authPanel = AuthPanel.create(
                 authController, 
                 controller -> gamePanel.setGameController(controller));
-        registrationPanel.setBorder(emptyBorder);
+        authPanel.setBorder(emptyBorder);
         JFrame gameFrame = createFrameFromPanel(gamePanel);
-        JFrame registrationFrame = createFrameFromPanel(registrationPanel);
+        JFrame registrationFrame = createFrameFromPanel(authPanel);
         Changer changer = new ChangeMainFrame(gameFrame, registrationFrame);
         this.starter = () -> changer.changePanel();
-        registrationPanel.setChanger(changer);
+        authPanel.setChanger(changer);
         gamePanel.setChanger(changer); 
     } 
     
