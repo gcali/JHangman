@@ -2,13 +2,25 @@ package jhangmanclient.gui;
 
 import java.awt.Component;
 import java.awt.LayoutManager;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.rmi.RemoteException;
+import java.util.function.Consumer;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
+
+import utility.ReturnCodeObj;
+import jhangmanclient.controller.AuthController;
+import jhangmanclient.controller.GameController;
+import jhangmanclient.controller.LoginResult;
 
 public class RegistrationPanel extends JPanel implements ActionListener {
     
@@ -16,13 +28,19 @@ public class RegistrationPanel extends JPanel implements ActionListener {
     LabeledField nickComponent;
     LabeledField passwordComponent;
     LogInRegisterButtons buttons;
+    private AuthController authController;
+    private Consumer<GameController> gameControllerSetter;
 
     private RegistrationPanel() {
         super();
     }
     
-    public static RegistrationPanel create() {
+    public static RegistrationPanel create(
+            AuthController authController, 
+            Consumer<GameController> gameControllerSetter) {
         RegistrationPanel panel = new RegistrationPanel();
+        panel.authController = authController;
+        panel.gameControllerSetter = gameControllerSetter;
         panel.initLayout();
         panel.initComponents();
         return panel;
@@ -45,14 +63,31 @@ public class RegistrationPanel extends JPanel implements ActionListener {
     public void setChanger(Changer changer) {
         this.changer = changer;
     }
+    
+    private void showDialog(String message) {
+        JOptionPane.showMessageDialog(this, message); 
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         switch (e.getActionCommand()) {
         case "login":
-            System.out.println("Login!");
-            System.out.printf("User: %s, Password: %s\n", this.nickComponent.getText(),
-                                                          this.passwordComponent.getText());
+            String nick = this.nickComponent.getText();
+            String password = this.passwordComponent.getText();
+            try {
+                ReturnCodeObj<LoginResult, GameController> retval = 
+                        this.authController.handleLogin(nick, password);
+                if (retval.getCode() == LoginResult.ALREADY_LOGGED_IN) {
+                   showDialog("User was already logged in");
+                } else if (retval.getCode() == LoginResult.WRONG_DATA) {
+                    showDialog("User data invalid");
+                } else if (retval.getCode() == LoginResult.SUCCESS) {
+                    this.gameControllerSetter.accept(retval.getObj());
+                    this.changer.changePanel();
+                }
+            } catch (RemoteException e1) {
+                showDialog("Couldn't connect to the server");
+            }
             break;
         }
         

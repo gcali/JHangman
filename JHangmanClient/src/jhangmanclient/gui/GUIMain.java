@@ -3,17 +3,26 @@ package jhangmanclient.gui;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.Border;
 
+import jhangmanclient.controller.AuthController;
 import rmi_interface.RMIServer;
 
 public class GUIMain {
@@ -31,6 +40,12 @@ public class GUIMain {
 
         public void changePanel() {
             this.frame.setContentPane(containers[this.currentIndex]); 
+            this.frame.pack();
+            int minimumWidth, minimumHeight;
+            minimumWidth = this.frame.getWidth();
+            minimumHeight = this.frame.getHeight();
+            this.frame.setMinimumSize(new Dimension(minimumWidth, 
+                                                    minimumHeight));
             System.out.println("New panel: " + this.currentIndex);
             this.currentIndex = (this.currentIndex + 1) % this.containers.length;
             this.frame.revalidate();
@@ -55,11 +70,11 @@ public class GUIMain {
     }
     
     
-    private RMIServer remoteServer;
+    private AuthController authController;
     private Runnable starter;
 
-    public GUIMain(RMIServer remoteServer) throws HeadlessException {
-        this.remoteServer = remoteServer;
+    public GUIMain(AuthController authController) throws HeadlessException {
+        this.authController = authController;
         init();
     }
 
@@ -73,9 +88,11 @@ public class GUIMain {
                                                              borderSize, 
                                                              borderSize, 
                                                              borderSize);
-        GamePanel gamePanel = new GamePanel(remoteServer);
+        GamePanel gamePanel = new GamePanel();
         gamePanel.setBorder(emptyBorder);
-        RegistrationPanel registrationPanel = RegistrationPanel.create();
+        RegistrationPanel registrationPanel = RegistrationPanel.create(
+                authController, 
+                controller -> gamePanel.setGameController(controller));
         registrationPanel.setBorder(emptyBorder);
         JFrame gameFrame = createFrameFromPanel(gamePanel);
         JFrame registrationFrame = createFrameFromPanel(registrationPanel);
@@ -101,34 +118,60 @@ public class GUIMain {
         this.starter.run();
     }
     
-    public static void main(String[] args) throws ClassNotFoundException, 
-                                                  InstantiationException, 
-                                                  IllegalAccessException, 
-                                                  UnsupportedLookAndFeelException {
+    private static void showTopFatalError(String message) {
+        JOptionPane.showMessageDialog(new JFrame(), message); 
+        System.exit(-1);
+    }
+    
+    @Deprecated
+    private static void showTopFatalError(String message, Exception e) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+        JLabel label = new JLabel("<html><p>" + message + "</p></html>");
+        StringWriter writer = new StringWriter();
+        e.printStackTrace(new PrintWriter(writer));
+        JTextArea exceptionArea = new JTextArea(writer.toString());
+        JScrollPane pane = new JScrollPane(exceptionArea);
+        pane.setMaximumSize(new Dimension(1000,400));
+        pane.setHorizontalScrollBarPolicy(pane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        pane.setVerticalScrollBarPolicy(pane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        panel.add(label);
+        panel.add(pane);
+        JOptionPane.showMessageDialog(new JFrame(), panel);
+        System.exit(-1);
+    }
+    
+    public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException | InstantiationException
+                | IllegalAccessException | UnsupportedLookAndFeelException e1) {
+            System.err.println("Couldn't set look and feel");
+        }
         Registry registry = null;
         try {
             registry = LocateRegistry.getRegistry(RMIServer.defaultPort);
         } catch (RemoteException e) {
-            System.out.println("Connection error");
-            throw new RuntimeException(e);
+            System.err.println("Connection error");
+            showTopFatalError("Couldn't reach the server");
         }
         
         RMIServer server = null;
         try {
             server = (RMIServer) registry.lookup(RMIServer.name);
         } catch (RemoteException e) {
-            System.err.println("Connection error");
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            showTopFatalError("Couldn't reach the server");
         } catch (NotBoundException e) {
             System.err.println("No " + RMIServer.name + " found");
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            showTopFatalError("Couldn't reach the server");
         }
         
         assert server != null;
         
-        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        GUIMain frame = new GUIMain(server);
+        AuthController authController = new AuthController(server);
+        GUIMain frame = new GUIMain(authController);
         frame.start();
-    }
-
+    } 
 }

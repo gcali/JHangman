@@ -8,16 +8,16 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
+import jhangmanclient.controller.GameController;
 import rmi_interface.RMIServer;
 
 public class GamePanel extends JPanel {
     
     Changer changer = null;
-    RMIServer server;
+    private GameController gameController;
 
-    public GamePanel(RMIServer server) {
+    public GamePanel() {
         super();
-        this.server = server;
         JButton button = new JButton("Cliccami");
         this.add(button);
         button.addActionListener(e -> this.changer.changePanel());
@@ -25,5 +25,9 @@ public class GamePanel extends JPanel {
     
     public void setChanger(Changer changer) {
         this.changer = changer;
+    }
+
+    public void setGameController(GameController controller) {
+        this.gameController = controller;
     } 
 }
