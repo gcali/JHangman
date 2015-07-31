@@ -1,4 +1,4 @@
-package jhangmanclient.client;
+package jhangmanclient.tui;
 
 import java.rmi.RemoteException;
 import java.util.Scanner;

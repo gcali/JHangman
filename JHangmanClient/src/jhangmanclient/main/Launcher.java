@@ -8,7 +8,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Scanner;
 
-import jhangmanclient.client.ClientTask;
+import jhangmanclient.tui.ClientTask;
 import rmi_interface.RMIServer;
 import rmi_interface.UserAlreadyRegisteredException;
 
