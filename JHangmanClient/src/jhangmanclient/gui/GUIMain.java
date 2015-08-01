@@ -9,6 +9,8 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -26,49 +28,6 @@ import jhangmanclient.controller.AuthController;
 import rmi_interface.RMIServer;
 
 public class GUIMain {
-    
-    class ChangeMainFrameContent implements Changer {
-        private Container[] containers;
-        private JFrame frame;
-        int currentIndex;
-
-        public ChangeMainFrameContent(JFrame frame, Container ... containers) {
-            this.frame = frame;
-            this.containers = containers;
-            this.currentIndex = 0;
-        }
-
-        public void changePanel() {
-            this.frame.setContentPane(containers[this.currentIndex]); 
-            this.frame.pack();
-            int minimumWidth, minimumHeight;
-            minimumWidth = this.frame.getWidth();
-            minimumHeight = this.frame.getHeight();
-            this.frame.setMinimumSize(new Dimension(minimumWidth, 
-                                                    minimumHeight));
-            System.out.println("New panel: " + this.currentIndex);
-            this.currentIndex = (this.currentIndex + 1) % this.containers.length;
-            this.frame.revalidate();
-            this.frame.repaint();
-        }
-    }
-    
-    class ChangeMainFrame implements Changer {
-        private JFrame[] frames;
-        private int currentIndex;
-        
-        public ChangeMainFrame(JFrame ... frames) {
-            this.frames = frames;
-            this.currentIndex = 0;
-        }
-        
-        public void changePanel() {
-            this.frames[currentIndex++].setVisible(false);
-            this.currentIndex = this.currentIndex % this.frames.length;
-            this.frames[currentIndex].setVisible(true);
-        }
-    }
-    
     
     private AuthController authController;
     private Runnable starter;
@@ -95,9 +54,12 @@ public class GUIMain {
                 controller -> gamePanel.setGameController(controller));
         authPanel.setBorder(emptyBorder);
         JFrame gameFrame = createFrameFromPanel(gamePanel);
-        JFrame registrationFrame = createFrameFromPanel(authPanel);
-        Changer changer = new ChangeMainFrame(gameFrame, registrationFrame);
-        this.starter = () -> changer.changePanel();
+        JFrame authFrame = createFrameFromPanel(authPanel);
+        ChangeMainFrame changer = 
+                new ChangeMainFrame();
+        changer.addPanel(gameFrame, "gameChooser");
+        changer.addPanel(authFrame, "auth");
+        this.starter = () -> changer.changePanel("auth");
         authPanel.setChanger(changer);
         gamePanel.setChanger(changer); 
     } 

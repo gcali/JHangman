@@ -23,7 +23,7 @@ public class GamePanel extends HangmanPanel {
         super();
         JButton button = new JButton("Log out");
         this.add(button);
-        button.addActionListener(e -> this.changer.changePanel());
+        button.addActionListener(e -> this.changer.changePanel("auth"));
         button.addActionListener(new ActionListener() {
             
             @Override

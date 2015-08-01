@@ -138,7 +138,7 @@ public class AuthPanel extends HangmanPanel implements ActionListener {
     private void handleSuccesfullLogin(GameController gameController) {
         this.nickComponent.clear();
         this.gameControllerSetter.accept(gameController);
-        this.changer.changePanel();
+        this.changer.changePanel("gameChooser");
     }
 
     private void handleForceLogin(String nick, String password) {
