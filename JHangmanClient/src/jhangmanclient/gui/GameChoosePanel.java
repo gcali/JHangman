@@ -14,12 +14,12 @@ import javax.swing.JPanel;
 import jhangmanclient.controller.GameController;
 import rmi_interface.RMIServer;
 
-public class GamePanel extends HangmanPanel {
+public class GameChoosePanel extends HangmanPanel {
     
     Changer changer = null;
     private GameController gameController;
 
-    public GamePanel() {
+    public GameChoosePanel() {
         super();
         JButton button = new JButton("Log out");
         this.add(button);

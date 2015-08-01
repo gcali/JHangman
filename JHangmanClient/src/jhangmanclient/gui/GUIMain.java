@@ -47,13 +47,13 @@ public class GUIMain {
                                                              borderSize, 
                                                              borderSize, 
                                                              borderSize);
-        GamePanel gamePanel = new GamePanel();
-        gamePanel.setBorder(emptyBorder);
+        GameChoosePanel gameChoosePanel = new GameChoosePanel();
+        gameChoosePanel.setBorder(emptyBorder);
         AuthPanel authPanel = AuthPanel.create(
                 authController, 
-                controller -> gamePanel.setGameController(controller));
+                controller -> gameChoosePanel.setGameController(controller));
         authPanel.setBorder(emptyBorder);
-        JFrame gameFrame = createFrameFromPanel(gamePanel);
+        JFrame gameFrame = createFrameFromPanel(gameChoosePanel);
         JFrame authFrame = createFrameFromPanel(authPanel);
         ChangeMainFrame changer = 
                 new ChangeMainFrame();
@@ -61,7 +61,7 @@ public class GUIMain {
         changer.addPanel(authFrame, "auth");
         this.starter = () -> changer.changePanel("auth");
         authPanel.setChanger(changer);
-        gamePanel.setChanger(changer); 
+        gameChoosePanel.setChanger(changer); 
     } 
     
     private static JFrame createFrameFromPanel(Container content) {
