@@ -5,7 +5,7 @@ import java.rmi.RemoteException;
 import rmi_interface.RMIServer;
 import jhangmanserver.remote.ConcurrentRMIServer;
 
-public class Launcher {
+public class ServerLauncher {
 
     public static void main(String[] args) {
         
