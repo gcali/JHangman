@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.SwingUtilities;
 
 public class LogInRegisterButtons extends Box {
     
@@ -35,6 +36,7 @@ public class LogInRegisterButtons extends Box {
     private void initializeComponents() {
         JButton logIn;
         logIn = new JButton("Log in");
+        logIn.requestFocusInWindow();
         logIn.setActionCommand("login");
         this.logInButton = logIn;
         JButton register;
@@ -46,5 +48,6 @@ public class LogInRegisterButtons extends Box {
     public void addActionListener(ActionListener l) {
         this.logInButton.addActionListener(l);
         this.registerButton.addActionListener(l);
-    } 
+    }
+
 }
