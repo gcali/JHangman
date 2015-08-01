@@ -123,24 +123,6 @@ public class GUIMain {
         System.exit(-1);
     }
     
-    @Deprecated
-    private static void showTopFatalError(String message, Exception e) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-        JLabel label = new JLabel("<html><p>" + message + "</p></html>");
-        StringWriter writer = new StringWriter();
-        e.printStackTrace(new PrintWriter(writer));
-        JTextArea exceptionArea = new JTextArea(writer.toString());
-        JScrollPane pane = new JScrollPane(exceptionArea);
-        pane.setMaximumSize(new Dimension(1000,400));
-        pane.setHorizontalScrollBarPolicy(pane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        pane.setVerticalScrollBarPolicy(pane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        panel.add(label);
-        panel.add(pane);
-        JOptionPane.showMessageDialog(new JFrame(), panel);
-        System.exit(-1);
-    }
-    
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

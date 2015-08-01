@@ -12,8 +12,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 
@@ -23,7 +21,7 @@ import jhangmanclient.controller.GameController;
 import jhangmanclient.controller.LoginResult;
 import jhangmanclient.controller.RegistrationResult;
 
-public class AuthPanel extends JPanel implements ActionListener {
+public class AuthPanel extends HangmanPanel implements ActionListener {
     
     /**
      * 
@@ -69,33 +67,6 @@ public class AuthPanel extends JPanel implements ActionListener {
         this.changer = changer;
     }
     
-    private void showErrorDialog(String message) {
-        JOptionPane.showMessageDialog(this, 
-                                      message, 
-                                      "Error", 
-                                      JOptionPane.ERROR_MESSAGE); 
-    }
-
-    private void showMessageDialog(String message) {
-        JOptionPane.showMessageDialog(this, 
-                                      message, 
-                                      "Error", 
-                                      JOptionPane.INFORMATION_MESSAGE); 
-    }
-    
-    private int showQuestionDialog(String message, String yes, String no) {
-        Object [] options = {yes, no};
-        return JOptionPane.showOptionDialog(
-                this, 
-                message, 
-                "", 
-                JOptionPane.YES_NO_OPTION, 
-                JOptionPane.QUESTION_MESSAGE, 
-                null, 
-                options, 
-                options[0]);
-    }
-
     @Override
     public void actionPerformed(ActionEvent e) {
         switch (e.getActionCommand()) {
