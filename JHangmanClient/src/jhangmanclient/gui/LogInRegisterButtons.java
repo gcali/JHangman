@@ -5,7 +5,6 @@ import java.awt.event.ActionListener;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.SwingUtilities;
 
 public class LogInRegisterButtons extends Box {
     

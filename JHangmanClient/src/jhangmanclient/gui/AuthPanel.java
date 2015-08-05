@@ -1,22 +1,11 @@
 package jhangmanclient.gui;
 
-import java.awt.Component;
-import java.awt.LayoutManager;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.rmi.RemoteException;
 import java.util.function.Consumer;
 
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
-import javax.swing.text.JTextComponent;
 
 import utility.ReturnCodeObj;
 import jhangmanclient.controller.AuthController;

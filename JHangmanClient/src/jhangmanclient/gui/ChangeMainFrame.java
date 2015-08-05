@@ -1,7 +1,5 @@
 package jhangmanclient.gui;
 
-import java.awt.Container;
-import java.awt.Dimension;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

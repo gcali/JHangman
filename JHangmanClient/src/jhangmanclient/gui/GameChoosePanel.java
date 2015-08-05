@@ -1,21 +1,20 @@
 package jhangmanclient.gui;
 
-import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 
-import javafx.collections.SetChangeListener;
 
-import javax.swing.Box;
 import javax.swing.JButton;
-import javax.swing.JPanel;
 
 import jhangmanclient.controller.GameController;
-import rmi_interface.RMIServer;
 
 public class GameChoosePanel extends HangmanPanel {
     
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     Changer changer = null;
     private GameController gameController;
 

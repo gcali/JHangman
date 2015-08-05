@@ -46,6 +46,6 @@ public class GameController {
     public void handleLogout() throws RemoteException {
         ActionExecutor.getActionExecutor().removeAction(this.logoutAction);
         basicHandleLogout();
-    }
+    } 
 
 }

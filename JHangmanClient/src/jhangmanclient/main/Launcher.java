@@ -1,22 +1,17 @@
 package jhangmanclient.main;
 
-import java.io.IOException;
-import java.rmi.AccessException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.Scanner;
 
 import jhangmanclient.tui.ClientTask;
 import rmi_interface.RMIServer;
-import rmi_interface.UserAlreadyRegisteredException;
 
 public class Launcher {
     
 
     public static void main(String[] args) {
-        boolean done = false;
         
         Registry registry = null;
         try {

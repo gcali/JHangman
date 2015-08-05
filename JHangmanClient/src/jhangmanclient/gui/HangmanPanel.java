@@ -1,12 +1,16 @@
 package jhangmanclient.gui;
 
 import java.awt.LayoutManager;
-import java.awt.event.ActionListener;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 public class HangmanPanel extends JPanel {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
     public HangmanPanel() {
         super();

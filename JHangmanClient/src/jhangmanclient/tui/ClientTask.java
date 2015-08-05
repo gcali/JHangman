@@ -71,6 +71,7 @@ public class ClientTask implements Runnable {
     }
     
     private UserData getNickPassword() {
+        @SuppressWarnings("resource")
         Scanner inScanner = new Scanner(System.in);
         System.out.println("Insert your username");
         String localUser = inScanner.nextLine();
@@ -102,6 +103,7 @@ public class ClientTask implements Runnable {
     }
 
     private int getOption() {
+        @SuppressWarnings("resource")
         Scanner scanner = new Scanner(System.in);
         int option = scanner.nextInt() - 1;
         if (option < 0 || option >= options.length) {
