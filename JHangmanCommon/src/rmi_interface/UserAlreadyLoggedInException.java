@@ -2,6 +2,11 @@ package rmi_interface;
 
 public class UserAlreadyLoggedInException extends Exception {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     public UserAlreadyLoggedInException() {
         // TODO Auto-generated constructor stub
     }
