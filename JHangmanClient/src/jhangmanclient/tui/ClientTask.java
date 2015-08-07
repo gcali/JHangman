@@ -6,7 +6,7 @@ import java.util.Scanner;
 import rmi_interface.RMIServer;
 import rmi_interface.UserAlreadyLoggedInException;
 import rmi_interface.UserAlreadyRegisteredException;
-import rmi_interface.UserNotLoggedException;
+import rmi_interface.UserNotLoggedInException;
 import rmi_interface.WrongPasswordException;
 
 public class ClientTask implements Runnable {
@@ -49,7 +49,7 @@ public class ClientTask implements Runnable {
             this.logged = false;
         } catch (RemoteException e) {
             System.err.println("Connection error");
-        } catch (UserNotLoggedException e) {
+        } catch (UserNotLoggedInException e) {
             System.err.println("User not logged in");
         }
         return false;

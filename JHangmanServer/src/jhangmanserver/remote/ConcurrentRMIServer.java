@@ -14,7 +14,7 @@ import rmi_interface.ClientCallbackRMI;
 import rmi_interface.RMIServer;
 import rmi_interface.UserAlreadyLoggedInException;
 import rmi_interface.UserAlreadyRegisteredException;
-import rmi_interface.UserNotLoggedException;
+import rmi_interface.UserNotLoggedInException;
 import rmi_interface.WrongPasswordException;
 
 public class ConcurrentRMIServer implements RMIServer {
@@ -92,19 +92,19 @@ public class ConcurrentRMIServer implements RMIServer {
         return user;
     }
     @Override
-    public void logOut(String nick, int cookie) throws UserNotLoggedException,
+    public void logOut(String nick, int cookie) throws UserNotLoggedInException,
             RemoteException {
         User user = getUser(nick);
 
         if (user == null) {
-            throw new UserNotLoggedException();
+            throw new UserNotLoggedInException();
         }
 
         synchronized(user) {
             if (user.isLoggedIn() && user.checkCookie(cookie)) {
                 basicUserLogOut(user);
             } else {
-                throw new UserNotLoggedException();
+                throw new UserNotLoggedInException();
             }
         } 
     }

@@ -3,7 +3,7 @@ package jhangmanclient.controller;
 import java.rmi.RemoteException;
 
 import rmi_interface.RMIServer;
-import rmi_interface.UserNotLoggedException;
+import rmi_interface.UserNotLoggedInException;
 import utility.ActionExecutor;
 
 public class GameController {
@@ -36,7 +36,7 @@ public class GameController {
             this.server.logOut(this.nick, this.cookie);
         } catch (RemoteException e) {
             throw e;
-        } catch (UserNotLoggedException e) {
+        } catch (UserNotLoggedInException e) {
             System.err.println("User not logged in; ignoring the error");
         }
         

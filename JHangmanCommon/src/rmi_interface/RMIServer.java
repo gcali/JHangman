@@ -22,7 +22,7 @@ import java.rmi.RemoteException;
                    RemoteException;
         
         public void logOut(String nick, int cookie)
-            throws UserNotLoggedException,
+            throws UserNotLoggedInException,
                    RemoteException;
         
         public void register(String nick, String password)
