@@ -9,7 +9,7 @@ import javax.swing.BoxLayout;
 
 import utility.ReturnCodeObj;
 import jhangmanclient.controller.AuthController;
-import jhangmanclient.controller.GameController;
+import jhangmanclient.controller.GameChooserController;
 import jhangmanclient.controller.LoginResult;
 import jhangmanclient.controller.RegistrationResult;
 
@@ -24,7 +24,7 @@ public class AuthPanel extends HangmanPanel implements ActionListener {
     LabeledField passwordComponent;
     LogInRegisterButtons buttons;
     private AuthController authController;
-    private Consumer<GameController> gameControllerSetter;
+    private Consumer<GameChooserController> gameControllerSetter;
 
     private AuthPanel() {
         super();
@@ -32,7 +32,7 @@ public class AuthPanel extends HangmanPanel implements ActionListener {
     
     public static AuthPanel create(
             AuthController authController, 
-            Consumer<GameController> gameControllerSetter) {
+            Consumer<GameChooserController> gameControllerSetter) {
         AuthPanel panel = new AuthPanel();
         panel.authController = authController;
         panel.gameControllerSetter = gameControllerSetter;
@@ -98,7 +98,7 @@ public class AuthPanel extends HangmanPanel implements ActionListener {
         nick = this.nickComponent.getText();
         password = this.passwordComponent.getText();
         try {
-            ReturnCodeObj<LoginResult, GameController> retval = 
+            ReturnCodeObj<LoginResult, GameChooserController> retval = 
                     this.authController.handleLogin(nick, password, false);
             handleLoginRetval(nick, password, retval);
         } catch (RemoteException e1) {
@@ -109,7 +109,7 @@ public class AuthPanel extends HangmanPanel implements ActionListener {
     }
 
     private void handleLoginRetval(String nick, String password,
-            ReturnCodeObj<LoginResult, GameController> retval) {
+            ReturnCodeObj<LoginResult, GameChooserController> retval) {
         switch (retval.getCode()) {
         case ALREADY_LOGGED_IN:
             int answer = showQuestionDialog(
@@ -127,15 +127,15 @@ public class AuthPanel extends HangmanPanel implements ActionListener {
         }
     }
 
-    private void handleSuccesfullLogin(GameController gameController) {
+    private void handleSuccesfullLogin(GameChooserController gameChooserController) {
         this.nickComponent.clear();
-        this.gameControllerSetter.accept(gameController);
+        this.gameControllerSetter.accept(gameChooserController);
         this.changer.changePanel("gameChooser");
     }
 
     private void handleForceLogin(String nick, String password) {
         try {
-            ReturnCodeObj<LoginResult, GameController> retval = 
+            ReturnCodeObj<LoginResult, GameChooserController> retval = 
                     this.authController.handleLogin(nick, password, true);
             handleLoginRetval(nick, password, retval);
         } catch (RemoteException e1) {

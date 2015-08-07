@@ -16,7 +16,7 @@ public class AuthController {
         this.server = server;
     }
     
-    public ReturnCodeObj<LoginResult, GameController> handleLogin(
+    public ReturnCodeObj<LoginResult, GameChooserController> handleLogin(
             String nick, 
             String password,
             boolean forced) throws RemoteException {
@@ -28,20 +28,20 @@ public class AuthController {
             } else {
                 cookie = this.server.forceLogIn(nick, password, null);
             }
-            GameController gameController = new GameController(this.server, 
+            GameChooserController gameChooserController = new GameChooserController(this.server, 
                                                                nick, 
                                                                cookie);
-            return new ReturnCodeObj<LoginResult, GameController>(
+            return new ReturnCodeObj<LoginResult, GameChooserController>(
                     LoginResult.SUCCESS, 
-                    gameController);
+                    gameChooserController);
         } catch (RemoteException e) {
             throw e;
         } catch (UserAlreadyLoggedInException e) {
-            return new ReturnCodeObj<LoginResult, GameController>(
+            return new ReturnCodeObj<LoginResult, GameChooserController>(
                     LoginResult.ALREADY_LOGGED_IN, 
                     null);
         } catch (WrongPasswordException e) {
-            return new ReturnCodeObj<LoginResult, GameController>(
+            return new ReturnCodeObj<LoginResult, GameChooserController>(
                     LoginResult.WRONG_DATA, 
                     null);
         } 

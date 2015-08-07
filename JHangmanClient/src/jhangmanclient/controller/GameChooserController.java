@@ -2,18 +2,19 @@ package jhangmanclient.controller;
 
 import java.rmi.RemoteException;
 
+import development_support.NotImplementedException;
 import rmi_interface.RMIServer;
 import rmi_interface.UserNotLoggedInException;
 import utility.ActionExecutor;
 
-public class GameController {
+public class GameChooserController {
 
     private RMIServer server;
     private String nick;
     private int cookie;
     private int logoutAction;
 
-    public GameController(RMIServer server, String nick, int cookie) {
+    public GameChooserController(RMIServer server, String nick, int cookie) {
         this.server = server;
         this.nick = nick;
         this.cookie = cookie;
@@ -47,5 +48,13 @@ public class GameController {
         ActionExecutor.getActionExecutor().removeAction(this.logoutAction);
         basicHandleLogout();
     } 
+    
+    public MasterController openGame() {
+        throw new NotImplementedException();
+    }
+    
+    public PlayerController joinGame(String name) {
+        throw new NotImplementedException();
+    }
 
 }

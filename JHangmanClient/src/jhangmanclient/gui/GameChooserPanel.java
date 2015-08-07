@@ -7,18 +7,18 @@ import java.rmi.RemoteException;
 
 import javax.swing.JButton;
 
-import jhangmanclient.controller.GameController;
+import jhangmanclient.controller.GameChooserController;
 
-public class GameChoosePanel extends HangmanPanel {
+public class GameChooserPanel extends HangmanPanel {
     
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
     Changer changer = null;
-    private GameController gameController;
+    private GameChooserController gameChooserController;
 
-    public GameChoosePanel() {
+    public GameChooserPanel() {
         super();
         JButton button = new JButton("Log out");
         this.add(button);
@@ -28,7 +28,7 @@ public class GameChoosePanel extends HangmanPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    gameController.handleLogout();
+                    gameChooserController.handleLogout();
                 } catch (RemoteException e1) {
                     showErrorDialog("Couldn't reach the server");
                 }
@@ -41,7 +41,7 @@ public class GameChoosePanel extends HangmanPanel {
         this.changer = changer;
     }
 
-    public void setGameController(GameController controller) {
-        this.gameController = controller;
+    public void setGameController(GameChooserController controller) {
+        this.gameChooserController = controller;
     } 
 }
