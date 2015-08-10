@@ -2,6 +2,8 @@ package jhangmanclient.controller;
 
 import java.rmi.RemoteException;
 
+import jhangmanclient.callback.GameListCallback;
+import rmi_interface.ClientCallbackRMI;
 import rmi_interface.RMIServer;
 import rmi_interface.UserAlreadyLoggedInException;
 import rmi_interface.UserAlreadyRegisteredException;
@@ -11,10 +13,13 @@ import utility.ReturnCodeObj;
 public class AuthController {
 
     private RMIServer server;
-
+    private ClientCallbackRMI callback;
+    
     public AuthController(RMIServer server) {
         this.server = server;
+        this.callback = new GameListCallback();
     }
+    
     
     public ReturnCodeObj<LoginResult, GameChooserController> handleLogin(
             String nick, 
@@ -24,16 +29,18 @@ public class AuthController {
         try {
             int cookie;
             if (!forced) {
-                cookie = this.server.logIn(nick, password, null);
+                cookie = this.server.logIn(nick, password, this.callback);
             } else {
-                cookie = this.server.forceLogIn(nick, password, null);
+                cookie = this.server.forceLogIn(nick, password, this.callback);
             }
-            GameChooserController gameChooserController = new GameChooserController(this.server, 
-                                                               nick, 
-                                                               cookie);
+            GameChooserController gameChooserController = 
+                    new GameChooserController(this.server, nick, cookie);
+
             return new ReturnCodeObj<LoginResult, GameChooserController>(
                     LoginResult.SUCCESS, 
-                    gameChooserController);
+                    gameChooserController
+            );
+
         } catch (RemoteException e) {
             throw e;
         } catch (UserAlreadyLoggedInException e) {
@@ -58,5 +65,8 @@ public class AuthController {
             return RegistrationResult.ALREADY_REGISTERED;
         }
     }
-
+    
+    public ClientCallbackRMI getCallback() {
+        return this.callback;
+    } 
 }
