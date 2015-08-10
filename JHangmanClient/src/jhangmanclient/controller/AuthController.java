@@ -1,6 +1,7 @@
 package jhangmanclient.controller;
 
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 
 import jhangmanclient.callback.GameListCallback;
 import rmi_interface.ClientCallbackRMI;
@@ -13,11 +14,16 @@ import utility.ReturnCodeObj;
 public class AuthController {
 
     private RMIServer server;
-    private ClientCallbackRMI callback;
+    private GameListCallback callback;
+    private ClientCallbackRMI exportedCallback;
     
-    public AuthController(RMIServer server) {
+    public AuthController(RMIServer server) throws RemoteException {
         this.server = server;
         this.callback = new GameListCallback();
+        this.exportedCallback = 
+                (ClientCallbackRMI) UnicastRemoteObject.exportObject(
+                        this.callback, 0
+                );
     }
     
     
@@ -29,9 +35,13 @@ public class AuthController {
         try {
             int cookie;
             if (!forced) {
-                cookie = this.server.logIn(nick, password, this.callback);
+                cookie = this.server.logIn(nick, 
+                                           password, 
+                                           this.exportedCallback);
             } else {
-                cookie = this.server.forceLogIn(nick, password, this.callback);
+                cookie = this.server.forceLogIn(nick, 
+                                                password, 
+                                                this.exportedCallback);
             }
             GameChooserController gameChooserController = 
                     new GameChooserController(this.server, nick, cookie);
@@ -66,7 +76,7 @@ public class AuthController {
         }
     }
     
-    public ClientCallbackRMI getCallback() {
+    public GameListCallback getCallback() {
         return this.callback;
     } 
 }

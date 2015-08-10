@@ -11,6 +11,8 @@ import jhangmanclient.controller.GameChooserController;
 
 public class GameChooserPanel extends HangmanPanel {
     
+    public final static String idString = "gameChooser";
+    
     /**
      * 
      */

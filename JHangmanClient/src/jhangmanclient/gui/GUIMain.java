@@ -76,7 +76,7 @@ public class GUIMain {
         System.exit(-1);
     }
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws RemoteException {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException | InstantiationException

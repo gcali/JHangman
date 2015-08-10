@@ -13,11 +13,30 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import rmi_interface.ClientCallbackRMI;
 
 /**
- * @author giovanni
+ * Implementation of {@link ClientCallbackRMI}; this implementation
+ * adheres to the observer and java bean pattern.
+ * 
+ * Its addition to the implemented interface are mainly the capability
+ * of accessing a {@link List} view of the game data and of adding
+ * listeners for its properties.
+ * <p />
+ * The following
+ * are valid properties:
+ * <ul>
+ *  <li> <b>gameList</b> the list of games, as returned from 
+ *      {@link #getGameList()}</li>
+ *  <li> <b>gamePlayers</b> the number of players of a game, as returned from
+ *      {@link #getGamePlayers(String)}</li>
+ * </ul>
+ * @author gcali
  *
  */
 public class GameListCallback implements ClientCallbackRMI {
     
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     /**
      * The data of the open games; currently, to each game is associated
      * its number of players
@@ -114,8 +133,7 @@ public class GameListCallback implements ClientCallbackRMI {
 
     /**
      * Adds a new listener for property change events; a list of the properties
-     * is available in 
-     * {@link #addPropertyChangeListener(String, PropertyChangeListener)}
+     * is available in {@link GameListCallback}
      * @param listener
      */
     public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -123,14 +141,8 @@ public class GameListCallback implements ClientCallbackRMI {
     }
 
     /**
-     * Adds a new {@code listener} for property change events. The following
-     * are valid properties:
-     * <ul>
-     *  <li> <b>gameList</b> the list of games, as returned from 
-     *      {@link #getGameList()}</li>
-     *  <li> <b>gamePlayers</b> the number of players of a game, as returned from
-     *      {@link #getGamePlayers(String)}</li>
-     * </ul>
+     * Adds a new {@code listener} for property change events. A list of
+     * properties is available in {@link GameListCallback}
      * @param property the property to listen to
      * @param listener the listener that will be notified on property change
      */
