@@ -33,7 +33,7 @@ public class LabeledField extends Box {
     }
 
     private void initComponents(String label, boolean hiddenText) {
-        JLabel labelComponent = new JLabel(" " + label);
+        JLabel labelComponent = new JLabel(" " + label + " ");
         Font font = new Font(labelComponent.getFont().getName(), Font.BOLD | Font.ITALIC, 15);
 //        Font font = new Font(labelComponent.getFont().getName(), Font.PLAIN, 15);
         labelComponent.setFont(font);
