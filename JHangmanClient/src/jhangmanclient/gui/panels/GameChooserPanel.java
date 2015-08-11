@@ -1,13 +1,13 @@
-package jhangmanclient.gui;
+package jhangmanclient.gui.panels;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 
-
 import javax.swing.JButton;
 
 import jhangmanclient.controller.GameChooserController;
+import jhangmanclient.gui.utility.Changer;
 
 public class GameChooserPanel extends HangmanPanel {
     

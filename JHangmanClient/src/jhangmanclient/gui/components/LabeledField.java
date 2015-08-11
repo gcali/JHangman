@@ -1,4 +1,4 @@
-package jhangmanclient.gui;
+package jhangmanclient.gui.components;
 
 import java.awt.Color;
 import java.awt.Dimension;

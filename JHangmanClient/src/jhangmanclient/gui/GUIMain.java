@@ -16,6 +16,9 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.Border;
 
 import jhangmanclient.controller.AuthController;
+import jhangmanclient.gui.panels.AuthPanel;
+import jhangmanclient.gui.panels.GameChooserPanel;
+import jhangmanclient.gui.utility.ChangeMainFrame;
 import rmi_interface.RMIServer;
 
 public class GUIMain {

@@ -1,11 +1,11 @@
-package jhangmanclient.gui;
+package jhangmanclient.gui.utility;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.JFrame;
 
-class ChangeMainFrame implements Changer {
+public class ChangeMainFrame implements Changer {
     private Map<String, JFrame> frames = 
             new ConcurrentHashMap<String, JFrame>();
     private JFrame currentlyVisible = null;

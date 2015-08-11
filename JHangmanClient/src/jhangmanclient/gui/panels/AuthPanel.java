@@ -1,4 +1,4 @@
-package jhangmanclient.gui;
+package jhangmanclient.gui.panels;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,6 +13,9 @@ import jhangmanclient.controller.AuthController;
 import jhangmanclient.controller.GameChooserController;
 import jhangmanclient.controller.LoginResult;
 import jhangmanclient.controller.RegistrationResult;
+import jhangmanclient.gui.components.LabeledField;
+import jhangmanclient.gui.components.LogInRegisterButtons;
+import jhangmanclient.gui.utility.Changer;
 
 /**
  * 

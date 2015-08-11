@@ -1,4 +1,4 @@
-package jhangmanclient.gui;
+package jhangmanclient.gui.panels;
 
 import java.awt.LayoutManager;
 
