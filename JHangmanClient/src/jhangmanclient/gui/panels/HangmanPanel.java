@@ -38,7 +38,7 @@ public class HangmanPanel extends JPanel {
     protected void showMessageDialog(String message) {
         JOptionPane.showMessageDialog(this, 
                                       message, 
-                                      "Error", 
+                                      "Message", 
                                       JOptionPane.INFORMATION_MESSAGE); 
     }
 
