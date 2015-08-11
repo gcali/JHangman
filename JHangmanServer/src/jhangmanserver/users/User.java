@@ -84,4 +84,9 @@ public class User {
         System.out.println(user.isPasswordCorrect(wrongPassword));
         
     } 
+    
+    public synchronized void logOut() {
+        this.setLoggedIn(false);
+        this.removeCallback();
+    }
 }

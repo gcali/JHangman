@@ -1,5 +1,6 @@
 package jhangmanclient.controller;
 
+import java.rmi.NoSuchObjectException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
@@ -15,15 +16,10 @@ public class AuthController {
 
     private RMIServer server;
     private GameListCallback callback;
-    private ClientCallbackRMI exportedCallback;
     
     public AuthController(RMIServer server) throws RemoteException {
         this.server = server;
-        this.callback = new GameListCallback();
-        this.exportedCallback = 
-                (ClientCallbackRMI) UnicastRemoteObject.exportObject(
-                        this.callback, 0
-                );
+        this.callback = null;//new GameListCallback();
     }
     
     
@@ -34,14 +30,15 @@ public class AuthController {
 
         try {
             int cookie;
+            ClientCallbackRMI exportedCallback = this.renewCallback();
             if (!forced) {
                 cookie = this.server.logIn(nick, 
                                            password, 
-                                           this.exportedCallback);
+                                           exportedCallback);
             } else {
                 cookie = this.server.forceLogIn(nick, 
                                                 password, 
-                                                this.exportedCallback);
+                                                exportedCallback);
             }
             GameChooserController gameChooserController = 
                     new GameChooserController(this.server, nick, cookie);
@@ -64,6 +61,29 @@ public class AuthController {
         } 
     }
     
+    private ClientCallbackRMI renewCallback() throws RemoteException {
+        if (this.callback != null) {
+            this.destroyCallback();
+        }
+        this.callback = new GameListCallback();
+        return (ClientCallbackRMI) UnicastRemoteObject.exportObject(
+                    this.callback, 
+                    0
+               );
+    }
+
+
+    private void destroyCallback() {
+        try {
+            UnicastRemoteObject.unexportObject(this.callback, true);
+        } catch (NoSuchObjectException e) {
+            System.err.println("Couldn't unexport callback; ignoring the error");
+        }
+        this.callback = null;
+        
+    }
+
+
     public RegistrationResult handleRegistration(String user, String password) 
             throws RemoteException {
         try {

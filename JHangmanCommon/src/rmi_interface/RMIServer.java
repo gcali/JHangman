@@ -28,4 +28,5 @@ import java.rmi.RemoteException;
         public void register(String nick, String password)
             throws UserAlreadyRegisteredException,
                    RemoteException;
+        
     }

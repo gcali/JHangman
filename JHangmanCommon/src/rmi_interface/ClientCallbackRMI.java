@@ -3,8 +3,6 @@ package rmi_interface;
 import java.io.Serializable;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.List;
-import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map;
 
 public interface ClientCallbackRMI extends Remote, Serializable {
