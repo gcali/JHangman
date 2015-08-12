@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 
 import rmi_interface.RMIServer;
 import jhangmanserver.remote.ConcurrentRMIServer;
+import jhangmanserver.remote.ConcurrentTCPServer;
 
 public class ServerLauncher {
 
@@ -25,7 +26,11 @@ public class ServerLauncher {
             System.err.println("Couldn't launch the server; connection error");
             throw new RuntimeException(e);
         }
-
-    }
-
+        
+        try {
+            new ConcurrentTCPServer(server).run(); 
+        } catch (Throwable t) {
+            server.unexport();
+        } 
+    } 
 }

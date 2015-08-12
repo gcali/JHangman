@@ -80,6 +80,8 @@ public class GUIMain {
     }
     
     public static void main(String[] args) throws RemoteException {
+        
+        String hostName = "localhost";
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException | InstantiationException
@@ -88,7 +90,8 @@ public class GUIMain {
         }
         Registry registry = null;
         try {
-            registry = LocateRegistry.getRegistry(RMIServer.defaultPort);
+            registry = LocateRegistry.getRegistry(hostName, 
+                                                  RMIServer.defaultPort);
         } catch (RemoteException e) {
             System.err.println("Connection error");
             showTopFatalError("Couldn't reach the server");
