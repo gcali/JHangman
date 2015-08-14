@@ -24,7 +24,12 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
     private Map<String,User> userData = new ConcurrentHashMap<String, User>(); 
 	private Registry registry = null;
     private String bindingName;
+    private GameListHandler gameListHandler;
 	private static AtomicInteger cookies = new AtomicInteger();
+	
+	public ConcurrentRMIServer(GameListHandler gameListHandler) {
+	    this.gameListHandler = gameListHandler;
+	}
 
     public void export(String bindingName, int port) throws RemoteException {
         if (this.registry == null) {
@@ -68,8 +73,9 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
             }
             cookie = cookies.getAndIncrement();
             user.setCookie(cookie);
-            user.setCallback(notifier);
+//            user.setCallback(notifier);
             user.setLoggedIn(true);
+            gameListHandler.addCallback(nick, notifier);
         }
         return cookie;
     }
@@ -105,6 +111,7 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
         synchronized(user) {
             if (user.isLoggedIn() && user.checkCookie(cookie)) {
                 user.logOut();
+                this.gameListHandler.removeCallback(nick);
             } else {
                 throw new UserNotLoggedInException();
             }
@@ -121,12 +128,14 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
         }
     }
     
-    public boolean isLoggedIn(String nick) {
+    public boolean isLoggedIn(String nick, int cookie) {
         User user = this.userData.get(nick);
         if (user == null) {
             return false;
         } else {
-            return user.isLoggedIn();
+            synchronized(user) {
+                return user.checkCookie(cookie) && user.isLoggedIn();
+            }
         }
     }
 

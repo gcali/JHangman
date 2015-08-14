@@ -5,6 +5,7 @@ import java.rmi.RemoteException;
 import rmi_interface.RMIServer;
 import jhangmanserver.remote.ConcurrentRMIServer;
 import jhangmanserver.remote.ConcurrentTCPServer;
+import jhangmanserver.remote.GameListHandler;
 
 public class ServerLauncher {
 
@@ -18,7 +19,8 @@ public class ServerLauncher {
         } catch (ArrayIndexOutOfBoundsException e) {
             
         }
-        ConcurrentRMIServer server = new ConcurrentRMIServer();
+        GameListHandler gameListHandler = new GameListHandler();
+        ConcurrentRMIServer server = new ConcurrentRMIServer(gameListHandler);
         
         try {
             server.export(name,port);
@@ -28,7 +30,7 @@ public class ServerLauncher {
         }
         
         try {
-            new ConcurrentTCPServer(server).run(); 
+            new ConcurrentTCPServer(server, gameListHandler).run(); 
         } catch (Throwable t) {
             server.unexport();
         } 

@@ -9,7 +9,7 @@ public class User {
     private String nick;
     private String hashedPassword;
     private StrongPasswordEncryptor encryptor = new StrongPasswordEncryptor();
-    private ClientCallbackRMI callback = null;
+//    private ClientCallbackRMI callback = null;
     private int cookie;
     private boolean loggedIn = false;
     
@@ -36,17 +36,17 @@ public class User {
         return this.encryptor.checkPassword(password, this.hashedPassword);
     }
     
-    public synchronized void setCallback(ClientCallbackRMI callback) {
-        this.callback = callback;
-    }
+//    public synchronized void setCallback(ClientCallbackRMI callback) {
+//        this.callback = callback;
+//    }
     
-    public synchronized void removeCallback() {
-        this.callback = null;
-    }
-    
-    public synchronized ClientCallbackRMI getCallback(ClientCallbackRMI callback) {
-        return this.callback;
-    }
+//    public synchronized void removeCallback() {
+//        this.callback = null;
+//    }
+//    
+//    public synchronized ClientCallbackRMI getCallback(ClientCallbackRMI callback) {
+//        return this.callback;
+//    }
     
     public synchronized void setCookie(int cookie) {
         this.cookie = cookie;
@@ -87,6 +87,6 @@ public class User {
     
     public synchronized void logOut() {
         this.setLoggedIn(false);
-        this.removeCallback();
+//        this.removeCallback();
     }
 }

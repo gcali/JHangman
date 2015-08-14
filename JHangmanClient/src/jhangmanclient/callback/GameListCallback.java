@@ -11,6 +11,7 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import rmi_interface.ClientCallbackRMI;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Implementation of {@link ClientCallbackRMI}; this implementation
@@ -73,6 +74,18 @@ public class GameListCallback implements ClientCallbackRMI {
         this.gameData.put(name, number); 
         this.propertySupport.firePropertyChange("gamePlayers", oldValue, newValue);
     }
+
+    @Override
+    public void incrementGamePlayers(String game) throws RemoteException {
+        throw new NotImplementedException();
+        
+    }
+
+    @Override
+    public void decrementGamePlayers(String game) throws RemoteException {
+        throw new NotImplementedException(); 
+    }
+
     
     /**
      * Returns the number of players for the given {@code game}; if the

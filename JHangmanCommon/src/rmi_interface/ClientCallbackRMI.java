@@ -26,6 +26,22 @@ public interface ClientCallbackRMI extends Remote, Serializable {
     public void setGamePlayers(String game, int number) throws RemoteException;
 
     /**
+     * Increments the number of players of a {@code game} in the game list; 
+     * if the game doesn't exist, does nothing
+     * @param game      the name of the game
+     * @throws RemoteException
+     */
+    public void incrementGamePlayers(String game) throws RemoteException;
+
+    /**
+     * Decrements the number of players of a {@code game} in the game list; 
+     * if the game doesn't exist, does nothing
+     * @param game      the name of the game
+     * @throws RemoteException
+     */
+    public void decrementGamePlayers(String game) throws RemoteException;
+
+    /**
      * Removes a {@code game} from the list, if present
      * @param game  the name of the game
      * @throws RemoteException
