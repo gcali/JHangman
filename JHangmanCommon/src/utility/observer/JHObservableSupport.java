@@ -6,6 +6,9 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 //Derived from 
 //http://stackoverflow.com/questions/13362636/a-generic-observer-pattern-in-java
@@ -22,8 +25,8 @@ import java.util.Map;
  */
 public class JHObservableSupport {
     
-    private final Map<Class<? extends JHEvent>, List<ObserverInfo>> map = 
-            new LinkedHashMap<Class<? extends JHEvent>, List<ObserverInfo>>();
+    private final Map<Class<? extends JHEvent>, Queue<ObserverInfo>> map = 
+            new ConcurrentHashMap<Class<? extends JHEvent>, Queue<ObserverInfo>>();
 
     /**
      * Adds a new observer {@code o} to the queue; the observer will be
@@ -59,12 +62,12 @@ public class JHObservableSupport {
                     @SuppressWarnings("unchecked")
                     Class<? extends JHEvent> subscribeTo = 
                             (Class<? extends JHEvent>) parameterTypes[0];
-                    List<ObserverInfo> observerInfos = map.get(subscribeTo);
+                    this.map.putIfAbsent(subscribeTo, 
+                                         new ConcurrentLinkedQueue<ObserverInfo>());
+                    Queue<ObserverInfo> observerInfos = map.get(subscribeTo);
                     if (observerInfos == null) {
                         //if no other observer expects this kind of event, create
                         //a new queue
-                        map.put(subscribeTo, observerInfos = 
-                            new ArrayList<ObserverInfo>());
                     }
                     //adds the method to its observer queue
                     observerInfos.add(new ObserverInfo(method, o)); 
@@ -78,7 +81,7 @@ public class JHObservableSupport {
      * @param o the observer to be removed
      */
     public void remove(JHObserver o) {
-        for (List<ObserverInfo> observerInfos : map.values()) {
+        for (Queue<ObserverInfo> observerInfos : map.values()) {
             Iterator<ObserverInfo> iterator = observerInfos.iterator();
             while (iterator.hasNext()) {
                 ObserverInfo observer = iterator.next();
@@ -90,10 +93,10 @@ public class JHObservableSupport {
     }
 
     public <E extends JHEvent>void publish(E o) {
-        for (Map.Entry<Class<? extends JHEvent>,List<ObserverInfo>> entry 
+        for (Map.Entry<Class<? extends JHEvent>,Queue<ObserverInfo>> entry 
                 : map.entrySet()) {
             if (entry.getKey().isAssignableFrom(o.getClass())) {
-                List<ObserverInfo> observerInfos = entry.getValue();
+                Queue<ObserverInfo> observerInfos = entry.getValue();
                 if (observerInfos != null) {
                     //if the event has been registered at least once
                     for (ObserverInfo observerInfo : observerInfos) {
