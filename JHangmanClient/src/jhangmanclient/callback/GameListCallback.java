@@ -157,6 +157,11 @@ public class GameListCallback implements ClientCallbackRMI,
         return number.get();
     }
 
+    /**
+     * {@inheritDoc}
+     * 
+     * For the observable events, look at {@link GameListCallback}
+     */
     @Override
     public void addObserver(JHObserver observer) {
         this.observableSupport.add(observer); 
