@@ -3,12 +3,14 @@ package jhangmanclient.callback;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.rmi.RemoteException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import rmi_interface.ClientCallbackRMI;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -42,12 +44,12 @@ public class GameListCallback implements ClientCallbackRMI {
      * The data of the open games; currently, to each game is associated
      * its number of players
      */
-    private Map<String, Integer> gameData = 
-            new ConcurrentSkipListMap<String, Integer>();
+    private Map<String, AtomicInteger> gameData = 
+            new ConcurrentSkipListMap<String, AtomicInteger>();
     /**
      * Property support object to facilitate adding listeners
      */
-    PropertyChangeSupport propertySupport;
+//    PropertyChangeSupport propertySupport;
 
     /**
      * {@inheritDoc}
@@ -55,6 +57,7 @@ public class GameListCallback implements ClientCallbackRMI {
     @Override
     public void addGame(String name) throws RemoteException {
         this.setGamePlayers(name, 0);
+        //TODO add observable event
     }
 
     /**
@@ -62,28 +65,44 @@ public class GameListCallback implements ClientCallbackRMI {
      */
     @Override
     public void setGamePlayers(String name, int number) throws RemoteException {
-        Integer oldNumber = this.gameData.get(name);
+        AtomicInteger oldNumber = this.gameData.get(name);
         SimpleImmutableEntry<String, Integer> oldValue;
         if (oldNumber == null) {
             oldValue = null;
+            this.gameData.put(name, new AtomicInteger(number)); 
         } else {
-            oldValue = new SimpleImmutableEntry<String, Integer>(name, oldNumber);
+            oldValue = new SimpleImmutableEntry<String, Integer>(name, 
+                                                                 oldNumber.get());
+            oldNumber.set(number);
         }
-        SimpleImmutableEntry<String, Integer> newValue = 
-                new SimpleImmutableEntry<String, Integer>(name, number);
-        this.gameData.put(name, number); 
-        this.propertySupport.firePropertyChange("gamePlayers", oldValue, newValue);
+//        SimpleImmutableEntry<String, Integer> newValue = 
+//                new SimpleImmutableEntry<String, Integer>(name, number);
+//        this.propertySupport.firePropertyChange("gamePlayers", oldValue, newValue);
+        //TODO add observable event
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void incrementGamePlayers(String game) throws RemoteException {
-        throw new NotImplementedException();
-        
+        AtomicInteger oldNumber = this.gameData.get(game);
+        if (oldNumber != null) {
+            oldNumber.incrementAndGet();
+        } 
+        //TODO add observable event
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void decrementGamePlayers(String game) throws RemoteException {
-        throw new NotImplementedException(); 
+        AtomicInteger oldNumber = this.gameData.get(game);
+        if (oldNumber != null) {
+            oldNumber.decrementAndGet();
+        } 
+        //TODO add observable event
     }
 
     
@@ -97,11 +116,11 @@ public class GameListCallback implements ClientCallbackRMI {
      */
     public SimpleImmutableEntry<String, Integer> getGamePlayers(String game)
         throws NoGameException {
-        Integer number = this.gameData.get(game);
+        AtomicInteger number = this.gameData.get(game);
         if (number == null) {
             throw new NoGameException("No game found: " + game);
         } 
-        return new SimpleImmutableEntry<String, Integer>(game, number);
+        return new SimpleImmutableEntry<String, Integer>(game, number.get());
     }
 
     /**
@@ -109,14 +128,15 @@ public class GameListCallback implements ClientCallbackRMI {
      */
     @Override
     public void removeGame(String name) throws RemoteException {
-        Integer number = this.gameData.remove(name);
-        if (number != null) {
-            this.propertySupport.firePropertyChange(
-                    "gameData", 
-                    null, 
-                    Collections.unmodifiableSet(this.gameData.entrySet())
-            );
-        }
+        AtomicInteger number = this.gameData.remove(name);
+        //TODO add observable event
+//        if (number != null) {
+//            this.propertySupport.firePropertyChange(
+//                    "gameData", 
+//                    null, 
+//                    Collections.unmodifiableSet(this.gameData.entrySet())
+//            );
+//        }
     }
 
     /**
@@ -125,12 +145,17 @@ public class GameListCallback implements ClientCallbackRMI {
     @Override
     public void setGameData(Map<String, Integer> gameList)
         throws RemoteException {
-        this.gameData = new ConcurrentSkipListMap<String, Integer>(gameList); 
-        this.propertySupport.firePropertyChange(
-                "gameList", 
-                null, 
-                Collections.unmodifiableSet(this.gameData.entrySet())
-        );
+        this.gameData = new ConcurrentSkipListMap<String, AtomicInteger>(); 
+        for (Map.Entry<String, Integer> entry : gameList.entrySet()) {
+            this.gameData.put(entry.getKey(), 
+                              new AtomicInteger(entry.getValue()));
+        }
+        //TODO add observable event
+//        this.propertySupport.firePropertyChange(
+//                "gameList", 
+//                null, 
+//                Collections.unmodifiableSet(this.gameData.entrySet())
+//        );
     }
     
     /**
@@ -139,9 +164,16 @@ public class GameListCallback implements ClientCallbackRMI {
      * @return  the list of the games
      */
     public List<Map.Entry<String, Integer>> getGameList() {
-        return new ArrayList<Map.Entry<String,Integer>>(
-                this.gameData.entrySet()
-        );
+        List<Map.Entry<String, Integer>> gameList = 
+                new ArrayList<Map.Entry<String,Integer>>();
+        for (Map.Entry<String, AtomicInteger> entry : this.gameData.entrySet()) {
+            gameList.add(
+                    new AbstractMap.SimpleEntry<String, Integer>(
+                        entry.getKey(), entry.getValue().get()
+                    )
+            );
+        }
+        return gameList;
     }
 
     /**
@@ -150,7 +182,7 @@ public class GameListCallback implements ClientCallbackRMI {
      * @param listener
      */
     public void addPropertyChangeListener(PropertyChangeListener listener) {
-        this.propertySupport.addPropertyChangeListener(listener);
+//        this.propertySupport.addPropertyChangeListener(listener);
     }
 
     /**
@@ -161,7 +193,7 @@ public class GameListCallback implements ClientCallbackRMI {
      */
     public void addPropertyChangeListener(String property,
                                           PropertyChangeListener listener) {
-        this.propertySupport.addPropertyChangeListener(property, listener);
+//        this.propertySupport.addPropertyChangeListener(property, listener);
     }
 
 }

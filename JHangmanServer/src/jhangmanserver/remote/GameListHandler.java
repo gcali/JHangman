@@ -41,6 +41,7 @@ public class GameListHandler {
         }
     }
     
+    
     public void joinGame(String nick, String name) {
         
     }
