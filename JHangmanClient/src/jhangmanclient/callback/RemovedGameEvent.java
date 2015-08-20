@@ -2,7 +2,7 @@ package jhangmanclient.callback;
 
 import utility.observer.JHEvent;
 
-public class RemovedGameEvent implements JHEvent { 
+public class RemovedGameEvent implements GameDataChangedEvent { 
     
     private String name;
 

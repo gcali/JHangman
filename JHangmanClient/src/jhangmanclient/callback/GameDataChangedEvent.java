@@ -2,6 +2,6 @@ package jhangmanclient.callback;
 
 import utility.observer.JHEvent;
 
-public class GameDataChangedEvent implements JHEvent {
+public interface GameDataChangedEvent extends JHEvent {
 
 }

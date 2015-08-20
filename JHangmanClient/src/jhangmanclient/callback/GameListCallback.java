@@ -18,18 +18,10 @@ import utility.observer.JHObserver;
 /**
  * Implementation of {@link ClientCallbackRMI}; this implementation adheres
  * to the observer pattern, via the {@link JHObservable} interface.
- * 
- * Its additions to {@link ClientCallbackRMI} are mainly the capability
- * of accessing a {@link List} view of the game data and of adding
- * observers for its events.
  * <p />
- * The following are valid events:
- * <ul>
- *  <li> {@link NewGameEvent} a new game has been opened </li>
- *  <li> {@link RemovedGameEvent} a game has been removed from the list </li>
- *  <li> {@link GameDataChangedEvent} the entire game data should
- *                                    be refreshed </li>
- * </ul>
+ * It exposes its data through the methods of the interface 
+ * {@link GameListViewer}
+ * 
  * @author gcali
  *
  */
@@ -65,15 +57,11 @@ public class GameListCallback implements ClientCallbackRMI,
      */
     @Override
     public void setGamePlayers(String name, int number) throws RemoteException {
-        AtomicInteger oldNumber = this.gameData.get(name);
-        SimpleImmutableEntry<String, Integer> oldValue;
-        if (oldNumber == null) {
-            oldValue = null;
+        AtomicInteger gameValue = this.gameData.get(name);
+        if (gameValue == null) {
             this.gameData.put(name, new AtomicInteger(number)); 
         } else {
-            oldValue = new SimpleImmutableEntry<String, Integer>(name, 
-                                                                 oldNumber.get());
-            oldNumber.set(number);
+            gameValue.set(number);
         }
         this.observableSupport.publish(new GamePlayersChangedEvent(name));
     }
@@ -109,7 +97,7 @@ public class GameListCallback implements ClientCallbackRMI,
      */
     @Override
     public void removeGame(String name) throws RemoteException {
-        AtomicInteger number = this.gameData.remove(name);
+        this.gameData.remove(name);
         this.observableSupport.publish(new RemovedGameEvent(name));
     }
 
@@ -124,7 +112,7 @@ public class GameListCallback implements ClientCallbackRMI,
             this.gameData.put(entry.getKey(), 
                               new AtomicInteger(entry.getValue()));
         }
-        this.observableSupport.publish(new GameDataChangedEvent());
+        this.observableSupport.publish(new GameDataInvalidatedEvent());
     }
     
     /**
@@ -160,7 +148,7 @@ public class GameListCallback implements ClientCallbackRMI,
     /**
      * {@inheritDoc}
      * 
-     * For the observable events, look at {@link GameListCallback}
+     * For the observable events, look at {@link GameListViewer}
      */
     @Override
     public void addObserver(JHObserver observer) {
