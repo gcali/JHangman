@@ -9,7 +9,6 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import jhangmanclient.game.GameListViewer;
 import rmi_interface.ClientCallbackRMI;
 import utility.observer.JHObservable;
 import utility.observer.JHObservableSupport;

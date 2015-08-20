@@ -1,10 +1,9 @@
-package jhangmanclient.game;
+package jhangmanclient.callback;
 
 import java.util.List;
 import java.util.Map;
 
 import utility.observer.JHObservable;
-import jhangmanclient.callback.NoGameException;
 
 /**
  * Interface to view data about the open games and their players.

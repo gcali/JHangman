@@ -5,7 +5,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 import jhangmanclient.callback.GameListCallback;
-import jhangmanclient.game.GameListViewer;
+import jhangmanclient.callback.GameListViewer;
 import rmi_interface.ClientCallbackRMI;
 import rmi_interface.RMIServer;
 import rmi_interface.UserAlreadyLoggedInException;
