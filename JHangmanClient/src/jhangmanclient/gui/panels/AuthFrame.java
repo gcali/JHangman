@@ -18,7 +18,6 @@ import jhangmanclient.gui.components.LabeledField;
 import jhangmanclient.gui.components.LogInRegisterButtons;
 import jhangmanclient.gui.utility.ChangeMainFrame;
 import jhangmanclient.gui.utility.Changer;
-import jhangmanclient.gui.utility.FrameAdapter;
 
 /**
  * 

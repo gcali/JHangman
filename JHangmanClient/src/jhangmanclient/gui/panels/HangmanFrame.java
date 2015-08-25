@@ -3,12 +3,13 @@ package jhangmanclient.gui.panels;
 import java.awt.Dimension;
 import java.awt.LayoutManager;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.border.Border;
 
-import jhangmanclient.gui.utility.FrameAdapter;
 
 public abstract class HangmanFrame extends JFrame {
 
@@ -25,7 +26,7 @@ public abstract class HangmanFrame extends JFrame {
         super("Hangman");
         if (borderSize > 0) {
             JPanel panel = new JPanel();
-            panel.setBorder(FrameAdapter.createEmptyBorder(borderSize));
+            panel.setBorder(createEmptyBorder(borderSize));
             this.setContentPane(panel); 
         }
         initLayout();
@@ -77,6 +78,13 @@ public abstract class HangmanFrame extends JFrame {
                 null, 
                 options, 
                 options[0]);
+    }
+
+    protected static Border createEmptyBorder(int borderSize) {
+        return BorderFactory.createEmptyBorder(borderSize, 
+                                               borderSize, 
+                                               borderSize, 
+                                               borderSize); 
     }
 
 }

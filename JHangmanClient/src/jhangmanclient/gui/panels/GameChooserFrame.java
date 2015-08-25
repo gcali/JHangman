@@ -9,7 +9,6 @@ import javax.swing.JFrame;
 
 import jhangmanclient.controller.GameChooserController;
 import jhangmanclient.gui.utility.Changer;
-import jhangmanclient.gui.utility.FrameAdapter;
 
 public class GameChooserFrame extends HangmanFrame {
     
