@@ -1,7 +1,6 @@
 package jhangmanclient.gui.panels;
 
 import java.awt.Dimension;
-import java.awt.LayoutManager;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -37,6 +36,7 @@ public abstract class HangmanFrame extends JFrame {
         minimumHeight = this.getHeight();
         this.setMinimumSize(new Dimension(minimumWidth, minimumHeight));
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setLocationRelativeTo(null);
     }
     
     protected void initComponents() {

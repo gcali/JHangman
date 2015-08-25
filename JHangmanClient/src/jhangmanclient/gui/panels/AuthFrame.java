@@ -5,19 +5,16 @@ import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 import java.util.function.Consumer;
 
-import javax.swing.BoxLayout;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import utility.ReturnCodeObj;
 import jhangmanclient.controller.AuthController;
 import jhangmanclient.controller.GameChooserController;
 import jhangmanclient.controller.LoginResult;
 import jhangmanclient.controller.RegistrationResult;
 import jhangmanclient.gui.components.LabeledField;
 import jhangmanclient.gui.components.LogInRegisterButtons;
-import jhangmanclient.gui.utility.ChangeMainFrame;
 import jhangmanclient.gui.utility.Changer;
+import utility.ReturnCodeObj;
 
 /**
  * 
@@ -65,15 +62,8 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
     private Consumer<GameChooserController> gameControllerSetter;
 
     /**
-     * Private constructor to force the user to call the factory method
-     */
-    private AuthFrame() {
-        super();
-    }
-    
-    /**
-     * Factory method to create an {@link AuthFrame}; the panel is created,
-     * its components initialized and positioned and its visibility set to false
+     * Create a new {@link AuthFrame}; its components are initialized 
+     * and positioned and its visibility is set to false
      * @param authController        the controller to interface with the actual
      *                              data for authentication
      * @param gameControllerSetter  the procedure to be called on a new
@@ -86,21 +76,12 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
             AuthController authController, 
             Consumer<GameChooserController> gameControllerSetter,
             Changer changer) {
-        super();
+        super(10);
         this.authController = authController;
         this.gameControllerSetter = gameControllerSetter;
         this.changer = changer;
+        this.setVisible(false);
     }
-    
-//    public static JFrame createFrame(
-//            AuthController authController,
-//            Consumer<GameChooserController> gameControllerSetter, 
-//            Changer changer) {
-//        AuthFrame panel = createPanel(authController, gameControllerSetter);
-//        panel.setBorder(FrameAdapter.createEmptyBorder(10));
-//        panel.setChanger(changer);
-//        return FrameAdapter.createFrameFromContainer(panel);
-//    }
     
     /**
      * Handle the initializations of the different internal components
@@ -209,7 +190,7 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
             showErrorDialog("User data invalid");
             break;
         case SUCCESS:
-            handleSuccesfullLogin(retval.getObj()); 
+            handleSuccesfulLogin(retval.getObj()); 
         }
     }
 
@@ -218,7 +199,9 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
      * @param gameChooserController the controller to set for the next gaming
      *                              phase
      */
-    private void handleSuccesfullLogin(GameChooserController gameChooserController) {
+    private void handleSuccesfulLogin(
+            GameChooserController gameChooserController
+    ) {
         this.nickComponent.clear();
         this.gameControllerSetter.accept(gameChooserController);
         this.changer.changeFrame(GameChooserFrame.idString);

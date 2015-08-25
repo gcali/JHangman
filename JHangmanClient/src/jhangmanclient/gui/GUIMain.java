@@ -1,19 +1,15 @@
 package jhangmanclient.gui; 
 
-import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.HeadlessException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
-import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.border.Border;
 
 import jhangmanclient.controller.AuthController;
 import jhangmanclient.gui.panels.AuthFrame;

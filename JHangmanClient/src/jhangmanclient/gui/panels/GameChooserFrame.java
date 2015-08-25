@@ -5,7 +5,6 @@ import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 
 import javax.swing.JButton;
-import javax.swing.JFrame;
 
 import jhangmanclient.controller.GameChooserController;
 import jhangmanclient.gui.utility.Changer;
@@ -22,8 +21,9 @@ public class GameChooserFrame extends HangmanFrame {
     private GameChooserController gameChooserController;
 
     public GameChooserFrame(Changer changer) {
-        super();
+        super(10);
         this.changer = changer;
+        this.setVisible(false);
     }
     
     @Override
