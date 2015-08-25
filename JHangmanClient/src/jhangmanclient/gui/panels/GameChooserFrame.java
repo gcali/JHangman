@@ -5,11 +5,13 @@ import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 
 import javax.swing.JButton;
+import javax.swing.JFrame;
 
 import jhangmanclient.controller.GameChooserController;
 import jhangmanclient.gui.utility.Changer;
+import jhangmanclient.gui.utility.FrameAdapter;
 
-public class GameChooserPanel extends HangmanPanel {
+public class GameChooserFrame extends HangmanFrame {
     
     public final static String idString = "gameChooser";
     
@@ -20,11 +22,16 @@ public class GameChooserPanel extends HangmanPanel {
     Changer changer = null;
     private GameChooserController gameChooserController;
 
-    public GameChooserPanel() {
+    public GameChooserFrame(Changer changer) {
         super();
+        this.changer = changer;
+    }
+    
+    @Override
+    protected void initComponents() {
         JButton button = new JButton("Log out");
         this.add(button);
-        button.addActionListener(e -> this.changer.changePanel("auth"));
+        button.addActionListener(e -> this.changer.changeFrame("auth"));
         button.addActionListener(new ActionListener() {
             
             @Override
@@ -36,13 +43,9 @@ public class GameChooserPanel extends HangmanPanel {
                 }
                 
             }
-        });
+        }); 
     }
     
-    public void setChanger(Changer changer) {
-        this.changer = changer;
-    }
-
     public void setGameController(GameChooserController controller) {
         this.gameChooserController = controller;
     } 

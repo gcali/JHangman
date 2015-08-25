@@ -2,6 +2,7 @@ package jhangmanclient.controller;
 
 import java.rmi.RemoteException;
 
+import jhangmanclient.callback.GameListViewer;
 import development_support.NotImplementedException;
 import rmi_interface.RMIServer;
 import rmi_interface.UserNotLoggedInException;
@@ -13,11 +14,16 @@ public class GameChooserController {
     private String nick;
     private int cookie;
     private int logoutAction;
+    private GameListViewer gameListViewer;
 
-    public GameChooserController(RMIServer server, String nick, int cookie) {
+    public GameChooserController(RMIServer server, 
+                                 String nick, 
+                                 int cookie, 
+                                 GameListViewer viewer) {
         this.server = server;
         this.nick = nick;
         this.cookie = cookie;
+        this.gameListViewer = viewer;
         this.logoutAction = ActionExecutor.getActionExecutor().addAction(
                 new Runnable() { 
             @Override
@@ -41,8 +47,7 @@ public class GameChooserController {
             System.err.println("User not logged in; ignoring the error");
         }
         
-    }
-
+    } 
 
     public void handleLogout() throws RemoteException {
         ActionExecutor.getActionExecutor().removeAction(this.logoutAction);
@@ -55,6 +60,10 @@ public class GameChooserController {
     
     public PlayerController joinGame(String name) {
         throw new NotImplementedException();
+    }
+    
+    public GameListViewer getViewer() {
+        return this.gameListViewer;
     }
 
 }

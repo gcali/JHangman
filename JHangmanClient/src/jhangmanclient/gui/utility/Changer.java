@@ -2,6 +2,6 @@ package jhangmanclient.gui.utility;
 
 public interface Changer {
 
-    public void changePanel(String id);
+    public void changeFrame(String id);
 
 }

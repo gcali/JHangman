@@ -16,8 +16,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.Border;
 
 import jhangmanclient.controller.AuthController;
-import jhangmanclient.gui.panels.AuthPanel;
-import jhangmanclient.gui.panels.GameChooserPanel;
+import jhangmanclient.gui.panels.AuthFrame;
+import jhangmanclient.gui.panels.GameChooserFrame;
 import jhangmanclient.gui.utility.ChangeMainFrame;
 import rmi_interface.RMIServer;
 
@@ -36,39 +36,16 @@ public class GUIMain {
     }
 
     private void createPanels() {
-        int borderSize = 10;
-        Border emptyBorder = BorderFactory.createEmptyBorder(borderSize, 
-                                                             borderSize, 
-                                                             borderSize, 
-                                                             borderSize);
-        GameChooserPanel gameChooserPanel = new GameChooserPanel();
-        gameChooserPanel.setBorder(emptyBorder);
-        AuthPanel authPanel = AuthPanel.create(
+        ChangeMainFrame changer = new ChangeMainFrame();
+        GameChooserFrame gameChooserFrame = new GameChooserFrame(changer);
+        AuthFrame authFrame = new AuthFrame(
                 authController, 
-                controller -> gameChooserPanel.setGameController(controller));
-        authPanel.setBorder(emptyBorder);
-        JFrame gameFrame = createFrameFromPanel(gameChooserPanel);
-        JFrame authFrame = createFrameFromPanel(authPanel);
-        ChangeMainFrame changer = 
-                new ChangeMainFrame();
-        changer.addPanel(gameFrame, "gameChooser");
+                controller -> gameChooserFrame.setGameController(controller),
+                changer);
+        changer.addPanel(gameChooserFrame, "gameChooser");
         changer.addPanel(authFrame, "auth");
-        this.starter = () -> changer.changePanel("auth");
-        authPanel.setChanger(changer);
-        gameChooserPanel.setChanger(changer); 
+        this.starter = () -> changer.changeFrame("auth");
     } 
-    
-    private static JFrame createFrameFromPanel(Container content) {
-        JFrame frame = new JFrame("JHangman");
-        frame.setContentPane(content);
-        frame.pack();
-        int minimumWidth, minimumHeight;
-        minimumWidth = frame.getWidth();
-        minimumHeight = frame.getHeight();
-        frame.setMinimumSize(new Dimension(minimumWidth, minimumHeight));
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        return frame;
-    }
     
     public void start() {
         this.starter.run();

@@ -25,7 +25,7 @@ import utility.observer.JHObserver;
  *
  */
 public class GameListCallback implements ClientCallbackRMI, 
-                                         JHObservable, GameListViewer {
+                                         GameListViewer {
     
     /**
      * 

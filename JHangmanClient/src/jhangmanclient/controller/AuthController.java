@@ -42,7 +42,10 @@ public class AuthController {
                                                 exportedCallback);
             }
             GameChooserController gameChooserController = 
-                    new GameChooserController(this.server, nick, cookie);
+                    new GameChooserController(this.server, 
+                                              nick, 
+                                              cookie, 
+                                              this.callback);
 
             return new ReturnCodeObj<LoginResult, GameChooserController>(
                     LoginResult.SUCCESS, 
@@ -96,8 +99,4 @@ public class AuthController {
             return RegistrationResult.ALREADY_REGISTERED;
         }
     }
-    
-    public GameListViewer getCallback() {
-        return this.callback;
-    } 
 }

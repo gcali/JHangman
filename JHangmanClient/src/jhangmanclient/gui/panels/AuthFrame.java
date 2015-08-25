@@ -6,6 +6,7 @@ import java.rmi.RemoteException;
 import java.util.function.Consumer;
 
 import javax.swing.BoxLayout;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import utility.ReturnCodeObj;
@@ -15,7 +16,9 @@ import jhangmanclient.controller.LoginResult;
 import jhangmanclient.controller.RegistrationResult;
 import jhangmanclient.gui.components.LabeledField;
 import jhangmanclient.gui.components.LogInRegisterButtons;
+import jhangmanclient.gui.utility.ChangeMainFrame;
 import jhangmanclient.gui.utility.Changer;
+import jhangmanclient.gui.utility.FrameAdapter;
 
 /**
  * 
@@ -24,12 +27,12 @@ import jhangmanclient.gui.utility.Changer;
  * <p/>
  * An {@code AuthPanel} correctly initialized yields its control after
  * a successful login, by changing to the panel identified by
- * {@link GameChooserPanel#idString}
+ * {@link GameChooserFrame#idString}
  * 
  * @author gcali
  *
  */
-public class AuthPanel extends HangmanPanel implements ActionListener {
+public class AuthFrame extends HangmanFrame implements ActionListener {
     
     private static final long serialVersionUID = 1L;
     
@@ -65,12 +68,12 @@ public class AuthPanel extends HangmanPanel implements ActionListener {
     /**
      * Private constructor to force the user to call the factory method
      */
-    private AuthPanel() {
+    private AuthFrame() {
         super();
     }
     
     /**
-     * Factory method to create an {@link AuthPanel}; the panel is created,
+     * Factory method to create an {@link AuthFrame}; the panel is created,
      * its components initialized and positioned and its visibility set to false
      * @param authController        the controller to interface with the actual
      *                              data for authentication
@@ -78,24 +81,34 @@ public class AuthPanel extends HangmanPanel implements ActionListener {
      *                              {@link GameChooserController} creation
      *                              to link the controller with the right
      *                              structures
-     * @return  The newly created {@link AuthPanel}
+     * @return  The newly created {@link AuthFrame}
      */
-    public static AuthPanel create(
+    public AuthFrame (
             AuthController authController, 
-            Consumer<GameChooserController> gameControllerSetter) {
-        AuthPanel panel = new AuthPanel();
-        panel.authController = authController;
-        panel.gameControllerSetter = gameControllerSetter;
-        panel.initLayout();
-        panel.initComponents();
-        return panel;
+            Consumer<GameChooserController> gameControllerSetter,
+            Changer changer) {
+        super();
+        this.authController = authController;
+        this.gameControllerSetter = gameControllerSetter;
+        this.changer = changer;
     }
+    
+//    public static JFrame createFrame(
+//            AuthController authController,
+//            Consumer<GameChooserController> gameControllerSetter, 
+//            Changer changer) {
+//        AuthFrame panel = createPanel(authController, gameControllerSetter);
+//        panel.setBorder(FrameAdapter.createEmptyBorder(10));
+//        panel.setChanger(changer);
+//        return FrameAdapter.createFrameFromContainer(panel);
+//    }
     
     /**
      * Handle the initializations of the different internal components
      * (buttons, labels and so on)
      */
-    private void initComponents() { 
+    @Override
+    protected void initComponents() { 
         this.nickComponent = new LabeledField("User", false);
         this.passwordComponent = new LabeledField("Password", true);
         this.buttons = new LogInRegisterButtons();
@@ -103,13 +116,6 @@ public class AuthPanel extends HangmanPanel implements ActionListener {
         this.add(this.nickComponent);
         this.add(this.passwordComponent);
         this.add(this.buttons); 
-    }
-
-    /**
-     * Handle initializations regarding layout
-     */
-    private void initLayout() {
-        this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS)); 
     }
 
     /**
@@ -216,7 +222,7 @@ public class AuthPanel extends HangmanPanel implements ActionListener {
     private void handleSuccesfullLogin(GameChooserController gameChooserController) {
         this.nickComponent.clear();
         this.gameControllerSetter.accept(gameChooserController);
-        this.changer.changePanel(GameChooserPanel.idString);
+        this.changer.changeFrame(GameChooserFrame.idString);
     }
 
     /**

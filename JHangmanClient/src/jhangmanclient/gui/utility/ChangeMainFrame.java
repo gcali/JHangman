@@ -28,7 +28,7 @@ public class ChangeMainFrame implements Changer {
     }
     
     @Override
-    public void changePanel(String id) {
+    public void changeFrame(String id) {
         JFrame frame = this.frames.get(id);
         if (frame != null) {
             changePanelTo(frame);

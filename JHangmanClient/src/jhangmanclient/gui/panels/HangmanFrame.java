@@ -1,31 +1,55 @@
 package jhangmanclient.gui.panels;
 
+import java.awt.Dimension;
 import java.awt.LayoutManager;
 
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-public class HangmanPanel extends JPanel {
+import jhangmanclient.gui.utility.FrameAdapter;
+
+public abstract class HangmanFrame extends JFrame {
 
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
 
-    public HangmanPanel() {
-        super();
+    public HangmanFrame() {
+        this(0);
     }
-
-    public HangmanPanel(LayoutManager layout) {
-        super(layout);
+    
+    public HangmanFrame(int borderSize) {
+        super("Hangman");
+        if (borderSize > 0) {
+            JPanel panel = new JPanel();
+            panel.setBorder(FrameAdapter.createEmptyBorder(borderSize));
+            this.setContentPane(panel); 
+        }
+        initLayout();
+        initComponents();
+        this.pack();
+        int minimumWidth, minimumHeight;
+        minimumWidth = this.getWidth();
+        minimumHeight = this.getHeight();
+        this.setMinimumSize(new Dimension(minimumWidth, minimumHeight));
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
-
-    public HangmanPanel(boolean isDoubleBuffered) {
-        super(isDoubleBuffered);
+    
+    protected void initComponents() {
+        
     }
+    
+    /**
+     * Handle initializations regarding layout
+     */
 
-    public HangmanPanel(LayoutManager layout, boolean isDoubleBuffered) {
-        super(layout, isDoubleBuffered);
+    protected void initLayout() {
+        this.getContentPane().setLayout(
+                new BoxLayout(this.getContentPane(), BoxLayout.PAGE_AXIS)
+        ); 
     }
 
     protected void showErrorDialog(String message) {
