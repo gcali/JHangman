@@ -5,7 +5,7 @@ import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 import java.util.function.Consumer;
 
-import javax.swing.JPanel;
+import javax.swing.JFrame;
 
 import jhangmanclient.controller.AuthController;
 import jhangmanclient.controller.GameChooserController;
@@ -18,11 +18,11 @@ import utility.ReturnCodeObj;
 
 /**
  * 
- * A {@link JPanel} to be used during the authentication phase of the
+ * A {@link JFrame} to be used during the authentication phase of the
  * application; it handles registration and login.
  * <p/>
- * An {@code AuthPanel} correctly initialized yields its control after
- * a successful login, by changing to the panel identified by
+ * An {@code AuthFrame} correctly initialized yields its control after
+ * a successful login, by changing to the frame identified by
  * {@link GameChooserFrame#idString}
  * 
  * @author gcali
@@ -33,7 +33,7 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
     private static final long serialVersionUID = 1L;
     
     /**
-     * Panel changer; used to change to other panels when needed
+     * Window changer; used to change to other windows when needed
      */
     private Changer changer = null;
     /**
@@ -57,7 +57,7 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
      * Procedure to be called to set the {@link GameChooserController} to the
      * correct structure; basically, when a new gameController
      * is created, it must be set using this procedure to be sure the
-     * correct panel can use it.
+     * correct frame can use it.
      */
     private Consumer<GameChooserController> gameControllerSetter;
 
@@ -100,7 +100,7 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
 
     /**
      * Sets the {@link Changer} for this structure; the {@link Changer} is used
-     * to change the currently visible panel, when needed.
+     * to change the currently visible frame, when needed.
      * @param changer   the {@link Changer} to be used
      */
     public void setChanger(Changer changer) {
