@@ -1,4 +1,4 @@
-package jhangmanclient.gui.panels;
+package jhangmanclient.gui.frames;
 
 import java.awt.Dimension;
 

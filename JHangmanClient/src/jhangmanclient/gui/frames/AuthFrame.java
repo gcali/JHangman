@@ -1,4 +1,4 @@
-package jhangmanclient.gui.panels;
+package jhangmanclient.gui.frames;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

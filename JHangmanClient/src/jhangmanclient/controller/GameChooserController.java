@@ -3,10 +3,10 @@ package jhangmanclient.controller;
 import java.rmi.RemoteException;
 
 import jhangmanclient.callback.GameListViewer;
-import development_support.NotImplementedException;
 import rmi_interface.RMIServer;
 import rmi_interface.UserNotLoggedInException;
 import utility.ActionExecutor;
+import development_support.NotImplementedException;
 
 public class GameChooserController {
 
@@ -25,16 +25,17 @@ public class GameChooserController {
         this.cookie = cookie;
         this.gameListViewer = viewer;
         this.logoutAction = ActionExecutor.getActionExecutor().addAction(
-                new Runnable() { 
-            @Override
-            public void run() {
-                try {
-                    basicHandleLogout(); 
-                } catch (Exception e) {
-                    
+            new Runnable() { 
+                @Override
+                public void run() {
+                    try {
+                        GameChooserController.this.basicHandleLogout(); 
+                    } catch (Exception e) {
+                        
+                    }
                 }
             }
-        });
+        );
     }
     
 
