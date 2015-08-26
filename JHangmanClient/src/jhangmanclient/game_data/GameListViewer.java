@@ -1,4 +1,4 @@
-package jhangmanclient.callback;
+package jhangmanclient.game_data;
 
 import java.util.List;
 import java.util.Map;
@@ -14,6 +14,8 @@ import utility.observer.JHObservable;
  *  <li> {@link RemovedGameEvent} a game has been removed from the list </li>
  *  <li> {@link GameDataInvalidatedEvent} the entire game data should
  *                                    be refreshed </li>
+ *  <li> {@link GamePlayersChangedEvent} the number of players of a game
+ *                                    has been changed </li>
  * </ul>
  * @author gcali
  *

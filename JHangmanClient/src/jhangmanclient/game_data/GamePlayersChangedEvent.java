@@ -1,4 +1,4 @@
-package jhangmanclient.callback;
+package jhangmanclient.game_data;
 
 import utility.observer.JHEvent;
 

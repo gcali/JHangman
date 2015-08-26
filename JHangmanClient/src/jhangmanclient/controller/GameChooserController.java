@@ -2,7 +2,7 @@ package jhangmanclient.controller;
 
 import java.rmi.RemoteException;
 
-import jhangmanclient.callback.GameListViewer;
+import jhangmanclient.game_data.GameListViewer;
 import rmi_interface.RMIServer;
 import rmi_interface.UserNotLoggedInException;
 import utility.ActionExecutor;
