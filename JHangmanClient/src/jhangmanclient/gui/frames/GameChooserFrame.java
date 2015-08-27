@@ -7,6 +7,7 @@ import java.rmi.RemoteException;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 
 import jhangmanclient.controller.GameChooserController;
 import jhangmanclient.gui.components.GameListTableModel;
@@ -32,9 +33,17 @@ public class GameChooserFrame extends HangmanFrame {
     }
     
     @Override
-    protected void initComponents() {
+    protected void initComponents() { 
+        JTable table = new JTable();
+        this.table = table;
+        JScrollPane pane = new JScrollPane(
+                table, 
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, 
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        );
+        this.add(pane);
+
         JButton button = new JButton("Log out");
-        this.add(button);
         button.addActionListener(e -> this.changer.changeFrame("auth"));
         button.addActionListener(new ActionListener() {
             
@@ -48,19 +57,13 @@ public class GameChooserFrame extends HangmanFrame {
                 
             }
         }); 
-        
-        JTable table = new JTable();
-        this.table = table;
-        JScrollPane pane = new JScrollPane(
-                table, 
-                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, 
-                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-        );
-        this.add(pane);
+        this.add(button);
     }
     
     public void setGameController(GameChooserController controller) {
         this.gameChooserController = controller;
         this.table.setModel(new GameListTableModel(controller.getViewer()));
+        this.table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        this.table.getColumnModel().getColumn(1).setMaxWidth(50);
     } 
 }

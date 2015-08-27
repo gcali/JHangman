@@ -1,4 +1,4 @@
-package jhangmanclient.gui.utility;
+package jhangmanclient.game_data;
 
 public class GamePlayerStatus {
     
@@ -17,4 +17,8 @@ public class GamePlayerStatus {
     public synchronized int getMaxPlayers() {
         return maxPlayers;
     } 
+    
+    public synchronized String toString() {
+        return "" + this.currentPlayers + "/" + this.maxPlayers;
+    }
 }

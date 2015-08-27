@@ -22,6 +22,10 @@ public class SingleGameData implements Serializable {
         this(name, maxPlayers, 0);
     }
 
+    public SingleGameData(SingleGameData entry) {
+        this(entry.name, entry.maxPlayers, entry.currentPlayers);
+    }
+
     public String getName() {
         return name;
     }
@@ -45,4 +49,5 @@ public class SingleGameData implements Serializable {
     public void setCurrentPlayers(int currentPlayers) {
         this.currentPlayers = currentPlayers;
     }
+    
 }

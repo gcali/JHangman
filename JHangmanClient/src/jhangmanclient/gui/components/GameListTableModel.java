@@ -6,11 +6,11 @@ import javax.swing.table.AbstractTableModel;
 
 import jhangmanclient.game_data.GameDataInvalidatedEvent;
 import jhangmanclient.game_data.GameListViewer;
+import jhangmanclient.game_data.GamePlayerStatus;
 import jhangmanclient.game_data.GamePlayersChangedEvent;
 import jhangmanclient.game_data.NewGameEvent;
 import jhangmanclient.game_data.NoGameException;
 import jhangmanclient.game_data.RemovedGameEvent;
-import jhangmanclient.gui.utility.GamePlayerStatus;
 import rmi_interface.SingleGameData;
 import utility.observer.JHObserver;
 import utility.observer.ObservationHandler;
@@ -50,9 +50,11 @@ public class GameListTableModel
     @ObservationHandler
     public synchronized void onRemovedGameEvent(RemovedGameEvent e) {
         Integer pos = findElementPos(this.gameData, e.getName());
+        System.out.println("[Model] Removing element " + pos);
         if (pos != null) {
-            this.gameData.remove(pos);
+            this.gameData.remove(pos.intValue());
             this.fireTableRowsDeleted(pos, pos); 
+            System.out.println("[Model] Removed");
         } else {
             System.err.println("Couldn't find game " + 
                                e.getName() + 
