@@ -1,13 +1,10 @@
 package jhangmanclient.callback;
 
 import java.rmi.RemoteException;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import jhangmanclient.game_data.GameDataInvalidatedEvent;
 import jhangmanclient.game_data.GameListViewer;
@@ -16,6 +13,7 @@ import jhangmanclient.game_data.NewGameEvent;
 import jhangmanclient.game_data.NoGameException;
 import jhangmanclient.game_data.RemovedGameEvent;
 import rmi_interface.ClientCallbackRMI;
+import rmi_interface.SingleGameData;
 import utility.observer.JHObservable;
 import utility.observer.JHObservableSupport;
 import utility.observer.JHObserver;
@@ -41,8 +39,8 @@ public class GameListCallback implements ClientCallbackRMI,
      * The data of the open games; currently, to each game is associated
      * its number of players
      */
-    private Map<String, AtomicInteger> gameData = 
-            new ConcurrentSkipListMap<String, AtomicInteger>();
+    private Map<String, GamePlayerDataAtomic> gameData = 
+            new ConcurrentSkipListMap<String, GamePlayerDataAtomic>();
     /**
      * ObservableSupport to help handling events
      */
@@ -52,22 +50,17 @@ public class GameListCallback implements ClientCallbackRMI,
      * {@inheritDoc}
      */
     @Override
-    public void addGame(String name) throws RemoteException {
-        this.setGamePlayers(name, 0);
-        this.observableSupport.publish(new NewGameEvent(name));;
+    public void addGame(String name, int maxPlayers) throws RemoteException {
+        this.gameData.put(name, new GamePlayerDataAtomic(name, maxPlayers));
+        this.observableSupport.publish(new NewGameEvent(name, maxPlayers));;
     }
-
+    
     /**
      * {@inheritDoc}
      */
     @Override
     public void setGamePlayers(String name, int number) throws RemoteException {
-        AtomicInteger gameValue = this.gameData.get(name);
-        if (gameValue == null) {
-            this.gameData.put(name, new AtomicInteger(number)); 
-        } else {
-            gameValue.set(number);
-        }
+        this.gameData.get(name).setCurrentPlayers(number);
         this.observableSupport.publish(new GamePlayersChangedEvent(name));
     }
 
@@ -76,10 +69,7 @@ public class GameListCallback implements ClientCallbackRMI,
      */
     @Override
     public void incrementGamePlayers(String game) throws RemoteException {
-        AtomicInteger oldNumber = this.gameData.get(game);
-        if (oldNumber != null) {
-            oldNumber.incrementAndGet();
-        } 
+        this.gameData.get(game).incrementCurrentPlayers();
         this.observableSupport.publish(new GamePlayersChangedEvent(game));
     }
 
@@ -88,10 +78,7 @@ public class GameListCallback implements ClientCallbackRMI,
      */
     @Override
     public void decrementGamePlayers(String game) throws RemoteException {
-        AtomicInteger oldNumber = this.gameData.get(game);
-        if (oldNumber != null) {
-            oldNumber.decrementAndGet();
-        } 
+        this.gameData.get(game).decrementCurrentPlayers();
         this.observableSupport.publish(new GamePlayersChangedEvent(game));
     }
 
@@ -110,12 +97,18 @@ public class GameListCallback implements ClientCallbackRMI,
      * {@inheritDoc}
      */
     @Override
-    public void setGameData(Map<String, Integer> gameList)
+    public void setGameData(Map<String, SingleGameData> gameList)
         throws RemoteException {
-        this.gameData = new ConcurrentSkipListMap<String, AtomicInteger>(); 
-        for (Map.Entry<String, Integer> entry : gameList.entrySet()) {
+        this.gameData = 
+                new ConcurrentSkipListMap<String, GamePlayerDataAtomic>(); 
+        for (Map.Entry<String, SingleGameData> entry : gameList.entrySet()) {
+            SingleGameData data = entry.getValue();
             this.gameData.put(entry.getKey(), 
-                              new AtomicInteger(entry.getValue()));
+                              new GamePlayerDataAtomic(
+                                      entry.getKey(), 
+                                      data.getMaxPlayers(), 
+                                      data.getCurrentPlayers()
+                              ));
         }
         this.observableSupport.publish(new GameDataInvalidatedEvent());
     }
@@ -124,14 +117,14 @@ public class GameListCallback implements ClientCallbackRMI,
      * {@inheritDoc}
      */
     @Override
-    public List<Map.Entry<String, Integer>> getGameList() {
-        List<Map.Entry<String, Integer>> gameList = 
-                new ArrayList<Map.Entry<String,Integer>>();
-        for (Map.Entry<String, AtomicInteger> entry : this.gameData.entrySet()) {
+    public List<SingleGameData> getGameList() {
+        List<SingleGameData> gameList = 
+                new ArrayList<SingleGameData>();
+        for (GamePlayerDataAtomic entry : this.gameData.values()) {
             gameList.add(
-                    new AbstractMap.SimpleEntry<String, Integer>(
-                        entry.getKey(), entry.getValue().get()
-                    )
+                    new SingleGameData(entry.getName(), 
+                                       entry.getMaxPlayers(), 
+                                       entry.getCurrentPlayers())
             );
         }
         return gameList;
@@ -141,14 +134,18 @@ public class GameListCallback implements ClientCallbackRMI,
      * {@inheritDoc}
      */
     @Override
-    public int getGamePlayers(String game)
-        throws NoGameException {
-        AtomicInteger number = this.gameData.get(game);
-        if (number == null) {
-            throw new NoGameException("No game found: " + game);
-        } 
-        return number.get();
-    }
+    public SingleGameData getSingleGameData(String game) 
+            throws NoGameException {
+        GamePlayerDataAtomic data = this.gameData.get(game);
+        if (data == null) {
+            throw new NoGameException("Game not found: " + game);
+        }
+        return new SingleGameData(
+                game, 
+                data.getMaxPlayers(), 
+                data.getCurrentPlayers()
+        );
+    } 
 
     /**
      * {@inheritDoc}
@@ -158,5 +155,6 @@ public class GameListCallback implements ClientCallbackRMI,
     @Override
     public void addObserver(JHObserver observer) {
         this.observableSupport.add(observer); 
-    } 
+    }
+
 }

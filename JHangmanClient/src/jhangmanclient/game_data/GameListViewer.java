@@ -1,8 +1,8 @@
 package jhangmanclient.game_data;
 
 import java.util.List;
-import java.util.Map;
 
+import rmi_interface.SingleGameData;
 import utility.observer.JHObservable;
 
 /**
@@ -23,20 +23,19 @@ import utility.observer.JHObservable;
 public interface GameListViewer extends JHObservable {
 
     /**
-     * Returns a list view of the open games; the list is made of the tuples
-     * (name,players)
+     * Returns a list view of the open games
      * @return  the list of the games
      */
-    public List<Map.Entry<String, Integer>> getGameList();
+    public List<SingleGameData> getGameList();
 
     /**
-     * Returns the number of players for the given {@code game}; if the
+     * Returns data for the given {@code game}; if the
      * chosen game isn't open, throws {@link NoGameException}
      * 
      * @param game  the name of the game
-     * @return      a tuple, of the form (game, players)
+     * @return      the data of the game
      * @throws NoGameException
      */
-    public int getGamePlayers(String game) throws NoGameException;
-
+    public SingleGameData getSingleGameData(String game) throws NoGameException;
+    
 }
