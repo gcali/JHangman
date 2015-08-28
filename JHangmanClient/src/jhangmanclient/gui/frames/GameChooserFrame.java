@@ -5,11 +5,14 @@ import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 
 import jhangmanclient.controller.GameChooserController;
+import jhangmanclient.gui.components.ActionsPanel;
 import jhangmanclient.gui.components.GameListTableModel;
 import jhangmanclient.gui.utility.Changer;
 
@@ -26,6 +29,8 @@ public class GameChooserFrame extends HangmanFrame {
 
     private JTable table;
 
+    private JButton joinGameButton;
+
     public GameChooserFrame(Changer changer) {
         super(10);
         this.changer = changer;
@@ -34,15 +39,36 @@ public class GameChooserFrame extends HangmanFrame {
     
     @Override
     protected void initComponents() { 
-        JTable table = new JTable();
-        this.table = table;
-        JScrollPane pane = new JScrollPane(
-                table, 
-                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, 
-                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-        );
-        this.add(pane);
+        JComponent table = initTable();
+        this.add(table);
 
+        JButton logOutButton = initLogOutButton(); 
+        
+        JButton joinGameButton = initJoinGameButton();
+        
+        JButton openGameButton = initOpenGameButton();
+        
+        JButton[] leftButtons = {joinGameButton, openGameButton};
+        JButton[] rightButtons = {logOutButton};
+        
+        JPanel actionsPanel = new ActionsPanel(leftButtons, rightButtons);
+        
+        this.add(actionsPanel);
+    }
+
+    private JButton initOpenGameButton() {
+        JButton button = new JButton("Open new game");
+        return button;
+    }
+
+    private JButton initJoinGameButton() {
+        JButton button = new JButton("Join game");
+        button.setEnabled(false);
+        this.joinGameButton = button;
+        return button;
+    }
+
+    private JButton initLogOutButton() {
         JButton button = new JButton("Log out");
         button.addActionListener(e -> this.changer.changeFrame("auth"));
         button.addActionListener(new ActionListener() {
@@ -56,8 +82,25 @@ public class GameChooserFrame extends HangmanFrame {
                 }
                 
             }
-        }); 
-        this.add(button);
+        });
+        return button;
+    }
+    
+    private void setJoinGameButtonEnabled(boolean b) {
+        if (this.joinGameButton != null) {
+            this.joinGameButton.setEnabled(b);
+        }
+    }
+
+    private JComponent initTable() {
+        JTable table = new JTable();
+        this.table = table;
+        JScrollPane pane = new JScrollPane(
+                table, 
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, 
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        );
+        return pane;
     }
     
     public void setGameController(GameChooserController controller) {

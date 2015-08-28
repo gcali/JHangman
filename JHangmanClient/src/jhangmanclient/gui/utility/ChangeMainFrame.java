@@ -19,6 +19,8 @@ public class ChangeMainFrame implements Changer {
             currentlyVisible.setVisible(false);
         }
         frame.setVisible(true);
+        frame.toFront();
+        frame.requestFocus();
         currentlyVisible = frame;
     }
 
