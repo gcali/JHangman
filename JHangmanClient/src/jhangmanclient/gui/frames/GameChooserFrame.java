@@ -13,6 +13,7 @@ import javax.swing.ListSelectionModel;
 
 import jhangmanclient.controller.GameChooserController;
 import jhangmanclient.gui.components.ActionsPanel;
+import jhangmanclient.gui.components.AskPositiveNumberDialog;
 import jhangmanclient.gui.components.GameListTableModel;
 import jhangmanclient.gui.utility.Changer;
 
@@ -30,6 +31,8 @@ public class GameChooserFrame extends HangmanFrame {
     private JTable table;
 
     private JButton joinGameButton;
+
+    private AskPositiveNumberDialog askPlayersDialog;
 
     public GameChooserFrame(Changer changer) {
         super(10);
@@ -58,7 +61,44 @@ public class GameChooserFrame extends HangmanFrame {
 
     private JButton initOpenGameButton() {
         JButton button = new JButton("Open new game");
+        button.addActionListener(new ActionListener() { 
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Integer players = askForMaxPlayers();
+                if (players != null) {
+                    openGame(players);
+                }
+                
+            }
+        });
         return button;
+    }
+
+    private void openGame(Integer players) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    private Integer askForMaxPlayers() {
+        System.out.println("I'm in max players!");
+        this.initDialog();
+        System.out.println("Dialog succesfully started");
+        Integer players = this.askPlayersDialog.getPlayers();
+        return null;
+    }
+
+    private void initDialog() {
+        if (this.askPlayersDialog == null) {
+            this.askPlayersDialog = 
+                    new AskPositiveNumberDialog(
+                            this,
+                            "How many players for the game?"
+                    );
+//            this.askPlayersDialog.setVisible(false);
+//            this.askPlayersDialog.setModalityType(
+//                    ModalityType.APPLICATION_MODAL
+//            );
+        } 
     }
 
     private JButton initJoinGameButton() {

@@ -44,7 +44,12 @@ public class GUIMain {
     } 
     
     public void start() {
-        this.starter.run();
+        java.awt.EventQueue.invokeLater(new Runnable() { 
+            @Override
+            public void run() {
+                GUIMain.this.starter.run(); 
+            }
+        });
     }
     
     private static void showTopFatalError(String message) {
