@@ -26,6 +26,7 @@ class FormatParseAllOrNothing extends Format {
             StringBuffer toAppendTo,
             FieldPosition pos
     ) {
+        System.out.println(obj);
         return this.originalFormat.format(obj, toAppendTo, pos);
     }
 

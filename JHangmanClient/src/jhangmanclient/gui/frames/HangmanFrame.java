@@ -80,7 +80,7 @@ public abstract class HangmanFrame extends JFrame {
                 options[0]);
     }
 
-    protected static Border createEmptyBorder(int borderSize) {
+    public static Border createEmptyBorder(int borderSize) {
         return BorderFactory.createEmptyBorder(borderSize, 
                                                borderSize, 
                                                borderSize, 

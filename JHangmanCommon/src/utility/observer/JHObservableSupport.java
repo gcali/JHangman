@@ -1,10 +1,7 @@
 package utility.observer;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -119,6 +116,7 @@ public class JHObservableSupport {
 
         void invoke(Object o) {
             try {
+                this.method.setAccessible(true);
                 this.method.invoke(this.observer, o);
             } catch (Exception e) {
                 throw new AssertionError(e);

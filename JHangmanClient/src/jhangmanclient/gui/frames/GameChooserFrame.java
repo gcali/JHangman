@@ -83,8 +83,13 @@ public class GameChooserFrame extends HangmanFrame {
         System.out.println("I'm in max players!");
         this.initDialog();
         System.out.println("Dialog succesfully started");
-        Integer players = this.askPlayersDialog.getPlayers();
-        return null;
+        Long players = this.askPlayersDialog.getPlayers();
+        System.out.println("[GameChooser]" + players);
+        if (players == null) {
+            return null;
+        } else {
+            return players.intValue(); 
+        }
     }
 
     private void initDialog() {

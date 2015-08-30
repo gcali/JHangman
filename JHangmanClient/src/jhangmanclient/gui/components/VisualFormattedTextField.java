@@ -72,23 +72,34 @@ public class VisualFormattedTextField extends JFormattedTextField
             }
         });
     }
+    
+    private void setValidVisual() {
+        this.setBackground(defaultBackground);
+        this.setForeground(defaultForeground); 
+    }
+    
+    private void setWrongVisual() {
+        if (WRONG_CONTENT_BACKGROUND != null) {
+            this.setBackground(WRONG_CONTENT_BACKGROUND);
+        }
+        if (WRONG_CONTENT_FOREGROUND != null) {
+            this.setForeground(WRONG_CONTENT_FOREGROUND);
+        } 
+    }
 
     private void updateVisuals() { 
         if (this.isContentValid()) {
-            this.setBackground(defaultBackground);
-            this.setForeground(defaultForeground);
+            this.setValidVisual();
+            try {
+                this.commitEdit();
+            } catch (ParseException e) {
+            }
             if (!this.wasValid) {
                 this.observableSupport.publish(new ContentValidityUpdated(true));
-                this.setValue(this.getText());
                 this.wasValid = true;
             }
         } else {
-            if (WRONG_CONTENT_BACKGROUND != null) {
-                this.setBackground(WRONG_CONTENT_BACKGROUND);
-            }
-            if (WRONG_CONTENT_FOREGROUND != null) {
-                this.setForeground(WRONG_CONTENT_FOREGROUND);
-            }
+            this.setWrongVisual();
             if (this.wasValid) {
                 this.observableSupport.publish(new ContentValidityUpdated(false));
                 this.wasValid = false;
@@ -96,35 +107,67 @@ public class VisualFormattedTextField extends JFormattedTextField
         } 
     }
     
-    @Override
-    public void setValue(Object value) {
-        if (this.isObjectValidInput(value)) {
-            super.setValue(value); 
-        } else {
-            this.updateVisuals();
+    private Object getValueFromString(String text) {
+        AbstractFormatter formatter = this.getFormatter();
+        try {
+            return formatter.stringToValue(text);
+        } catch (ParseException e) {
+            return null;
         }
     }
     
-    private boolean isContentValid() {
-        return this.isObjectValidInput(this.getText());
+    @Override
+    public void setValue(Object value) {
+        boolean valid = false;
+
+        AbstractFormatter formatter = this.getFormatter();
+        try {
+            valid = this.isStringValidInput(formatter.valueToString(value));
+        } catch (ParseException e ) {
+            
+        }
+        if (valid) {
+            super.setValue(value); 
+        } else {
+            this.updateVisuals();
+        } 
     }
     
-    private boolean isObjectValidInput(Object input) {
+    private boolean isContentValid() {
+        return this.isStringValidInput(this.getText());
+    }
+    
+    private boolean isStringValidInput(String input) {
         AbstractFormatter formatter = this.getFormatter();
         if (formatter == null){ 
             return true;
         } else {
             try {
-                formatter.valueToString(input);
+                formatter.stringToValue(input);
                 return true;
             } catch (ParseException e) {
                 return false;
             }
         }
     }
+    
+    @Override
+    public Object getValue() {
+        if (this.isEditValid()) {
+            return super.getValue(); 
+        } else {
+            return null;
+        }
+    }
 
     @Override
     public void addObserver(JHObserver observer) {
         this.observableSupport.add(observer);
+    }
+
+    public void reset() {
+        this.setText(""); 
+        this.wasValid = false;
+        this.setValidVisual();
     } 
 }
