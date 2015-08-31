@@ -1,6 +1,7 @@
 package jhangmanclient.controller;
 
 import java.rmi.RemoteException;
+import java.util.concurrent.Future;
 
 import jhangmanclient.game_data.GameListViewer;
 import rmi_interface.RMIServer;
@@ -55,11 +56,11 @@ public class GameChooserController {
         basicHandleLogout();
     } 
     
-    public MasterController openGame() {
+    public Future<MasterController> openGame() {
         throw new NotImplementedException();
     }
     
-    public PlayerController joinGame(String name) {
+    public Future<PlayerController> joinGame(String name) {
         throw new NotImplementedException();
     }
     

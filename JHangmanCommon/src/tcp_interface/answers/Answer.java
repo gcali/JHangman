@@ -1,21 +1,20 @@
-package tcp_interface.requests;
+package tcp_interface.answers;
 
 import java.io.Serializable;
 
-public class Request implements Serializable {
-    
+public class Answer implements Serializable {
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
 
-    private final RequestID id;
+    private final AnswerID id;
     
-    public Request(RequestID id) {
+    public Answer(AnswerID id) {
         this.id = id;
     }
     
-    public RequestID getId() {
+    public AnswerID getId() {
         return this.id;
     }
     

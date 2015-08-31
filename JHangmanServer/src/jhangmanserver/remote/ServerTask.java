@@ -1,17 +1,13 @@
 package jhangmanserver.remote;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 
-import tcp_interface.requests.JoinGameParameters;
-import tcp_interface.requests.OpenGameParameters;
+import tcp_interface.requests.JoinGameRequest;
+import tcp_interface.requests.OpenGameRequest;
 import tcp_interface.requests.Request;
-import tcp_interface.requests.RequestParameters;
-import development_support.NotImplementedException;
 
 
 public class ServerTask implements Runnable {
@@ -51,21 +47,21 @@ public class ServerTask implements Runnable {
         
         switch (request.getId()) {
         case JOIN_GAME:
-            this.handleJoinGame((JoinGameParameters) request.getParameters());
+            this.handleJoinGame((JoinGameRequest) request);
             break;
         case OPEN_GAME:
-            this.handleOpenGame((OpenGameParameters) request.getParameters());
+            this.handleOpenGame((OpenGameRequest) request);
             break;
         }
     }
 
 
-    private void handleJoinGame(JoinGameParameters parameters) {
+    private void handleJoinGame(JoinGameRequest request) {
         // TODO Auto-generated method stub
         
     }
 
-    private void handleOpenGame(OpenGameParameters parameters) {
+    private void handleOpenGame(OpenGameRequest request) {
         // TODO Auto-generated method stub
         
     }
