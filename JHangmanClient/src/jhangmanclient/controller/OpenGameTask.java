@@ -26,17 +26,20 @@ class OpenGameTask implements Callable<MasterController>, JHObserver {
     private String nick;
     private int cookie;
     private Socket socket = null;
+    private int players;
     
     private static final int TIMEOUT = 10000;
 
     public OpenGameTask(String nick, 
                         int cookie, 
+                        int players,
                         InetAddress address, 
                         int port) {
         this.nick = nick;
         this.cookie = cookie;
         this.address = address;
         this.port = port; 
+        this.players = players;
     }
 
     @Override
@@ -58,7 +61,8 @@ class OpenGameTask implements Callable<MasterController>, JHObserver {
         ) {
             this.socket = socket;
             OpenGameRequest request = new OpenGameRequest(this.nick, 
-                                                          this.cookie);
+                                                          this.cookie,
+                                                          this.players);
             socket.setSoTimeout(TIMEOUT);
             objOutput.writeObject(request);
             OpenGameAnswer firstAnswer = getOpenGameAnswer(objOutput, objInput);
