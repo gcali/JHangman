@@ -61,28 +61,59 @@ class OpenGameTask implements Callable<MasterController>, JHObserver {
                                                           this.cookie);
             socket.setSoTimeout(TIMEOUT);
             objOutput.writeObject(request);
+            OpenGameAnswer firstAnswer = getOpenGameAnswer(objOutput, objInput);
+            if (firstAnswer == null || !firstAnswer.isAccepted()) {
+                return null;
+            }
+            OpenGameCompletedAnswer gameCompleteAnswer = 
+                    getOpenGameCompleteAnswer(objOutput, objInput);
+            if (gameCompleteAnswer == null || 
+                !gameCompleteAnswer.isAccepted()) {
+                return null;
+            } 
+            return new MasterController(this.nick,
+                                        gameCompleteAnswer.getAddress(),
+                                        gameCompleteAnswer.getPort(),
+                                        gameCompleteAnswer.getKey());
+        }
+    }
+
+    private static OpenGameCompletedAnswer getOpenGameCompleteAnswer(
+            ObjectOutputStream objOutput, 
+            ObjectInputStream objInput
+    ) throws IOException {
+        Answer answer = getAnswer(objOutput, objInput);
+        if (answer == null) {
+            return null;
+        }
+        switch (answer.getId()) {
+        case OPEN_GAME_COMPLETED:
+            return (OpenGameCompletedAnswer) answer;
+        default:
+            throw new IOException("Expected " + 
+                                   OpenGameCompletedAnswer.id + 
+                                   ", found " + answer.getId()); 
+        }
+    }
+
+    private static OpenGameAnswer getOpenGameAnswer(
+            ObjectOutputStream objOutput,
+            ObjectInputStream objInput
+    ) throws IOException {
             Answer answer = getAnswer(objOutput, objInput);
             if (answer == null) {
                 return null;
             } 
             switch (answer.getId()) {
             case OPEN_GAME:
-                return this.returnControllerFromOpeningCompleted(
-                        (OpenGameAnswer) answer, 
-                        objOutput, 
-                        objInput
-                );
+                return (OpenGameAnswer) answer;
             default:
                 throw new IOException("Expected id " + OpenGameAnswer.id + 
                                       ", found " + answer.getId());
             }
-            
-        } catch (IOException e) {
-            throw e;
-        }
     }
 
-    private Answer getAnswer(ObjectOutputStream objOutput,
+    private static Answer getAnswer(ObjectOutputStream objOutput,
             ObjectInputStream objInput) throws IOException {
         Answer answer = null;
         try {
@@ -98,39 +129,6 @@ class OpenGameTask implements Callable<MasterController>, JHObserver {
         return answer;
     }
     
-    private MasterController returnControllerFromOpeningCompleted(
-            OpenGameAnswer answer,
-            ObjectOutputStream objOutput, 
-            ObjectInputStream objInput
-    ) throws IOException {
-        if (!answer.isAccepted()) {
-            return null;
-        }
-        
-        Answer complete = this.getAnswer(objOutput, objInput);
-        if (complete == null ) {
-            return null;
-        }
-        switch (complete.getId()) {
-        case OPEN_GAME_COMPLETED:
-            return returnControllerFromCompletionAnswer(
-                    (OpenGameCompletedAnswer) complete
-            );
-        default:
-                throw new IOException("Expected " + 
-                                       OpenGameCompletedAnswer.id + 
-                                       ", found " + complete.getId());
-        }
-    }
-
-    private MasterController returnControllerFromCompletionAnswer(
-            OpenGameCompletedAnswer complete) {
-        return new MasterController(this.nick,
-                                    complete.getAddress(),
-                                    complete.getPort(),
-                                    complete.getKey());
-    }
-
     @ObservationHandler
     public void onAbortTaskEvent(AbortTaskEvent event) {
         if (this.socket != null) {
