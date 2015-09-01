@@ -35,6 +35,14 @@ public class GameListHandler {
         this.executeCallback(c -> c.removeGame(name));
     }
     
+    public boolean isGameOpen(String name) {
+        if (this.gameDataMap.get(name) == null) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+    
     
     /**
      * Updates data so that {@code nick} joins the game {@code name}.

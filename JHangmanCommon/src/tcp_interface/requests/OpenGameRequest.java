@@ -11,11 +11,13 @@ public class OpenGameRequest extends Request {
 
     private String nick; 
     private int cookie;
+    private int players;
     
-    public OpenGameRequest(String nick, int cookie) {
+    public OpenGameRequest(String nick, int cookie, int players) {
         super(OpenGameRequest.id);
         this.nick = nick;
         this.cookie = cookie;
+        this.players = players;
     }
 
     public synchronized String getNick() {
@@ -24,6 +26,10 @@ public class OpenGameRequest extends Request {
 
     public synchronized int getCookie() {
         return cookie;
+    }
+    
+    public int getPlayers() {
+        return this.players;
     }
 
 
