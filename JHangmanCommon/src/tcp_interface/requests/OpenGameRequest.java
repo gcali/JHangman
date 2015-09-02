@@ -30,7 +30,5 @@ public class OpenGameRequest extends Request {
     
     public int getPlayers() {
         return this.players;
-    }
-
-
+    } 
 }

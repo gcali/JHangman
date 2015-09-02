@@ -14,6 +14,12 @@ public class ObserverTest {
         public <E extends JHEvent> void fireEvent(E event) {
             this.support.publish(event);
         }
+
+        @Override
+        public void removeObserver(JHObserver observer) {
+            this.support.remove(observer);
+            
+        }
     }
     
     static class EventA implements JHEvent {
@@ -63,6 +69,9 @@ public class ObserverTest {
         observed.fireEvent(new EventC());
         observed.fireEvent(new EventA());
         observed.fireEvent(new JHEvent() {});
+        observed.removeObserver(observer);
+        System.out.println("After removal...");
+        observed.fireEvent(new EventA());
         System.out.println("Test done");
         
     }

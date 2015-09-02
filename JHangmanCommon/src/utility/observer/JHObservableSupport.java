@@ -47,7 +47,7 @@ public class JHObservableSupport {
      * 
      * @param o the observer to add to the queue
      */
-    public void add(JHObserver o) {
+    public synchronized void add(JHObserver o) {
         for (Method method : o.getClass().getMethods()) {
             Class<?>[] parameterTypes = method.getParameterTypes();
             if (method.getAnnotation(ObservationHandler.class) != null && 
@@ -77,7 +77,7 @@ public class JHObservableSupport {
      * Remove the observer {@code o} from the observer queue
      * @param o the observer to be removed
      */
-    public void remove(JHObserver o) {
+    public synchronized void remove(JHObserver o) {
         for (Queue<ObserverInfo> observerInfos : map.values()) {
             Iterator<ObserverInfo> iterator = observerInfos.iterator();
             while (iterator.hasNext()) {
@@ -89,7 +89,7 @@ public class JHObservableSupport {
         }
     }
 
-    public <E extends JHEvent>void publish(E o) {
+    public synchronized <E extends JHEvent>void publish(E o) {
         for (Map.Entry<Class<? extends JHEvent>,Queue<ObserverInfo>> entry 
                 : map.entrySet()) {
             if (entry.getKey().isAssignableFrom(o.getClass())) {
