@@ -157,4 +157,9 @@ public class GameListCallback implements ClientCallbackRMI,
         this.observableSupport.add(observer); 
     }
 
+    @Override
+    public void removeObserver(JHObserver observer) {
+        this.observableSupport.remove(observer); 
+    }
+
 }

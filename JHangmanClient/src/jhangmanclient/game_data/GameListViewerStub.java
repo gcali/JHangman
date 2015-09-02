@@ -22,6 +22,11 @@ public class GameListViewerStub implements GameListViewer, Runnable {
     }
 
     @Override
+    public void removeObserver(JHObserver observer) {
+        this.observableSupport.remove(observer); 
+    } 
+
+    @Override
     public List<SingleGameData> getGameList() {
         List<SingleGameData> returnableGameData = new ArrayList<SingleGameData>();
         for (SingleGameData entry : this.gameData) {
@@ -93,5 +98,6 @@ public class GameListViewerStub implements GameListViewer, Runnable {
             }
         }
         
-    } 
+    }
+
 }

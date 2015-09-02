@@ -165,9 +165,15 @@ public class VisualFormattedTextField extends JFormattedTextField
         this.observableSupport.add(observer);
     }
 
+    @Override
+    public void removeObserver(JHObserver observer) {
+        this.observableSupport.remove(observer);
+    } 
+
     public void reset() {
         this.setText(""); 
         this.wasValid = false;
         this.setValidVisual();
-    } 
+    }
+
 }
