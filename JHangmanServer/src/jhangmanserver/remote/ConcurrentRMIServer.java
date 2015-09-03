@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import jhangmanserver.game_data.GameListHandler;
 import jhangmanserver.users.User;
 import rmi_interface.ClientCallbackRMI;
 import rmi_interface.RMIServer;

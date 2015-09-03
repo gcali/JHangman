@@ -1,7 +1,9 @@
 package utility.observer;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +26,10 @@ public class JHObservableSupport {
     
     private final Map<Class<? extends JHEvent>, Queue<ObserverInfo>> map = 
             new ConcurrentHashMap<Class<? extends JHEvent>, Queue<ObserverInfo>>();
+    
+    //use a lock Object to avoid accidental synchronization over this
+    //from external use
+    private final Object lock = new Object();
 
     /**
      * Adds a new observer {@code o} to the queue; the observer will be
@@ -47,29 +53,31 @@ public class JHObservableSupport {
      * 
      * @param o the observer to add to the queue
      */
-    public synchronized void add(JHObserver o) {
-        for (Method method : o.getClass().getMethods()) {
-            Class<?>[] parameterTypes = method.getParameterTypes();
-            if (method.getAnnotation(ObservationHandler.class) != null && 
-                parameterTypes.length == 1) { 
-                //if the current method is correctly annotated and has
-                //only one parameter
-
-                if (JHEvent.class.isAssignableFrom(parameterTypes[0])) {
-                    @SuppressWarnings("unchecked")
-                    Class<? extends JHEvent> subscribeTo = 
-                            (Class<? extends JHEvent>) parameterTypes[0];
-                    this.map.putIfAbsent(subscribeTo, 
-                                         new ConcurrentLinkedQueue<ObserverInfo>());
-                    Queue<ObserverInfo> observerInfos = map.get(subscribeTo);
-                    if (observerInfos == null) {
-                        //if no other observer expects this kind of event, create
-                        //a new queue
+    public void add(JHObserver o) {
+        synchronized(lock) {
+            for (Method method : o.getClass().getMethods()) {
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                if (method.getAnnotation(ObservationHandler.class) != null && 
+                    parameterTypes.length == 1) { 
+                    //if the current method is correctly annotated and has
+                    //only one parameter
+    
+                    if (JHEvent.class.isAssignableFrom(parameterTypes[0])) {
+                        @SuppressWarnings("unchecked")
+                        Class<? extends JHEvent> subscribeTo = 
+                                (Class<? extends JHEvent>) parameterTypes[0];
+                        this.map.putIfAbsent(subscribeTo, 
+                                             new ConcurrentLinkedQueue<ObserverInfo>());
+                        Queue<ObserverInfo> observerInfos = map.get(subscribeTo);
+                        if (observerInfos == null) {
+                            //if no other observer expects this kind of event, create
+                            //a new queue
+                        }
+                        //adds the method to its observer queue
+                        observerInfos.add(new ObserverInfo(method, o)); 
                     }
-                    //adds the method to its observer queue
-                    observerInfos.add(new ObserverInfo(method, o)); 
                 }
-            }
+            } 
         }
     }
 
@@ -78,30 +86,40 @@ public class JHObservableSupport {
      * @param o the observer to be removed
      */
     public synchronized void remove(JHObserver o) {
-        for (Queue<ObserverInfo> observerInfos : map.values()) {
-            Iterator<ObserverInfo> iterator = observerInfos.iterator();
-            while (iterator.hasNext()) {
-                ObserverInfo observer = iterator.next();
-                if (observer.getObserver() == o) {
-                    iterator.remove();
+        synchronized(lock) {
+            for (Queue<ObserverInfo> observerInfos : map.values()) {
+                Iterator<ObserverInfo> iterator = observerInfos.iterator();
+                while (iterator.hasNext()) {
+                    ObserverInfo observer = iterator.next();
+                    if (observer.getObserver() == o) {
+                        iterator.remove();
+                    }
                 }
-            }
+            } 
         }
     }
 
-    public synchronized <E extends JHEvent>void publish(E o) {
-        for (Map.Entry<Class<? extends JHEvent>,Queue<ObserverInfo>> entry 
-                : map.entrySet()) {
-            if (entry.getKey().isAssignableFrom(o.getClass())) {
-                Queue<ObserverInfo> observerInfos = entry.getValue();
-                if (observerInfos != null) {
-                    //if the event has been registered at least once
-                    for (ObserverInfo observerInfo : observerInfos) {
-                        //invoke all the methods registered to that event, if any
-                        observerInfo.invoke(o);
-                    }
-                } 
-            }
+    public <E extends JHEvent>void publish(E o) {
+        List<ObserverInfo> infos = new ArrayList<ObserverInfo>();
+        synchronized(lock) {
+            for (Map.Entry<Class<? extends JHEvent>,Queue<ObserverInfo>> entry 
+                    : map.entrySet()) {
+                if (entry.getKey().isAssignableFrom(o.getClass())) {
+                    Queue<ObserverInfo> observerInfos = entry.getValue();
+                    if (observerInfos != null) {
+                        //if the event has been registered at least once
+                        for (ObserverInfo observerInfo : observerInfos) {
+                            //invoke all the methods registered to that event, if any
+//                            observerInfo.invoke(o);
+                            infos.add(observerInfo);
+                        }
+                    } 
+                }
+            } 
+        }
+        //out of synch
+        for (ObserverInfo obs : infos) {
+            obs.invoke(o);
         }
     }
 
@@ -114,7 +132,7 @@ public class JHObservableSupport {
             this.observer = observer;
         }
 
-        void invoke(Object o) {
+        synchronized void invoke(Object o) {
             try {
                 this.method.setAccessible(true);
                 this.method.invoke(this.observer, o);
@@ -123,11 +141,11 @@ public class JHObservableSupport {
             }
         }
 
-        public Method getMethod() {
+        synchronized Method getMethod() {
             return this.method;
         }
 
-        public Object getObserver() {
+        synchronized Object getObserver() {
             return this.observer;
         }
     } 

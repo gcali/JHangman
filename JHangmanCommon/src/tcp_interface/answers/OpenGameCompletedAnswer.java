@@ -16,23 +16,20 @@ public class OpenGameCompletedAnswer extends Answer {
     
     public OpenGameCompletedAnswer(boolean accepted, 
                                    InetAddress address, 
-                                   int port, 
                                    String key) {
         super(id);
         this.accepted = accepted;
         this.address = address;
-        this.port = port;
         this.key = key;
     }
     
-    public OpenGameCompletedAnswer createAborted() {
-        return new OpenGameCompletedAnswer(false, null, 0, null);
+    public static OpenGameCompletedAnswer createAborted() {
+        return new OpenGameCompletedAnswer(false, null, null);
     }
     
-    public OpenGameCompletedAnswer createAccepted(InetAddress address, 
-                                                  int port, 
-                                                  String key) {
-        return new OpenGameCompletedAnswer(true, address, port, key);
+    public static OpenGameCompletedAnswer createAccepted(InetAddress address, 
+                                                         String key) {
+        return new OpenGameCompletedAnswer(true, address, key);
     }
 
     public synchronized boolean isAccepted() {

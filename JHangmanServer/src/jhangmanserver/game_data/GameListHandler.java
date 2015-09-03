@@ -1,17 +1,22 @@
-package jhangmanserver.remote;
+package jhangmanserver.game_data;
 
+import java.net.InetAddress;
 import java.rmi.RemoteException;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-import jhangmanserver.game_data.ServerGameData;
+import jhangmanserver.remote.CallbackProcedure;
 import rmi_interface.ClientCallbackRMI;
+import utility.observer.JHObservable;
+import utility.observer.JHObservableSupport;
+import utility.observer.JHObserver;
 
-public class GameListHandler {
+public class GameListHandler implements JHObservable {
     
+    private JHObservableSupport observableSupport = new JHObservableSupport();
+
     private Map<String, ServerGameData> gameDataMap = 
             new ConcurrentSkipListMap<String, ServerGameData>();
     private Map<String, ClientCallbackRMI> callbacks =
@@ -25,8 +30,9 @@ public class GameListHandler {
         this.callbacks.remove(nick); 
     }
     
-    public void openGame(String name, int maxPlayers) {
+    public void openGame(String name, int maxPlayers, JHObserver observer) {
         this.gameDataMap.put(name, new ServerGameData(name, maxPlayers));
+        this.observableSupport.add(observer);
         this.executeCallback(c -> c.addGame(name, maxPlayers));
     }
     
@@ -52,20 +58,24 @@ public class GameListHandler {
      * @param name the name of the game
      * @return the set of players if the game is complete, {@code null}
      *         otherwise
+     * @throws GameFullException if the player could not join because
+     *                           the game was full
      */
-    public Set<String> joinGame(String nick, String name) {
+    public void joinGame(String nick, 
+                         String name, 
+                         JHObserver fullGameObserver) 
+                                 throws GameFullException {
         ServerGameData data = this.gameDataMap.get(nick);
         if (data == null) {
-            return null;
+            return;
         }
-        boolean complete = data.addPlayer(nick);
+        boolean complete = data.addPlayer(nick, fullGameObserver);
         if (!complete) {
             this.executeCallback(c -> c.incrementGamePlayers(name)); 
-            return null;
+            return;
         } else {
-            Set<String> players = data.getPlayers();
             this.cancelGame(name);
-            return players;
+            return;
         }
     }
     
@@ -77,6 +87,31 @@ public class GameListHandler {
             } catch (RemoteException e) {
                 System.err.println("Couldn't notify user " + entry.getKey());
             }
+        }
+    }
+
+    @Override
+    public void addObserver(JHObserver observer) {
+        this.observableSupport.add(observer);
+    }
+    
+    public void removeObserver(JHObserver observer) {
+        this.observableSupport.remove(observer);
+    }
+
+    public void abortGame(String name) {
+        ServerGameData data = this.gameDataMap.get(name);
+        if (data != null) {
+            data.abortGame();
+            this.cancelGame(name);
+        }
+        
+    }
+
+    public void setKeyAddress(String gameName, String key, InetAddress address) {
+        ServerGameData data = this.gameDataMap.get(gameName);
+        if (data != null) {
+            data.setKeyAddress(key, address);
         }
     }
     
