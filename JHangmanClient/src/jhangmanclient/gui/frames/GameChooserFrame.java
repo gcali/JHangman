@@ -3,6 +3,8 @@ package jhangmanclient.gui.frames;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -12,6 +14,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 
 import jhangmanclient.controller.GameChooserController;
+import jhangmanclient.controller.MasterController;
 import jhangmanclient.gui.components.ActionsPanel;
 import jhangmanclient.gui.components.AskPositiveNumberDialog;
 import jhangmanclient.gui.components.GameListTableModel;
@@ -74,8 +77,32 @@ public class GameChooserFrame extends HangmanFrame {
         return button;
     }
 
-    private void openGame(Integer players) {
-        // TODO Auto-generated method stub
+    private void openGame(int players) {
+        Future<MasterController> futureResult = 
+                this.gameChooserController.openGame(players);
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                MasterController controller = null;
+                System.out.println("Opening game...");
+                try {
+                    controller = futureResult.get();
+                } catch (InterruptedException e) {
+                    System.err.println("I got interrupted!");
+                    return;
+                } catch (ExecutionException e) {
+                    System.err.println("Execution exception, damn");
+                    e.printStackTrace();
+                    return;
+                }
+                if (controller != null) {
+                    System.out.println("Game open!"); 
+                } else {
+                    System.out.println("Game not open...");
+                }
+            }
+        };
+        thread.start();
         
     }
 

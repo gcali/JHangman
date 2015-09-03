@@ -69,6 +69,14 @@ public class ServerGameData implements JHObservable {
     public synchronized Set<String> getPlayers() {
         return new HashSet<String>(this.players);
     }
+    
+    public synchronized int getCurrentPlayers() {
+        return this.players.size();
+    }
+    
+    public synchronized int getMaxPlayers() {
+        return this.maxPlayers;
+    }
 
     @Override
     public void addObserver(JHObserver observer) {

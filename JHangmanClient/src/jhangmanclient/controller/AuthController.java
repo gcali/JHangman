@@ -5,7 +5,6 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 import jhangmanclient.callback.GameListCallback;
-import jhangmanclient.game_data.GameListViewerStub;
 import rmi_interface.ClientCallbackRMI;
 import rmi_interface.RMIServer;
 import rmi_interface.UserAlreadyLoggedInException;
@@ -41,19 +40,19 @@ public class AuthController {
                                                 password, 
                                                 exportedCallback);
             }
-//            GameChooserController gameChooserController = 
-//                    new GameChooserController(this.server, 
-//                                              nick, 
-//                                              cookie, 
-//                                              this.callback);
-            //TODO Remove the stub for testing purposes
-            GameListViewerStub stub = new GameListViewerStub();
-            new Thread(stub).start();
             GameChooserController gameChooserController = 
                     new GameChooserController(this.server, 
                                               nick, 
                                               cookie, 
-                                              stub);
+                                              this.callback);
+            //TODO Remove the stub for testing purposes
+//            GameListViewerStub stub = new GameListViewerStub();
+//            new Thread(stub).start();
+//            GameChooserController gameChooserController = 
+//                    new GameChooserController(this.server, 
+//                                              nick, 
+//                                              cookie, 
+//                                              stub);
 
             return new ReturnCodeObj<LoginResult, GameChooserController>(
                     LoginResult.SUCCESS, 

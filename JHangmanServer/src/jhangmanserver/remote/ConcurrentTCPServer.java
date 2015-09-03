@@ -14,7 +14,7 @@ public class ConcurrentTCPServer implements Runnable {
     private LoggedInChecker loggedInChecker;
     private ServerSocket mainSocket;
     private ThreadPoolExecutor threadPool;
-    private final static int port = 10005;
+    private final static int port = tcp_interface.Defaults.getPort();
     private boolean done = false;
     private GameListHandler gameListHandler;
 

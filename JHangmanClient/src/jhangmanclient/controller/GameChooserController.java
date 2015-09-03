@@ -1,7 +1,11 @@
 package jhangmanclient.controller;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.rmi.RemoteException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import jhangmanclient.game_data.GameListViewer;
 import rmi_interface.RMIServer;
@@ -16,11 +20,17 @@ public class GameChooserController {
     private int cookie;
     private int logoutAction;
     private GameListViewer gameListViewer;
+    private final ThreadPoolExecutor threadPool;
+    private final InetAddress address;
+    private final int port;
 
     public GameChooserController(RMIServer server, 
                                  String nick, 
                                  int cookie, 
                                  GameListViewer viewer) {
+        this.address = getAddress();
+        this.port = getPort(); 
+        this.threadPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
         this.server = server;
         this.nick = nick;
         this.cookie = cookie;
@@ -37,6 +47,29 @@ public class GameChooserController {
                 }
             }
         );
+    }
+    
+    private static void printError(String prefix, String message) {
+        System.err.println("[" + prefix + "] " + message);
+    }
+    
+    private static void temporary() {
+        printError("", "Using temporary function");
+    }
+    
+    private static InetAddress getAddress() {
+        temporary();
+        try {
+            return tcp_interface.Defaults.getAddress();
+        } catch (UnknownHostException e) {
+            assert false;
+            return null;
+        }
+    }
+    
+    private static int getPort() {
+        temporary();
+        return tcp_interface.Defaults.getPort();
     }
     
 
@@ -56,8 +89,14 @@ public class GameChooserController {
         basicHandleLogout();
     } 
     
-    public Future<MasterController> openGame() {
-        throw new NotImplementedException();
+    public Future<MasterController> openGame(int maxPlayers) {
+        return this.threadPool.submit(
+                new OpenGameTask(this.nick, 
+                                 this.cookie, 
+                                 maxPlayers, 
+                                 this.address, 
+                                 this.port)
+        );
     }
     
     public Future<PlayerController> joinGame(String name) {

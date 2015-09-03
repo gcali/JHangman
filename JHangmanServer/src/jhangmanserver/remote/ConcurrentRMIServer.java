@@ -6,7 +6,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,6 +29,13 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
 	
 	public ConcurrentRMIServer(GameListHandler gameListHandler) {
 	    this.gameListHandler = gameListHandler;
+	    try {
+            this.register("Gio", "test");
+        } catch (RemoteException e) {
+            assert false;
+        } catch (UserAlreadyRegisteredException e) {
+            assert false;
+        }
 	}
 
     public void export(String bindingName, int port) throws RemoteException {
@@ -108,6 +114,8 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
         if (user == null) {
             throw new UserNotLoggedInException();
         }
+        
+        this.gameListHandler.abortGame(nick);
 
         synchronized(user) {
             if (user.isLoggedIn() && user.checkCookie(cookie)) {

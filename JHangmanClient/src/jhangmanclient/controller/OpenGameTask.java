@@ -1,7 +1,5 @@
 package jhangmanclient.controller;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -16,6 +14,8 @@ import tcp_interface.answers.OpenGameAnswer;
 import tcp_interface.answers.OpenGameCompletedAnswer;
 import tcp_interface.requests.AbortRequest;
 import tcp_interface.requests.OpenGameRequest;
+import utility.JHObjectInputStream;
+import utility.JHObjectOutputStream;
 import utility.observer.JHObserver;
 import utility.observer.ObservationHandler;
 
@@ -41,30 +41,38 @@ class OpenGameTask implements Callable<MasterController>, JHObserver {
         this.port = port; 
         this.players = players;
     }
+    
+    private String getPrefixedMessage(String message) {
+        return String.format("[%s] %s", this.nick, message);
+    }
+    
+    private void printMessage(String message) {
+        System.out.println(getPrefixedMessage(message));
+    }
+    
+    private void printError(String message) {
+        System.err.println(getPrefixedMessage(message));
+    }
 
     @Override
     public MasterController call() throws IOException {
+        printMessage("Hi, I'm starting!");
         try (
                 Socket socket = new Socket(this.address, this.port);
-                ObjectOutputStream objOutput = 
-                        new ObjectOutputStream(
-                                new BufferedOutputStream(
-                                    socket.getOutputStream()
-                                )
-                        );
+                ObjectOutputStream objOutput =
+                    new JHObjectOutputStream(socket.getOutputStream());
                 ObjectInputStream objInput =
-                        new ObjectInputStream(
-                                new BufferedInputStream(
-                                        socket.getInputStream()
-                                )
-                        );
+                    new JHObjectInputStream(socket.getInputStream());
         ) {
+            printMessage("All streams open");
             this.socket = socket;
             OpenGameRequest request = new OpenGameRequest(this.nick, 
                                                           this.cookie,
                                                           this.players);
-            socket.setSoTimeout(TIMEOUT);
+            printMessage("Writing request...");
             objOutput.writeObject(request);
+            objOutput.flush();
+            printMessage("Request written!");
             OpenGameAnswer firstAnswer = getOpenGameAnswer(objOutput, objInput);
             if (firstAnswer == null || !firstAnswer.isAccepted()) {
                 return null;
@@ -104,17 +112,17 @@ class OpenGameTask implements Callable<MasterController>, JHObserver {
             ObjectOutputStream objOutput,
             ObjectInputStream objInput
     ) throws IOException {
-            Answer answer = getAnswer(objOutput, objInput);
-            if (answer == null) {
-                return null;
-            } 
-            switch (answer.getId()) {
-            case OPEN_GAME:
-                return (OpenGameAnswer) answer;
-            default:
-                throw new IOException("Expected id " + OpenGameAnswer.id + 
-                                      ", found " + answer.getId());
-            }
+        Answer answer = getAnswer(objOutput, objInput);
+        if (answer == null) {
+            return null;
+        } 
+        switch (answer.getId()) {
+        case OPEN_GAME:
+            return (OpenGameAnswer) answer;
+        default:
+            throw new IOException("Expected id " + OpenGameAnswer.id + 
+                                  ", found " + answer.getId());
+        }
     }
 
     private static Answer getAnswer(ObjectOutputStream objOutput,

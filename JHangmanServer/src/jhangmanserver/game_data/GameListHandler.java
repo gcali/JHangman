@@ -2,6 +2,7 @@ package jhangmanserver.game_data;
 
 import java.net.InetAddress;
 import java.rmi.RemoteException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,6 +10,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 import jhangmanserver.remote.CallbackProcedure;
 import rmi_interface.ClientCallbackRMI;
+import rmi_interface.SingleGameData;
 import utility.observer.JHObservable;
 import utility.observer.JHObservableSupport;
 import utility.observer.JHObserver;
@@ -24,6 +26,24 @@ public class GameListHandler implements JHObservable {
     
     public void addCallback(String nick, ClientCallbackRMI notifier) {
         this.callbacks.put(nick, notifier); 
+        this.executeCallback(c -> c.setGameData(this.getGameList()));
+    }
+
+    private Map<String, SingleGameData> getGameList() {
+        Map<String, SingleGameData> gameList = 
+                new HashMap<String, SingleGameData>();
+        for (Map.Entry<String, ServerGameData> e : this.gameDataMap.entrySet()) {
+            ServerGameData data = e.getValue();
+            gameList.put( 
+                    e.getKey(), 
+                    new SingleGameData(
+                            data.getName(), 
+                            data.getMaxPlayers(), 
+                            data.getCurrentPlayers()
+                    )
+            ); 
+        }
+        return gameList;
     }
 
     public void removeCallback(String nick) {
@@ -31,8 +51,11 @@ public class GameListHandler implements JHObservable {
     }
     
     public void openGame(String name, int maxPlayers, JHObserver observer) {
-        this.gameDataMap.put(name, new ServerGameData(name, maxPlayers));
-        this.observableSupport.add(observer);
+        System.out.println("Hi, I've been called!");
+        ServerGameData data = new ServerGameData(name, maxPlayers);
+        this.gameDataMap.put(name, data);
+        System.out.println("Adding observer...");
+        data.addObserver(observer);
         this.executeCallback(c -> c.addGame(name, maxPlayers));
     }
     
