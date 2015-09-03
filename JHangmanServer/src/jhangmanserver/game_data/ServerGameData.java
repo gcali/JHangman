@@ -58,8 +58,8 @@ public class ServerGameData implements JHObservable {
         }
     }
     
-    public synchronized void removePlayer(String nick) {
-        this.players.remove(nick);
+    public synchronized boolean removePlayer(String nick) {
+        return this.players.remove(nick);
     }
     
     public synchronized String getName() {

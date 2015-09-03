@@ -88,17 +88,26 @@ public class GameListHandler implements JHObservable {
                          String name, 
                          JHObserver fullGameObserver) 
                                  throws GameFullException {
-        ServerGameData data = this.gameDataMap.get(nick);
+        ServerGameData data = this.gameDataMap.get(name);
         if (data == null) {
             return;
         }
         boolean complete = data.addPlayer(nick, fullGameObserver);
         if (!complete) {
             this.executeCallback(c -> c.incrementGamePlayers(name)); 
-            return;
         } else {
             this.cancelGame(name);
+        }
+    }
+    
+    public void leaveGame(String nick, String name) {
+        ServerGameData data = this.gameDataMap.get(name);
+        if (data == null) {
             return;
+        }
+        boolean removed = data.removePlayer(nick);
+        if (removed) {
+            this.executeCallback(c -> c.decrementGamePlayers(name));
         }
     }
     
@@ -127,8 +136,7 @@ public class GameListHandler implements JHObservable {
         if (data != null) {
             data.abortGame();
             this.cancelGame(name);
-        }
-        
+        } 
     }
 
     public void setKeyAddress(String gameName, String key, InetAddress address) {

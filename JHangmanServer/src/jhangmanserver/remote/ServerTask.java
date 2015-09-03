@@ -12,7 +12,9 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import jhangmanserver.game_data.AbortedGameEvent;
+import jhangmanserver.game_data.GameFullException;
 import jhangmanserver.game_data.GameListHandler;
+import tcp_interface.answers.JoinGameAnswer;
 import tcp_interface.answers.OpenGameAnswer;
 import tcp_interface.answers.OpenGameCompletedAnswer;
 import tcp_interface.requests.JoinGameRequest;
@@ -107,8 +109,106 @@ public class ServerTask implements Runnable {
     private void handleJoinGame(JoinGameRequest request, 
                                 ObjectOutputStream outputStream, 
                                 ObjectInputStream inputStream) {
-        // TODO Auto-generated method stub
+        try {
+            printMessage("Starting to handle join game");
+            String gameName = request.getGame();
+            String nick = request.getNick();
+            int cookie = request.getCookie();
+            if (!this.loggedInChecker.isLoggedIn(nick, cookie)) {
+                printMessage("User wasn't logged in");
+                outputStream.writeObject(new JoinGameAnswer(false));
+                return;
+            } 
+            if (!this.gameListHandler.isGameOpen(gameName)) {
+                this.printMessage("Game wasn't open");
+                outputStream.writeObject(new JoinGameAnswer(false));
+                return;
+            }
+            
+            JoinGameConfirmer confirmer = new JoinGameConfirmer(
+                    gameName,
+                    outputStream,
+                    inputStream,
+                    this.socket
+            );
+            try {
+                this.gameListHandler.joinGame(nick, gameName, confirmer);
+            } catch (GameFullException e) {
+                this.printMessage("Game was full!");
+            } 
+            outputStream.writeObject(new JoinGameAnswer(true));
+            boolean confirmed = confirmer.handleConfirmation();
+            if (!confirmed) {
+                this.gameListHandler.leaveGame(nick, gameName);
+            }
+
+        } catch (IOException e) {
+            
+        }
         
+    }
+    
+    private class JoinGameConfirmer implements JHObserver {
+
+        private String gameName;
+        private ObjectOutputStream outputStream;
+        private ObjectInputStream inputStream;
+        private Socket socket;
+        
+        private EventID eventID = EventID.NOT_HANDLED;
+
+        public JoinGameConfirmer(
+                String gameName,
+                ObjectOutputStream outputStream, 
+                ObjectInputStream inputStream,
+                Socket socket
+        ) {
+            this.gameName = gameName;
+            this.outputStream = outputStream;
+            this.inputStream = inputStream;
+            this.socket = socket;
+        }
+
+        public boolean handleConfirmation() {
+            printMessage("Starting to handle join game confirmation");
+            try {
+                Request request = getRequest(this.inputStream);
+                //received abort request, or protocol violated
+                switch (request.getId()) {
+                case ABORT:
+                    return false;
+                default:
+                    printError("Received invalid request "+ 
+                               "during join confirmation");
+                    return false;
+                }
+              
+            } catch (EOFException e) {
+                //caught event or client close connection
+                return this.handleEventOrClosed();
+            } catch (IOException e) {
+                printError("Got an IOException during join confirmation");
+                return false;
+            }
+        }
+
+        private boolean handleEventOrClosed() {
+            synchronized(this.eventID) {
+                switch (this.eventID) {
+                case NOT_HANDLED:
+                    printError("Client closed socket");
+                    return false;
+                case ABORT:
+                    printMessage("Game was aborted");
+                    return false;
+                case FULL:
+                    printMessage("Game finally started!");
+                    return true;
+                }
+            }
+            assert false;
+            return false;
+        }
     }
 
     private void handleOpenGame(OpenGameRequest request, 
