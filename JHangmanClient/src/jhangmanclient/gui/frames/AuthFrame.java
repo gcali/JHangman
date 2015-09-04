@@ -13,7 +13,7 @@ import jhangmanclient.controller.LoginResult;
 import jhangmanclient.controller.RegistrationResult;
 import jhangmanclient.gui.components.LabeledField;
 import jhangmanclient.gui.components.LogInRegisterButtons;
-import jhangmanclient.gui.utility.Changer;
+import jhangmanclient.gui.utility.ChangeMainFrame;
 import utility.ReturnCodeObj;
 
 /**
@@ -35,7 +35,7 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
     /**
      * Window changer; used to change to other windows when needed
      */
-    private Changer changer = null;
+    private ChangeMainFrame changer = null;
     /**
      * Nick component of the login labels
      */
@@ -75,7 +75,7 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
     public AuthFrame (
             AuthController authController, 
             Consumer<GameChooserController> gameControllerSetter,
-            Changer changer) {
+            ChangeMainFrame changer) {
         super(10);
         this.authController = authController;
         this.gameControllerSetter = gameControllerSetter;
@@ -99,11 +99,12 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
     }
 
     /**
-     * Sets the {@link Changer} for this structure; the {@link Changer} is used
+     * Sets the {@link ChangeMainFrame} for this structure;
+     *  the {@link ChangeMainFrame} is used
      * to change the currently visible frame, when needed.
-     * @param changer   the {@link Changer} to be used
+     * @param changer   the {@link ChangeMainFrame} to be used
      */
-    public void setChanger(Changer changer) {
+    public void setChanger(ChangeMainFrame changer) {
         this.changer = changer;
     }
     
@@ -190,7 +191,7 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
             showErrorDialog("User data invalid");
             break;
         case SUCCESS:
-            handleSuccesfulLogin(retval.getObj()); 
+            handleSuccesfulLogin(nick, retval.getObj()); 
         }
     }
 
@@ -200,10 +201,12 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
      *                              phase
      */
     private void handleSuccesfulLogin(
+            String nick,
             GameChooserController gameChooserController
     ) {
         this.nickComponent.clear();
         this.gameControllerSetter.accept(gameChooserController);
+        this.changer.publishNickChange(nick);
         this.changer.changeFrame(GameChooserFrame.idString);
     }
 

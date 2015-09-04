@@ -16,13 +16,15 @@ public abstract class HangmanFrame extends JFrame {
      * 
      */
     private static final long serialVersionUID = 1L;
+    
+    private static final String defaultTitle = "JHangman";
 
     public HangmanFrame() {
         this(0);
     }
     
     public HangmanFrame(int borderSize) {
-        super("Hangman");
+        super(defaultTitle);
         if (borderSize > 0) {
             JPanel panel = new JPanel();
             panel.setBorder(createEmptyBorder(borderSize));
@@ -86,5 +88,14 @@ public abstract class HangmanFrame extends JFrame {
                                                borderSize, 
                                                borderSize); 
     }
+    
+    protected String getHangmanTitle() {
+        return defaultTitle;
+    }
+    
+    public void updateTitle() {
+        this.setTitle(this.getHangmanTitle());
+    }
+    
 
 }

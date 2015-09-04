@@ -18,9 +18,13 @@ import jhangmanclient.controller.MasterController;
 import jhangmanclient.gui.components.ActionsPanel;
 import jhangmanclient.gui.components.AskPositiveNumberDialog;
 import jhangmanclient.gui.components.GameListTableModel;
-import jhangmanclient.gui.utility.Changer;
+import jhangmanclient.gui.utility.ChangeMainFrame;
+import jhangmanclient.gui.utility.SetNickEvent;
+import utility.observer.JHObserver;
+import utility.observer.ObservationHandler;
 
-public class GameChooserFrame extends HangmanFrame {
+public class GameChooserFrame extends HangmanFrame
+                              implements JHObserver {
     
     public final static String idString = "gameChooser";
     
@@ -28,7 +32,7 @@ public class GameChooserFrame extends HangmanFrame {
      * 
      */
     private static final long serialVersionUID = 1L;
-    Changer changer = null;
+    ChangeMainFrame changer = null;
     private GameChooserController gameChooserController;
 
     private JTable table;
@@ -37,7 +41,9 @@ public class GameChooserFrame extends HangmanFrame {
 
     private AskPositiveNumberDialog askPlayersDialog;
 
-    public GameChooserFrame(Changer changer) {
+    private String nick;
+
+    public GameChooserFrame(ChangeMainFrame changer) {
         super(10);
         this.changer = changer;
         this.setVisible(false);
@@ -126,9 +132,6 @@ public class GameChooserFrame extends HangmanFrame {
                             this,
                             "How many players for the game?"
                     );
-//            this.askPlayersDialog.setVisible(false);
-//            this.askPlayersDialog.setModalityType(
-//                    ModalityType.APPLICATION_MODAL
 //            );
         } 
     }
@@ -181,4 +184,16 @@ public class GameChooserFrame extends HangmanFrame {
         this.table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         this.table.getColumnModel().getColumn(1).setMaxWidth(50);
     } 
+    
+    @ObservationHandler
+    public void onSetNickEvent(SetNickEvent e) {
+        System.out.println("Hi!");
+        this.nick = e.getNick();
+        this.updateTitle();
+    }
+    
+    @Override
+    protected String getHangmanTitle() {
+        return super.getHangmanTitle() + " - " + this.nick;
+    }
 }

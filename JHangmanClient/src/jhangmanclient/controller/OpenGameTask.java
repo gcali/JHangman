@@ -1,40 +1,38 @@
 package jhangmanclient.controller;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
-import java.util.concurrent.Callable;
 
 import tcp_interface.answers.Answer;
 import tcp_interface.answers.OpenGameAnswer;
 import tcp_interface.answers.OpenGameCompletedAnswer;
-import tcp_interface.requests.AbortRequest;
 import tcp_interface.requests.OpenGameRequest;
 import utility.JHObjectInputStream;
 import utility.JHObjectOutputStream;
 import utility.observer.JHObserver;
 import utility.observer.ObservationHandler;
 
-class OpenGameTask implements Callable<MasterController>, JHObserver {
+class OpenGameTask extends TCPServerInteractionTask<MasterController> 
+                   implements JHObserver {
     
     private InetAddress address;
     private int port;
-    private String nick;
+    String nick;
     private int cookie;
     private Socket socket = null;
     private int players;
     
-    private static final int TIMEOUT = 10000;
+//    private static final int TIMEOUT = 10000;
 
     public OpenGameTask(String nick, 
                         int cookie, 
                         int players,
                         InetAddress address, 
                         int port) {
+        super(nick);
         this.nick = nick;
         this.cookie = cookie;
         this.address = address;
@@ -42,18 +40,6 @@ class OpenGameTask implements Callable<MasterController>, JHObserver {
         this.players = players;
     }
     
-    private String getPrefixedMessage(String message) {
-        return String.format("[%s] %s", this.nick, message);
-    }
-    
-    private void printMessage(String message) {
-        System.out.println(getPrefixedMessage(message));
-    }
-    
-    private void printError(String message) {
-        System.err.println(getPrefixedMessage(message));
-    }
-
     @Override
     public MasterController call() throws IOException {
         printMessage("Hi, I'm starting!");
@@ -71,7 +57,6 @@ class OpenGameTask implements Callable<MasterController>, JHObserver {
                                                           this.players);
             printMessage("Writing request...");
             objOutput.writeObject(request);
-            objOutput.flush();
             printMessage("Request written!");
             OpenGameAnswer firstAnswer = getOpenGameAnswer(objOutput, objInput);
             if (firstAnswer == null || !firstAnswer.isAccepted()) {
@@ -125,22 +110,6 @@ class OpenGameTask implements Callable<MasterController>, JHObserver {
         }
     }
 
-    private static Answer getAnswer(ObjectOutputStream objOutput,
-            ObjectInputStream objInput) throws IOException {
-        Answer answer = null;
-        try {
-            answer = (Answer) objInput.readObject(); 
-        } catch (ClassNotFoundException e) {
-            throw new IOException(e);
-        } catch (EOFException | SocketTimeoutException e) {
-            try {
-                objOutput.writeObject(new AbortRequest());
-            } catch (Exception eIgnore) {
-            }
-        }
-        return answer;
-    }
-    
     @ObservationHandler
     public void onAbortTaskEvent(AbortTaskEvent event) {
         if (this.socket != null) {

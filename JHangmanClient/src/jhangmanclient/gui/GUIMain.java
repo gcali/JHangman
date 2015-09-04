@@ -34,6 +34,7 @@ public class GUIMain {
     private void createPanels() {
         ChangeMainFrame changer = new ChangeMainFrame();
         GameChooserFrame gameChooserFrame = new GameChooserFrame(changer);
+        changer.addObserver(gameChooserFrame);
         AuthFrame authFrame = new AuthFrame(
                 authController, 
                 controller -> gameChooserFrame.setGameController(controller),
