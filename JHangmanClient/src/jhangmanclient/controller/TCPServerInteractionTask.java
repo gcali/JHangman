@@ -18,22 +18,24 @@ public abstract class TCPServerInteractionTask<V> implements Callable<V> {
         this.nick = nick;
     }
 
-    protected static Answer getAnswer(ObjectOutputStream objOutput, ObjectInputStream objInput)
-        throws IOException {
-            Answer answer = null;
+    protected static Answer getAnswer(
+        ObjectOutputStream objOutput, 
+        ObjectInputStream objInput
+    ) throws IOException {
+        Answer answer = null;
+        try {
+            answer = (Answer) objInput.readObject(); 
+        } catch (ClassNotFoundException e) {
+            throw new IOException(e);
+        } catch (EOFException | SocketTimeoutException e) {
             try {
-                answer = (Answer) objInput.readObject(); 
-            } catch (ClassNotFoundException e) {
-                throw new IOException(e);
-            } catch (EOFException | SocketTimeoutException e) {
-                try {
-                    objOutput.writeObject(new AbortRequest());
-                } catch (Exception eIgnore) {
-                }
+                objOutput.writeObject(new AbortRequest());
+            } catch (Exception eIgnore) {
             }
-            return answer;
         }
-
+        return answer;
+    }
+    
     private String getPrefixedMessage(String message) {
         return String.format("[%s] %s", this.nick, message);
     }

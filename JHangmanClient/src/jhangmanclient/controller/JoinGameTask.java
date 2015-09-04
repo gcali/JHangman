@@ -8,6 +8,7 @@ import java.net.Socket;
 
 import tcp_interface.answers.Answer;
 import tcp_interface.answers.JoinGameAnswer;
+import tcp_interface.answers.JoinGameCompletedAnswer;
 import tcp_interface.requests.JoinGameRequest;
 import utility.JHObjectInputStream;
 import utility.JHObjectOutputStream;
@@ -64,14 +65,40 @@ public class JoinGameTask extends TCPServerInteractionTask<PlayerController>
             if (joinStartAnswer == null || !joinStartAnswer.isAccepted()) {
                 return null;
             }
-
-
             
+            JoinGameCompletedAnswer joinCompletedAnswer =
+                getJoinGameCompletedAnswer(output, input);
+            if (!joinCompletedAnswer.isAccepted()) {
+                return null;
+            }
+            return new PlayerController(
+                this.nick,
+                this.gameName,
+                joinCompletedAnswer.getAddress(),
+                joinCompletedAnswer.getKey()
+            );
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return null;
+    }
+    
+    private JoinGameCompletedAnswer getJoinGameCompletedAnswer(
+        ObjectOutputStream output, 
+        ObjectInputStream input
+    ) throws IOException {
+        Answer answer = getAnswer(output, input);
+        if (answer == null) {
+            return null;
+        }
+        switch (answer.getId()) {
+        case JOIN_GAME_COMPLETED:
+            return (JoinGameCompletedAnswer) answer;
+        default:
+            throw new IOException("Expected " + JoinGameCompletedAnswer.id + 
+                                  ", got " + answer.getId());
+        }
     }
 
     private JoinGameAnswer getJoinGameAnswer(

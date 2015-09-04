@@ -2,9 +2,10 @@ package jhangmanclient.gui.frames;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.rmi.RemoteException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -12,9 +13,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import jhangmanclient.controller.GameChooserController;
 import jhangmanclient.controller.MasterController;
+import jhangmanclient.controller.PlayerController;
 import jhangmanclient.gui.components.ActionsPanel;
 import jhangmanclient.gui.components.AskPositiveNumberDialog;
 import jhangmanclient.gui.components.GameListTableModel;
@@ -84,7 +88,7 @@ public class GameChooserFrame extends HangmanFrame
     }
 
     private void openGame(int players) {
-        Future<MasterController> futureResult = 
+        Callable<MasterController> openGameCallable = 
                 this.gameChooserController.openGame(players);
         Thread thread = new Thread() {
             @Override
@@ -92,11 +96,14 @@ public class GameChooserFrame extends HangmanFrame
                 MasterController controller = null;
                 System.out.println("Opening game...");
                 try {
-                    controller = futureResult.get();
+                    controller = openGameCallable.call();
                 } catch (InterruptedException e) {
                     System.err.println("I got interrupted!");
                     return;
-                } catch (ExecutionException e) {
+                } catch (IOException e) {
+                    System.err.println("Failure during communication");
+                    return;
+                } catch (Exception e) {
                     System.err.println("Execution exception, damn");
                     e.printStackTrace();
                     return;
@@ -139,6 +146,34 @@ public class GameChooserFrame extends HangmanFrame
     private JButton initJoinGameButton() {
         JButton button = new JButton("Join game");
         button.setEnabled(false);
+        button.addActionListener( new ActionListener() {
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int pos = table.getSelectedRow();
+                if (pos >= 0) {
+                    String name = (String) table.getValueAt(pos, 0);
+                    Callable<PlayerController> joinGameCallable =
+                        gameChooserController.joinGame(name);
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            PlayerController controller = null;
+                            try {
+                                controller = joinGameCallable.call();
+                            } catch (Exception e) {
+                            }
+                            if (controller == null) {
+                                return;
+                            } else {
+                                System.out.println("Yuhu!");
+                            }
+                        }
+                    }.start();
+                }
+                
+            }
+        });
         this.joinGameButton = button;
         return button;
     }
@@ -182,6 +217,11 @@ public class GameChooserFrame extends HangmanFrame
         this.gameChooserController = controller;
         this.table.setModel(new GameListTableModel(controller.getViewer()));
         this.table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        this.table.getSelectionModel().addListSelectionListener(
+            new TableSelectionListener(
+                this.table,
+                b -> setJoinGameButtonEnabled(b)
+        ));
         this.table.getColumnModel().getColumn(1).setMaxWidth(50);
     } 
     
@@ -195,5 +235,23 @@ public class GameChooserFrame extends HangmanFrame
     @Override
     protected String getHangmanTitle() {
         return super.getHangmanTitle() + " - " + this.nick;
+    }
+    
+    private class TableSelectionListener implements ListSelectionListener {
+        private JTable table;
+        private Consumer<Boolean> setButtonVisibility;
+
+        public TableSelectionListener(JTable table,
+                                      Consumer<Boolean> setButtonVisibility) {
+            this.table = table;
+            this.setButtonVisibility = setButtonVisibility;
+        }
+
+        @Override
+        public void valueChanged(ListSelectionEvent e) {
+            if (!e.getValueIsAdjusting()) {
+                this.setButtonVisibility.accept(this.table.getSelectedRow() >= 0); 
+            }
+        }
     }
 }

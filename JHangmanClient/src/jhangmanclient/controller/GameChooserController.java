@@ -3,15 +3,14 @@ package jhangmanclient.controller;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import jhangmanclient.game_data.GameListViewer;
 import rmi_interface.RMIServer;
 import rmi_interface.UserNotLoggedInException;
 import utility.ActionExecutor;
-import development_support.NotImplementedException;
 
 public class GameChooserController {
 
@@ -89,18 +88,20 @@ public class GameChooserController {
         basicHandleLogout();
     } 
     
-    public Future<MasterController> openGame(int maxPlayers) {
-        return this.threadPool.submit(
-                new OpenGameTask(this.nick, 
-                                 this.cookie, 
-                                 maxPlayers, 
-                                 this.address, 
-                                 this.port)
-        );
+    public Callable<MasterController> openGame(int maxPlayers) {
+        return new OpenGameTask(this.nick, 
+                                this.cookie, 
+                                maxPlayers, 
+                                this.address, 
+                                this.port);
     }
     
-    public Future<PlayerController> joinGame(String name) {
-        throw new NotImplementedException();
+    public Callable<PlayerController> joinGame(String name) {
+        return new JoinGameTask(name, 
+                                this.nick, 
+                                this.cookie, 
+                                this.address, 
+                                this.port);
     }
     
     public GameListViewer getViewer() {
