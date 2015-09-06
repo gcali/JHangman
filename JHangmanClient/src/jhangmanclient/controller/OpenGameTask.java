@@ -20,10 +20,10 @@ class OpenGameTask extends TCPServerInteractionTask<MasterController>
     
     private InetAddress address;
     private int port;
-    String nick;
     private int cookie;
     private Socket socket = null;
     private int players;
+    private String nick;
     
 //    private static final int TIMEOUT = 10000;
 
@@ -70,7 +70,6 @@ class OpenGameTask extends TCPServerInteractionTask<MasterController>
             } 
             return new MasterController(this.nick,
                                         gameCompleteAnswer.getAddress(),
-                                        gameCompleteAnswer.getPort(),
                                         gameCompleteAnswer.getKey());
         }
     }

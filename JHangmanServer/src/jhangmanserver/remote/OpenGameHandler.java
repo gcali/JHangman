@@ -68,7 +68,7 @@ class OpenGameHandler extends TCPHandler {
             outputStream.writeObject(new OpenGameAnswer(true));
             InetAddress address = confirmer.handleConfirmation();
             if (address == null) {
-                gameListHandler.abortGame(gameName);
+                gameListHandler.abortUserGames(gameName);
             } else {
                 gameListHandler.setKeyAddress(gameName, key, address);
             }

@@ -11,8 +11,11 @@ import jhangmanclient.game_data.GameListViewer;
 import rmi_interface.RMIServer;
 import rmi_interface.UserNotLoggedInException;
 import utility.ActionExecutor;
+import utility.observer.JHObservable;
+import utility.observer.JHObservableSupport;
+import utility.observer.JHObserver;
 
-public class GameChooserController {
+public class GameChooserController implements JHObservable {
 
     private RMIServer server;
     private String nick;
@@ -22,6 +25,8 @@ public class GameChooserController {
     private final ThreadPoolExecutor threadPool;
     private final InetAddress address;
     private final int port;
+    
+    private JHObservableSupport observableSupport = new JHObservableSupport();
 
     public GameChooserController(RMIServer server, 
                                  String nick, 
@@ -108,4 +113,13 @@ public class GameChooserController {
         return this.gameListViewer;
     }
 
+    @Override
+    public void addObserver(JHObserver observer) {
+        this.observableSupport.add(observer);
+    }
+
+    @Override
+    public void removeObserver(JHObserver observer) {
+        this.observableSupport.remove(observer);
+    } 
 }

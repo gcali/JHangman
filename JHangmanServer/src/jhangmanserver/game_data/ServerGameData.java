@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import jhangmanserver.remote.GameFullEvent;
+import utility.Loggable;
 import utility.observer.JHObservable;
 import utility.observer.JHObservableSupport;
 import utility.observer.JHObserver;
@@ -19,7 +20,7 @@ import utility.observer.JHObserver;
  * @author gcali
  *
  */
-public class ServerGameData implements JHObservable {
+public class ServerGameData extends Loggable implements JHObservable {
 
     private JHObservableSupport observableSupport = new JHObservableSupport();
     private String name;
@@ -27,6 +28,7 @@ public class ServerGameData implements JHObservable {
     private Set<String> players;
 
     public ServerGameData(String name, int maxPlayers) {
+        super("GameData");
         this.name = name;
         this.maxPlayers = maxPlayers;
         this.players = new HashSet<String>();
@@ -48,6 +50,7 @@ public class ServerGameData implements JHObservable {
         }
         this.players.add(nick);
         if (fullGameObserver != null) {
+            printMessage("Adding observer...");
             this.addObserver(fullGameObserver); 
         }
         if (this.players.size() == this.maxPlayers) {
@@ -59,7 +62,15 @@ public class ServerGameData implements JHObservable {
     }
     
     public synchronized boolean removePlayer(String nick) {
-        return this.players.remove(nick);
+        boolean done = this.players.remove(nick);
+        if (done) {
+            this.observableSupport.publish(new PlayerLeftEvent(nick));
+        }
+        return done;
+    }
+    
+    public synchronized boolean isPlayerIn(String nick) {
+        return this.players.contains(nick);
     }
     
     public synchronized String getName() {
@@ -80,6 +91,7 @@ public class ServerGameData implements JHObservable {
 
     @Override
     public void addObserver(JHObserver observer) {
+        printMessage("From " + this + ", Observer added: " + observer.toString());
         this.observableSupport.add(observer); 
     }
 
@@ -89,6 +101,7 @@ public class ServerGameData implements JHObservable {
     }
 
     public void abortGame() {
+        printMessage("From " + this + ", abort sent");
         this.observableSupport.publish(new AbortedGameEvent());
     }
     

@@ -1,10 +1,12 @@
-package jhangmanclient.gui; 
+package jhangmanclient.main; 
 
 import java.awt.HeadlessException;
+import java.awt.event.ActionEvent;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.function.Consumer;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -21,6 +23,7 @@ public class GUIMain {
     
     private AuthController authController;
     private Runnable starter;
+    private Consumer<User> forceLogin;
 
     public GUIMain(AuthController authController) throws HeadlessException {
         this.authController = authController;
@@ -42,6 +45,15 @@ public class GUIMain {
         changer.addPanel(gameChooserFrame, "gameChooser");
         changer.addPanel(authFrame, "auth");
         this.starter = () -> changer.changeFrame("auth");
+        this.forceLogin = new Consumer<User>() {
+
+            @Override
+            public void accept(User t) {
+                authFrame.setNick(t.getNick());
+                authFrame.setPass(t.getPass());
+                authFrame.actionPerformed(new ActionEvent(authFrame, 0, "login")); 
+            }
+        };
     } 
     
     public void start() {
@@ -53,6 +65,16 @@ public class GUIMain {
         });
     }
     
+    void startLogged(String nick, String pass) {
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            
+            @Override
+            public void run() {
+                GUIMain.this.forceLogin.accept(new User(nick, pass)); 
+            }
+        });
+    }
+    
     private static void showTopFatalError(String message) {
         JOptionPane.showMessageDialog(new JFrame(), message); 
         System.exit(-1);
@@ -60,6 +82,12 @@ public class GUIMain {
     
     public static void main(String[] args) throws RemoteException {
         
+        AuthController authController = initConnection();
+        GUIMain frame = new GUIMain(authController);
+        frame.start();
+    }
+
+    static AuthController initConnection() throws RemoteException {
         String hostName = "localhost";
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -91,7 +119,24 @@ public class GUIMain {
         assert server != null;
         
         AuthController authController = new AuthController(server);
-        GUIMain frame = new GUIMain(authController);
-        frame.start();
+        return authController;
     } 
+    
+    public static class User {
+        private String nick;
+        private String pass;
+
+        public User(String nick, String pass) {
+            this.nick = nick;
+            this.pass = pass;
+        }
+
+        public String getNick() {
+            return nick;
+        }
+
+        public String getPass() {
+            return pass;
+        }
+    }
 }

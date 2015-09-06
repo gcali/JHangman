@@ -11,7 +11,6 @@ public class OpenGameCompletedAnswer extends Answer {
     public static final AnswerID id = AnswerID.OPEN_GAME_COMPLETED;
     private boolean accepted;
     private InetAddress address;
-    private int port;
     private String key;
     
     public OpenGameCompletedAnswer(boolean accepted, 
@@ -38,10 +37,6 @@ public class OpenGameCompletedAnswer extends Answer {
 
     public synchronized InetAddress getAddress() {
         return address;
-    }
-
-    public synchronized int getPort() {
-        return port;
     }
 
     public synchronized String getKey() {

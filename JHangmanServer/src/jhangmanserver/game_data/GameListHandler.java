@@ -79,8 +79,6 @@ public class GameListHandler implements JHObservable {
      * and removes the game; otherwise, returns {@code null}
      * @param nick the name of the player joining the game
      * @param name the name of the game
-     * @return the set of players if the game is complete, {@code null}
-     *         otherwise
      * @throws GameFullException if the player could not join because
      *                           the game was full
      */
@@ -93,9 +91,8 @@ public class GameListHandler implements JHObservable {
             return;
         }
         boolean complete = data.addPlayer(nick, fullGameObserver);
-        if (!complete) {
-            this.executeCallback(c -> c.incrementGamePlayers(name)); 
-        } else {
+        this.executeCallback(c -> c.incrementGamePlayers(name)); 
+        if (complete) {
             this.cancelGame(name);
         }
     }
@@ -131,12 +128,20 @@ public class GameListHandler implements JHObservable {
         this.observableSupport.remove(observer);
     }
 
-    public void abortGame(String name) {
-        ServerGameData data = this.gameDataMap.get(name);
+    public void abortUserGames(String nick) {
+        System.out.println("Abort!");
+        ServerGameData data = this.gameDataMap.get(nick);
         if (data != null) {
             data.abortGame();
-            this.cancelGame(name);
+            this.cancelGame(nick);
         } 
+        for (ServerGameData entry : this.gameDataMap.values()) {
+            System.out.println("Removing partecipating games");
+            if (entry.isPlayerIn(nick)) {
+                System.out.println("Leaving " + entry.getName());
+                this.leaveGame(nick, entry.getName());
+            }
+        }
     }
 
     public void setKeyAddress(String gameName, String key, InetAddress address) {

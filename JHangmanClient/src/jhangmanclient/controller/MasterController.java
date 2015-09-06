@@ -2,7 +2,9 @@ package jhangmanclient.controller;
 
 import java.net.InetAddress;
 
-public class MasterController {
+import utility.Loggable;
+
+public class MasterController extends Loggable {
     
     private String nick;
     private InetAddress address;
@@ -11,12 +13,13 @@ public class MasterController {
 
     public MasterController(String nick, 
                             InetAddress address, 
-                            int port,
                             String key) {
+        super("(M) " + nick);
         this.nick = nick;
         this.address = address;
-        this.port = port;
         this.key = key;
+        this.printMessage("Address: " + address);
+        this.printMessage("Key: " + key);
     }
 
 }

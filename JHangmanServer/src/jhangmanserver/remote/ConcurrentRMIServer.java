@@ -30,7 +30,10 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
 	public ConcurrentRMIServer(GameListHandler gameListHandler) {
 	    this.gameListHandler = gameListHandler;
 	    try {
+	        //TODO remove test accounts
             this.register("Gio", "test");
+            this.register("Mike", "test");
+            this.register("Phil", "test");
         } catch (RemoteException e) {
             assert false;
         } catch (UserAlreadyRegisteredException e) {
@@ -80,7 +83,6 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
             }
             cookie = cookies.getAndIncrement();
             user.setCookie(cookie);
-//            user.setCallback(notifier);
             user.setLoggedIn(true);
             gameListHandler.addCallback(nick, notifier);
         }
@@ -115,7 +117,7 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
             throw new UserNotLoggedInException();
         }
         
-        this.gameListHandler.abortGame(nick);
+        this.gameListHandler.abortUserGames(nick);
 
         synchronized(user) {
             if (user.isLoggedIn() && user.checkCookie(cookie)) {

@@ -62,4 +62,9 @@ public class LabeledField extends Box {
     public void clear() {
         this.textComponent.setText("");
     }
+
+    public void setText(String nick) {
+        this.textComponent.setText(nick);
+        
+    }
 }

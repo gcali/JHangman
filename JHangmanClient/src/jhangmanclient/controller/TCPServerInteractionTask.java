@@ -9,13 +9,12 @@ import java.util.concurrent.Callable;
 
 import tcp_interface.answers.Answer;
 import tcp_interface.requests.AbortRequest;
+import utility.Loggable;
 
-public abstract class TCPServerInteractionTask<V> implements Callable<V> {
-
-    private String nick;
+public abstract class TCPServerInteractionTask<V> extends Loggable implements Callable<V> {
 
     public TCPServerInteractionTask(String nick) {
-        this.nick = nick;
+        super(nick);
     }
 
     protected static Answer getAnswer(
@@ -36,20 +35,4 @@ public abstract class TCPServerInteractionTask<V> implements Callable<V> {
         return answer;
     }
     
-    private String getPrefixedMessage(String message) {
-        return String.format("[%s] %s", this.nick, message);
-    }
-
-    protected void printMessage(String message) {
-        System.out.println(getPrefixedMessage(message));
-    }
-
-    protected void printError(String message) {
-        System.err.println(getPrefixedMessage(message));
-    }
-
-    public TCPServerInteractionTask() {
-        super();
-    }
-
 }

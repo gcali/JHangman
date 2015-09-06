@@ -7,9 +7,11 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import jhangmanserver.game_data.AbortedGameEvent;
 import jhangmanserver.game_data.GameFullException;
 import jhangmanserver.game_data.GameListHandler;
 import jhangmanserver.game_data.GameStartingEvent;
+import jhangmanserver.game_data.PlayerLeftEvent;
 import tcp_interface.answers.Answer;
 import tcp_interface.answers.JoinGameAnswer;
 import tcp_interface.answers.JoinGameCompletedAnswer;
@@ -49,6 +51,7 @@ class JoinGameHandler extends TCPHandler {
             }
             
             JoinGameConfirmer confirmer = new JoinGameConfirmer(
+                    nick,
                     outputStream,
                     inputStream,
                     socket
@@ -80,8 +83,10 @@ class JoinGameHandler extends TCPHandler {
         private String key;
         private InetAddress address;
         private Socket socket;
+        private String nick;
 
         public JoinGameConfirmer(
+                String nick,
                 ObjectOutputStream outputStream, 
                 ObjectInputStream inputStream,
                 Socket socket
@@ -89,6 +94,7 @@ class JoinGameHandler extends TCPHandler {
             this.outputStream = outputStream;
             this.inputStream = inputStream;
             this.socket = socket;
+            this.nick = nick;
         }
 
         public boolean handleConfirmation() {
@@ -98,6 +104,7 @@ class JoinGameHandler extends TCPHandler {
                 //received abort request, or protocol violated
                 switch (request.getId()) {
                 case ABORT:
+                    printMessage("Received abort request");
                     return false;
                 default:
                     printError("Received invalid request "+ 
@@ -122,6 +129,14 @@ class JoinGameHandler extends TCPHandler {
                     return false;
                 case ABORT:
                     printMessage("Game was aborted");
+                    try {
+                        this.outputStream.writeObject(
+                            new JoinGameCompletedAnswer(false, 
+                                                        null, 
+                                                        null)
+                        );
+                    } catch (IOException eIgnore) {
+                    }
                     return false;
                 case FULL:
                     printMessage("Game finally started!");
@@ -155,6 +170,40 @@ class JoinGameHandler extends TCPHandler {
                 this.socket.shutdownInput();
             } catch (IOException e) {
             }
+        }
+        
+        @ObservationHandler
+        public void onAbortedGameEvent(AbortedGameEvent event) {
+            printMessage("Got aborted event");
+            this.leaveGame();
+        }
+        
+        private void leaveGame() {
+            synchronized(this.eventLock) {
+                printMessage("Current event status: " + this.eventID);
+                if (this.eventID == EventID.NOT_HANDLED) {
+                    this.eventID = EventID.ABORT;
+                }
+            }
+            try {
+                this.socket.shutdownInput();
+            } catch (IOException e) {
+                
+            }
+        }
+        
+        @ObservationHandler
+        public void onPlayerLeftEvent(PlayerLeftEvent event) {
+            printMessage("Got player left event");
+            printMessage(String.format("Nicks? %s <-> %s", event.getNick(), this.nick));
+            if (event.getNick().equals(this.nick)) {
+                this.leaveGame();
+            }
+        }
+        
+        @Override
+        public String toString() {
+            return this.nick;
         }
     } 
 }

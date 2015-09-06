@@ -169,6 +169,14 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
             this.passwordComponent.clear();
         }
     }
+    
+    public void setNick(String nick) {
+        this.nickComponent.setText(nick);
+    }
+    
+    public void setPass(String pass) {
+        this.passwordComponent.setText(pass);
+    }
 
     /**
      * Handles the result of a login
