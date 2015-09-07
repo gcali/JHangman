@@ -7,46 +7,48 @@ import rmi_interface.ClientCallbackRMI;
 public class User {
     
     private String nick;
-    private String hashedPassword;
-    private StrongPasswordEncryptor encryptor = new StrongPasswordEncryptor();
-//    private ClientCallbackRMI callback = null;
+    private String hashedPassword = null;
+    private StrongPasswordEncryptor encryptor;
     private int cookie;
     private boolean loggedIn = false;
     
-    public User(String nick) {
+    public User(String nick, String password, boolean shouldEncrypt) {
+        if (password == null) {
+            throw new NullPointerException("password field expected to be not 'null'");
+        }
+
         this.nick = nick;
-        this.hashedPassword = null;
+        if (shouldEncrypt) {
+            this.encryptor = new StrongPasswordEncryptor();
+        } else {
+            this.encryptor = null;
+        }
+        this.setPassword(password);
     }
     
     public User(String nick, String password) {
-        this.nick = nick;
-        this.setPassword(password);
+        this(nick, password, true);
     }
     
     public synchronized String getNick() {
         return this.nick;
     }
     
-    public synchronized void setPassword(String password) {
-
-        this.hashedPassword = encryptor.encryptPassword(password);
+    public synchronized void setPassword(String password) { 
+        if (this.encryptor == null) {
+            this.hashedPassword = password;
+        } else {
+            this.hashedPassword = encryptor.encryptPassword(password);
+        }
     }
     
     public synchronized boolean isPasswordCorrect(String password) {
-        return this.encryptor.checkPassword(password, this.hashedPassword);
+        if (this.encryptor == null) {
+            return this.hashedPassword.equals(password);
+        } else {
+            return this.encryptor.checkPassword(password, this.hashedPassword);
+        }
     }
-    
-//    public synchronized void setCallback(ClientCallbackRMI callback) {
-//        this.callback = callback;
-//    }
-    
-//    public synchronized void removeCallback() {
-//        this.callback = null;
-//    }
-//    
-//    public synchronized ClientCallbackRMI getCallback(ClientCallbackRMI callback) {
-//        return this.callback;
-//    }
     
     public synchronized void setCookie(int cookie) {
         this.cookie = cookie;
@@ -65,18 +67,20 @@ public class User {
     }
     
     public static void main(String[] args) {
+        boolean shouldEncrypt = true;
         String nick = "testUser";
         String password = "testPassword";
         String wrongPassword = "testpassword";
         try {
-            nick = args[0];
-            password = args[1];
-            wrongPassword = args[2];
+            shouldEncrypt = Boolean.parseBoolean(args[0]);
+            nick = args[1];
+            password = args[2];
+            wrongPassword = args[3];
         } catch (ArrayIndexOutOfBoundsException e) {
             
         }
         
-        User user = new User(nick, password);
+        User user = new User(nick, password, shouldEncrypt);
         System.out.println("Testing right password. Expected: true");
         System.out.println(user.isPasswordCorrect(password));
         

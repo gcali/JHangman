@@ -11,16 +11,18 @@ public class ServerLauncher {
 
     public static void main(String[] args) {
         
+        boolean shouldEncrypt = true;
         int port = RMIServer.defaultPort;
         String name = RMIServer.name;
         try {
-            port = Integer.parseInt(args[0]);
-            name = args[1];
+            shouldEncrypt = Boolean.parseBoolean(args[0]);
+            port = Integer.parseInt(args[1]);
+            name = args[2];
         } catch (ArrayIndexOutOfBoundsException e) {
             
         }
         GameListHandler gameListHandler = new GameListHandler();
-        ConcurrentRMIServer server = new ConcurrentRMIServer(gameListHandler);
+        ConcurrentRMIServer server = new ConcurrentRMIServer(gameListHandler, shouldEncrypt);
         
         try {
             server.export(name,port);
