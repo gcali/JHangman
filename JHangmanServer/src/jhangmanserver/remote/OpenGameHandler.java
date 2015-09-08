@@ -21,9 +21,6 @@ import utility.observer.ObservationHandler;
 
 class OpenGameHandler extends TCPHandler {
     
-    private static final int OPEN_GAME_TIMEOUT = 0;
-    private int id;
-
     public OpenGameHandler(int id) {
         super(id);
     }
@@ -55,7 +52,7 @@ class OpenGameHandler extends TCPHandler {
             OpenGameConfirmer confirmer = 
                     new OpenGameConfirmer(
                             gameName,
-                            OPEN_GAME_TIMEOUT, 
+                            this.getTimeout(),
                             key, 
                             outputStream, 
                             inputStream,

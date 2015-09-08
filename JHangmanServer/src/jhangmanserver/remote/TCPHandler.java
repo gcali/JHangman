@@ -8,6 +8,8 @@ import tcp_interface.requests.Request;
 
 public abstract class TCPHandler {
     
+    private int TIMEOUT = 300000;
+    
     private Integer id;
 
     public TCPHandler(Integer id) {
@@ -44,6 +46,10 @@ public abstract class TCPHandler {
     
     protected int getID() {
         return this.id;
+    }
+    
+    protected int getTimeout() {
+        return this.TIMEOUT;
     }
 
 

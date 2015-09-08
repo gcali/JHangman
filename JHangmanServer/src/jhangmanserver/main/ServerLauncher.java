@@ -2,10 +2,10 @@ package jhangmanserver.main;
 
 import java.rmi.RemoteException;
 
-import rmi_interface.RMIServer;
 import jhangmanserver.game_data.GameListHandler;
 import jhangmanserver.remote.ConcurrentRMIServer;
 import jhangmanserver.remote.ConcurrentTCPServer;
+import rmi_interface.RMIServer;
 
 public class ServerLauncher {
 
@@ -13,14 +13,18 @@ public class ServerLauncher {
         
         boolean shouldEncrypt = true;
         int port = RMIServer.defaultPort;
+        String hostName = "localhost";
         String name = RMIServer.name;
         try {
             shouldEncrypt = Boolean.parseBoolean(args[0]);
             port = Integer.parseInt(args[1]);
-            name = args[2];
+            hostName = args[2];
+            name = args[3];
         } catch (ArrayIndexOutOfBoundsException e) {
             
         }
+        
+        System.setProperty("java.rmi.server.hostname", hostName);
         GameListHandler gameListHandler = new GameListHandler();
         ConcurrentRMIServer server = new ConcurrentRMIServer(gameListHandler, shouldEncrypt);
         

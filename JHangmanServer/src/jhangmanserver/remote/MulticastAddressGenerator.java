@@ -27,7 +27,6 @@ public class MulticastAddressGenerator {
         byte[] bytes = new byte[2];
         
         boolean found = false;
-        String address;
         LastBytes lastBytes = null;
         while (!found) {
             randomGenerator.nextBytes(bytes); 

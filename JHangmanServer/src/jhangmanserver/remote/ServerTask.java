@@ -17,7 +17,6 @@ import utility.JHObjectOutputStream;
 public class ServerTask extends TCPHandler implements Runnable {
     
     private static final AtomicInteger idGenerator = new AtomicInteger();
-    private static final int OPEN_GAME_TIMEOUT = 300000;
     private Socket socket;
     private GameListHandler gameListHandler;
     private LoggedInChecker loggedInChecker;

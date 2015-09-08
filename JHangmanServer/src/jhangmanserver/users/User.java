@@ -2,8 +2,6 @@ package jhangmanserver.users;
 
 import org.jasypt.util.password.StrongPasswordEncryptor;
 
-import rmi_interface.ClientCallbackRMI;
-
 public class User {
     
     private String nick;

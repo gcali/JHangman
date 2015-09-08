@@ -2,6 +2,11 @@ package jhangmanserver.game_data;
 
 public class GameFullException extends Exception {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     public GameFullException() {
         // TODO Auto-generated constructor stub
     }

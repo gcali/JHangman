@@ -82,13 +82,18 @@ public class GUIMain {
     
     public static void main(String[] args) throws RemoteException {
         
-        AuthController authController = initConnection();
+        String hostName = "localhost";
+        try {
+            hostName = args[0];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            
+        }
+        AuthController authController = initConnection(hostName);
         GUIMain frame = new GUIMain(authController);
         frame.start();
     }
 
-    static AuthController initConnection() throws RemoteException {
-        String hostName = "localhost";
+    static AuthController initConnection(String hostName) throws RemoteException {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException | InstantiationException
