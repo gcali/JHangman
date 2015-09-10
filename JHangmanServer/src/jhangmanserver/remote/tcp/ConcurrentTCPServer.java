@@ -1,4 +1,4 @@
-package jhangmanserver.remote;
+package jhangmanserver.remote.tcp;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import jhangmanserver.game_data.GameListHandler;
+import jhangmanserver.remote.rmi.LoggedInChecker;
 
 
 public class ConcurrentTCPServer implements Runnable {

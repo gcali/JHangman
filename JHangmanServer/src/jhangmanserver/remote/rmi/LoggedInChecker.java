@@ -1,4 +1,4 @@
-package jhangmanserver.remote;
+package jhangmanserver.remote.rmi;
 
 public interface LoggedInChecker {
 

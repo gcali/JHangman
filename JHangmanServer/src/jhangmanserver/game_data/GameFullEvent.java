@@ -1,4 +1,4 @@
-package jhangmanserver.remote;
+package jhangmanserver.game_data;
 
 import utility.observer.JHEvent;
 

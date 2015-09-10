@@ -8,14 +8,15 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-import jhangmanserver.remote.CallbackProcedure;
+import jhangmanserver.remote.rmi.CallbackProcedure;
 import rmi_interface.ClientCallbackRMI;
 import rmi_interface.SingleGameData;
+import utility.Loggable;
 import utility.observer.JHObservable;
 import utility.observer.JHObservableSupport;
 import utility.observer.JHObserver;
 
-public class GameListHandler implements JHObservable {
+public class GameListHandler extends Loggable implements JHObservable {
     
     private JHObservableSupport observableSupport = new JHObservableSupport();
 
@@ -23,6 +24,10 @@ public class GameListHandler implements JHObservable {
             new ConcurrentSkipListMap<String, ServerGameData>();
     private Map<String, ClientCallbackRMI> callbacks =
             new ConcurrentHashMap<String, ClientCallbackRMI>();
+    
+    public GameListHandler() {
+        super("GameList");
+    }
     
     public void addCallback(String nick, ClientCallbackRMI notifier) {
         this.callbacks.put(nick, notifier); 
@@ -90,11 +95,8 @@ public class GameListHandler implements JHObservable {
         if (data == null) {
             return;
         }
-        boolean complete = data.addPlayer(nick, fullGameObserver);
+        data.addPlayer(nick, fullGameObserver);
         this.executeCallback(c -> c.incrementGamePlayers(name)); 
-        if (complete) {
-            this.cancelGame(name);
-        }
     }
     
     public void leaveGame(String nick, String name) {
@@ -129,7 +131,7 @@ public class GameListHandler implements JHObservable {
     }
 
     public void abortUserGames(String nick) {
-        System.out.println("Abort!");
+        printMessage("Abort for " + nick +"!");
         ServerGameData data = this.gameDataMap.get(nick);
         if (data != null) {
             data.abortGame();
@@ -148,6 +150,7 @@ public class GameListHandler implements JHObservable {
         ServerGameData data = this.gameDataMap.get(gameName);
         if (data != null) {
             data.setKeyAddress(key, address);
+            this.cancelGame(gameName);
         }
     }
     

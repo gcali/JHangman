@@ -4,7 +4,6 @@ import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Set;
 
-import jhangmanserver.remote.GameFullEvent;
 import utility.Loggable;
 import utility.observer.JHObservable;
 import utility.observer.JHObservableSupport;
@@ -106,6 +105,7 @@ public class ServerGameData extends Loggable implements JHObservable {
     }
     
     public void setKeyAddress(String key, InetAddress address) {
+        printMessage("Throwing GameStartingEvent");
         this.observableSupport.publish(new GameStartingEvent(key, address));
     }
     

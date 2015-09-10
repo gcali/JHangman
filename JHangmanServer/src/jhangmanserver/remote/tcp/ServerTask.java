@@ -1,4 +1,4 @@
-package jhangmanserver.remote;
+package jhangmanserver.remote.tcp;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import jhangmanserver.game_data.GameListHandler;
+import jhangmanserver.remote.rmi.LoggedInChecker;
 import tcp_interface.requests.JoinGameRequest;
 import tcp_interface.requests.OpenGameRequest;
 import tcp_interface.requests.Request;

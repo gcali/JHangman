@@ -1,4 +1,4 @@
-package jhangmanserver.remote;
+package jhangmanserver.remote.tcp;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -12,6 +12,7 @@ import jhangmanserver.game_data.GameFullException;
 import jhangmanserver.game_data.GameListHandler;
 import jhangmanserver.game_data.GameStartingEvent;
 import jhangmanserver.game_data.PlayerLeftEvent;
+import jhangmanserver.remote.rmi.LoggedInChecker;
 import tcp_interface.answers.Answer;
 import tcp_interface.answers.JoinGameAnswer;
 import tcp_interface.answers.JoinGameCompletedAnswer;
@@ -49,6 +50,7 @@ class JoinGameHandler extends TCPHandler {
                 outputStream.writeObject(new JoinGameAnswer(false));
                 return;
             }
+            printMessage("Creating confirmer");
             
             JoinGameConfirmer confirmer = new JoinGameConfirmer(
                     nick,
@@ -57,11 +59,14 @@ class JoinGameHandler extends TCPHandler {
                     socket
             );
             try {
+                printMessage("Calling joinGame");
                 gameListHandler.joinGame(nick, gameName, confirmer);
             } catch (GameFullException e) {
                 this.printMessage("Game was full!");
             } 
+            printMessage("Game list handler has joined game");
             outputStream.writeObject(new JoinGameAnswer(true));
+            printMessage("first confirmation sent");
             boolean confirmed = confirmer.handleConfirmation();
             if (!confirmed) {
                 gameListHandler.leaveGame(nick, gameName);
@@ -100,8 +105,10 @@ class JoinGameHandler extends TCPHandler {
         public boolean handleConfirmation() {
             printMessage("Starting to handle join game confirmation");
             try {
+                printMessage("Waiting for request...");
                 Request request = getRequest(this.inputStream);
                 //received abort request, or protocol violated
+                printMessage("Received abort request, or protocol violated");
                 switch (request.getId()) {
                 case ABORT:
                     printMessage("Received abort request");
@@ -113,6 +120,7 @@ class JoinGameHandler extends TCPHandler {
                 }
               
             } catch (EOFException e) {
+                printMessage("Caught event or client closed connection");
                 //caught event or client close connection
                 return this.handleEventOrClosed();
             } catch (IOException e) {
@@ -153,6 +161,7 @@ class JoinGameHandler extends TCPHandler {
 
                 }
             }
+            printError("Got out??");
             assert false;
             return false;
         }

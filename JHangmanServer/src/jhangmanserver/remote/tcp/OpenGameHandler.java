@@ -1,4 +1,4 @@
-package jhangmanserver.remote;
+package jhangmanserver.remote.tcp;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -10,8 +10,11 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.UUID;
 
+import jhangmanserver.address.MulticastAddressGenerator;
 import jhangmanserver.game_data.AbortedGameEvent;
+import jhangmanserver.game_data.GameFullEvent;
 import jhangmanserver.game_data.GameListHandler;
+import jhangmanserver.remote.rmi.LoggedInChecker;
 import tcp_interface.answers.OpenGameAnswer;
 import tcp_interface.answers.OpenGameCompletedAnswer;
 import tcp_interface.requests.OpenGameRequest;
@@ -49,24 +52,26 @@ class OpenGameHandler extends TCPHandler {
             } 
             String key = UUID.randomUUID().toString();
             this.printMessage("Creating confirmer...");
-            OpenGameConfirmer confirmer = 
-                    new OpenGameConfirmer(
-                            gameName,
-                            this.getTimeout(),
-                            key, 
-                            outputStream, 
-                            inputStream,
-                            socket
-                    );
+            OpenGameConfirmer confirmer = new OpenGameConfirmer(
+                gameName,
+                this.getTimeout(),
+                key, 
+                outputStream, 
+                inputStream,
+                socket
+            );
             this.printMessage("Confirmer created");
             gameListHandler.openGame(gameName,
                                      request.getPlayers(),
                                      confirmer);
             outputStream.writeObject(new OpenGameAnswer(true));
             InetAddress address = confirmer.handleConfirmation();
+            printMessage("Here's the address! " + address);
             if (address == null) {
+                printMessage("Aborting game");
                 gameListHandler.abortUserGames(gameName);
             } else {
+                printMessage("Setting key and address!");
                 gameListHandler.setKeyAddress(gameName, key, address);
             }
         } catch (IOException e) {
@@ -87,11 +92,11 @@ class OpenGameHandler extends TCPHandler {
         private final Object eventLock = new Object();
         
         public OpenGameConfirmer(String name,
-                             int timeout, 
-                             String key,
-                             ObjectOutputStream output,
-                             ObjectInputStream input,
-                             Socket socket) {
+                                 int timeout, 
+                                 String key,
+                                 ObjectOutputStream output,
+                                 ObjectInputStream input,
+                                 Socket socket) {
             this.name = name;
             this.timeout = timeout;
             this.key = key;
@@ -154,7 +159,13 @@ class OpenGameHandler extends TCPHandler {
                 switch (this.eventId) {
                 case FULL:
                     printMessage("Game full!");
-                    InetAddress address = MulticastAddressGenerator.getAddress();
+                    InetAddress address = 
+                        MulticastAddressGenerator.getAddress("239.255.0.0/16");
+                    if (address == null) {
+                        System.out.println("Couldn't find a free address");
+                        return null;
+                    }
+                    printMessage("Generated address: " + address);
                     try {
                         this.output.writeObject(
                                 OpenGameCompletedAnswer.createAccepted(address, 

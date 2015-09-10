@@ -3,8 +3,8 @@ package jhangmanserver.main;
 import java.rmi.RemoteException;
 
 import jhangmanserver.game_data.GameListHandler;
-import jhangmanserver.remote.ConcurrentRMIServer;
-import jhangmanserver.remote.ConcurrentTCPServer;
+import jhangmanserver.remote.rmi.ConcurrentRMIServer;
+import jhangmanserver.remote.tcp.ConcurrentTCPServer;
 import rmi_interface.RMIServer;
 
 public class ServerLauncher {
