@@ -10,7 +10,7 @@ import java.io.Serializable;
 import org.jasypt.encryption.pbe.PBEByteEncryptor;
 import org.jasypt.encryption.pbe.StandardPBEByteEncryptor;
 
-import udp_interface.master.MasterHandshake;
+import udp_interface.master.MasterHandshakeMessage;
 
 public abstract class Message implements Serializable {
     
@@ -76,11 +76,11 @@ public abstract class Message implements Serializable {
         
         System.out.println("------");
         System.out.println("Trying with MasterHandshake; using word 'ciao'");
-        Message handshake = new MasterHandshake("ciao");
+        Message handshake = new MasterHandshakeMessage("ciao");
         byte [] encryptedHandshake = handshake.encode("ciao");
         System.out.println("Byte length: " + encrypted.length);
         printByteArray(encryptedHandshake); 
-        MasterHandshake decryptedHandshake = (MasterHandshake) Message.decode(encryptedHandshake, "ciao");
+        MasterHandshakeMessage decryptedHandshake = (MasterHandshakeMessage) Message.decode(encryptedHandshake, "ciao");
         System.out.println("Word: " + decryptedHandshake.getWord());
     }
 

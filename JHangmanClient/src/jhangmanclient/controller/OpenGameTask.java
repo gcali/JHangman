@@ -69,7 +69,8 @@ class OpenGameTask extends TCPServerInteractionTask<GameMasterController>
             } 
             return new GameMasterController(this.nick,
                                         gameCompleteAnswer.getAddress(),
-                                        gameCompleteAnswer.getKey());
+                                        gameCompleteAnswer.getKey(),
+                                        10);
         }
     }
 

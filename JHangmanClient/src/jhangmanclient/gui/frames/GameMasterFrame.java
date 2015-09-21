@@ -53,7 +53,7 @@ public class GameMasterFrame extends HangmanFrame {
     }
     
     public static void main(String[] args) {
-        JFrame frame = new GameMasterFrame(new GameMasterController("ciao", null, "ciao"));
+        JFrame frame = new GameMasterFrame(new GameMasterController("ciao", null, "ciao", 10));
         frame.setVisible(true);
     }
 }
