@@ -29,7 +29,6 @@ public class JoinGameTask extends TCPServerInteractionTask<PlayerController>
                         int cookie, 
                         InetAddress address,
                         int port) {
-        super(nick);
         this.gameName = gameName;
         this.nick = nick;
         this.cookie = cookie;
@@ -51,29 +50,29 @@ public class JoinGameTask extends TCPServerInteractionTask<PlayerController>
             ObjectInputStream input =
                 new JHObjectInputStream(this.socket.getInputStream());
         ) { 
-            printMessage("Opened all streams");
+            printDebugMessage("Opened all streams");
             JoinGameRequest request = new JoinGameRequest(
                 this.nick, 
                 this.cookie, 
                 this.gameName
             );
-            printMessage("Asking request");
+            printDebugMessage("Asking request");
             output.writeObject(request);
-            printMessage("Request sent");
+            printDebugMessage("Request sent");
             JoinGameAnswer joinStartAnswer = getJoinGameAnswer(output, input);
             if (joinStartAnswer == null || !joinStartAnswer.isAccepted()) {
-                printMessage("Got answer for join request, I didn't get through");
+                printDebugMessage("Got answer for join request, I didn't get through");
                 return null;
             }
-            printMessage("Got answer, yuhu!"); 
+            printDebugMessage("Got answer, yuhu!"); 
             JoinGameCompletedAnswer joinCompletedAnswer =
                 getJoinGameCompletedAnswer(output, input);
-            printMessage("Got complete answer");
+            printDebugMessage("Got complete answer");
             if (joinCompletedAnswer == null || !joinCompletedAnswer.isAccepted()) {
-                printMessage("And I wasn't accepted...");
+                printDebugMessage("And I wasn't accepted...");
                 return null;
             }
-            printMessage("And I was accepted!");
+            printDebugMessage("And I was accepted!");
             return new PlayerController(
                 this.nick,
                 this.gameName,
@@ -91,20 +90,20 @@ public class JoinGameTask extends TCPServerInteractionTask<PlayerController>
         ObjectOutputStream output, 
         ObjectInputStream input
     ) throws IOException {
-        printMessage("Waiting for completed answer");
+        printDebugMessage("Waiting for completed answer");
         Answer answer = getAnswer(output, input);
-        printMessage("Got answer");
+        printDebugMessage("Got answer");
         if (answer == null) {
-            printMessage("But was null");
+            printDebugMessage("But was null");
             return null;
         }
-        printMessage("Parsing...");
+        printDebugMessage("Parsing...");
         switch (answer.getId()) {
         case JOIN_GAME_COMPLETED:
-            printMessage("Right kind!");
+            printDebugMessage("Right kind!");
             return (JoinGameCompletedAnswer) answer;
         default:
-            printMessage("Nope, wrong kind. Wonder why.");
+            printDebugMessage("Nope, wrong kind. Wonder why.");
             throw new IOException("Expected " + JoinGameCompletedAnswer.id + 
                                   ", got " + answer.getId());
         }
@@ -125,6 +124,11 @@ public class JoinGameTask extends TCPServerInteractionTask<PlayerController>
             throw new IOException("Expected " + JoinGameAnswer.id + 
                                   ", got " + answer.getId());
         }
+    }
+
+    @Override
+    public String getId() {
+        return this.nick;
     }
 
 }

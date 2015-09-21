@@ -11,12 +11,13 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import jhangmanserver.remote.rmi.CallbackProcedure;
 import rmi_interface.ClientCallbackRMI;
 import rmi_interface.SingleGameData;
+import utility.Cleaner;
 import utility.Loggable;
 import utility.observer.JHObservable;
 import utility.observer.JHObservableSupport;
 import utility.observer.JHObserver;
 
-public class GameListHandler extends Loggable implements JHObservable {
+public class GameListHandler implements Loggable, JHObservable {
     
     private JHObservableSupport observableSupport = new JHObservableSupport();
 
@@ -24,10 +25,6 @@ public class GameListHandler extends Loggable implements JHObservable {
             new ConcurrentSkipListMap<String, ServerGameData>();
     private Map<String, ClientCallbackRMI> callbacks =
             new ConcurrentHashMap<String, ClientCallbackRMI>();
-    
-    public GameListHandler() {
-        super("GameList");
-    }
     
     public void addCallback(String nick, ClientCallbackRMI notifier) {
         this.callbacks.put(nick, notifier); 
@@ -55,13 +52,26 @@ public class GameListHandler extends Loggable implements JHObservable {
         this.callbacks.remove(nick); 
     }
     
-    public void openGame(String name, int maxPlayers, JHObserver observer) {
+    public Cleaner openGame(String name, int maxPlayers, JHObserver observer) {
         System.out.println("Hi, I've been called!");
+        if (maxPlayers <= 0) {
+            throw new IllegalArgumentException(
+                "Can't have non-positive players"
+            );
+        }
         ServerGameData data = new ServerGameData(name, maxPlayers);
         this.gameDataMap.put(name, data);
         System.out.println("Adding observer...");
         data.addObserver(observer);
         this.executeCallback(c -> c.addGame(name, maxPlayers));
+        return new Cleaner() {
+            
+            @Override
+            public void cleanUp() {
+                data.removeObserver(observer); 
+                printDebugMessage("Cleanup done");
+            }
+        };
     }
     
     public void cancelGame(String name) {
@@ -87,16 +97,17 @@ public class GameListHandler extends Loggable implements JHObservable {
      * @throws GameFullException if the player could not join because
      *                           the game was full
      */
-    public void joinGame(String nick, 
-                         String name, 
-                         JHObserver fullGameObserver) 
-                                 throws GameFullException {
+    public Cleaner joinGame(String nick, 
+                            String name, 
+                            JHObserver fullGameObserver) 
+                                throws GameFullException {
         ServerGameData data = this.gameDataMap.get(name);
         if (data == null) {
-            return;
+            return Cleaner.newEmptyCleaner();
         }
-        data.addPlayer(nick, fullGameObserver);
+        Cleaner cleaner = data.addPlayer(nick, fullGameObserver);
         this.executeCallback(c -> c.incrementGamePlayers(name)); 
+        return cleaner;
     }
     
     public void leaveGame(String nick, String name) {
@@ -131,7 +142,7 @@ public class GameListHandler extends Loggable implements JHObservable {
     }
 
     public void abortUserGames(String nick) {
-        printMessage("Abort for " + nick +"!");
+        printDebugMessage("Abort for " + nick +"!");
         ServerGameData data = this.gameDataMap.get(nick);
         if (data != null) {
             data.abortGame();
@@ -153,6 +164,9 @@ public class GameListHandler extends Loggable implements JHObservable {
             this.cancelGame(gameName);
         }
     }
-    
-    
+
+    @Override
+    public String getId() {
+        return "GameList";
+    } 
 }

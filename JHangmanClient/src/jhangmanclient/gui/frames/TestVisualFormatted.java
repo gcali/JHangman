@@ -27,7 +27,6 @@ public class TestVisualFormatted extends HangmanFrame implements JHObserver {
 
     @Override
     protected void initComponents() {
-        super.initComponents();
         JPanel panel = new JPanel();
         LayoutManager layout = new BoxLayout(panel, BoxLayout.LINE_AXIS);
         panel.setLayout(layout);

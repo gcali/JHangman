@@ -11,11 +11,8 @@ import tcp_interface.answers.Answer;
 import tcp_interface.requests.AbortRequest;
 import utility.Loggable;
 
-public abstract class TCPServerInteractionTask<V> extends Loggable implements Callable<V> {
-
-    public TCPServerInteractionTask(String nick) {
-        super(nick);
-    }
+public abstract class TCPServerInteractionTask<V> 
+    implements Loggable, Callable<V> {
 
     protected static Answer getAnswer(
         ObjectOutputStream objOutput, 

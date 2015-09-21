@@ -4,7 +4,9 @@ import java.net.InetAddress;
 
 import utility.Loggable;
 
-public class PlayerController extends Loggable {
+public class PlayerController implements Loggable {
+
+    private String nick;
 
     public PlayerController(
         String nick, 
@@ -12,10 +14,15 @@ public class PlayerController extends Loggable {
         InetAddress address,
         String key
     ) {
-        super(nick);
-        this.printMessage("Game name: " + gameName);
-        this.printMessage("Address: " + address);
-        this.printMessage("Key: " + key);
+        this.nick = nick;
+        this.printDebugMessage("Game name: " + gameName);
+        this.printDebugMessage("Address: " + address);
+        this.printDebugMessage("Key: " + key);
+    }
+
+    @Override
+    public String getId() {
+        return this.nick;
     }
 
 }

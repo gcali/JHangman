@@ -78,15 +78,9 @@ public class MulticastAddressGenerator {
             if (fixed % 8 != 0) {
                 byte [] singleByte = new byte[1];
                 randomGenerator.nextBytes(singleByte);
-//                byte mask = (byte) 0xFF;
-//                mask = (byte)((mask & 0xFF) >>> (fixed % 8));
-//                System.out.println("S: " + (fixed % 8));
-//                System.out.println("M: " + Integer.toBinaryString((mask & 0xFF)));
-//                System.out.println("B: " + (singleByte[0] & 0xFF));
                 address[fixed/8] = 
                     (byte)((singleByte[0] & (0xFF >>> (fixed % 8))) | address[fixed/8]);
             }
-//            System.out.println("Orig -> " + toStringAsAddress(address));
             found = set.add(arrayToList(address));
         }
         

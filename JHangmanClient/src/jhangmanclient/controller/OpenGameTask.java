@@ -15,7 +15,7 @@ import utility.JHObjectOutputStream;
 import utility.observer.JHObserver;
 import utility.observer.ObservationHandler;
 
-class OpenGameTask extends TCPServerInteractionTask<MasterController> 
+class OpenGameTask extends TCPServerInteractionTask<GameMasterController> 
                    implements JHObserver {
     
     private InetAddress address;
@@ -32,7 +32,6 @@ class OpenGameTask extends TCPServerInteractionTask<MasterController>
                         int players,
                         InetAddress address, 
                         int port) {
-        super(nick);
         this.nick = nick;
         this.cookie = cookie;
         this.address = address;
@@ -41,8 +40,8 @@ class OpenGameTask extends TCPServerInteractionTask<MasterController>
     }
     
     @Override
-    public MasterController call() throws IOException {
-        printMessage("Hi, I'm starting!");
+    public GameMasterController call() throws IOException {
+        printDebugMessage("Hi, I'm starting!");
         try (
                 Socket socket = new Socket(this.address, this.port);
                 ObjectOutputStream objOutput =
@@ -50,14 +49,14 @@ class OpenGameTask extends TCPServerInteractionTask<MasterController>
                 ObjectInputStream objInput =
                     new JHObjectInputStream(socket.getInputStream());
         ) {
-            printMessage("All streams open");
+            printDebugMessage("All streams open");
             this.socket = socket;
             OpenGameRequest request = new OpenGameRequest(this.nick, 
                                                           this.cookie,
                                                           this.players);
-            printMessage("Writing request...");
+            printDebugMessage("Writing request...");
             objOutput.writeObject(request);
-            printMessage("Request written!");
+            printDebugMessage("Request written!");
             OpenGameAnswer firstAnswer = getOpenGameAnswer(objOutput, objInput);
             if (firstAnswer == null || !firstAnswer.isAccepted()) {
                 return null;
@@ -68,7 +67,7 @@ class OpenGameTask extends TCPServerInteractionTask<MasterController>
                 !gameCompleteAnswer.isAccepted()) {
                 return null;
             } 
-            return new MasterController(this.nick,
+            return new GameMasterController(this.nick,
                                         gameCompleteAnswer.getAddress(),
                                         gameCompleteAnswer.getKey());
         }
@@ -117,5 +116,10 @@ class OpenGameTask extends TCPServerInteractionTask<MasterController>
             } catch (IOException e) { 
             }
         }
+    }
+
+    @Override
+    public String getId() {
+        return this.nick;
     } 
 }

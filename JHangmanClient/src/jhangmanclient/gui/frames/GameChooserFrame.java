@@ -17,7 +17,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import jhangmanclient.controller.GameChooserController;
-import jhangmanclient.controller.MasterController;
+import jhangmanclient.controller.GameMasterController;
 import jhangmanclient.controller.PlayerController;
 import jhangmanclient.gui.components.ActionsPanel;
 import jhangmanclient.gui.components.AskPositiveNumberDialog;
@@ -88,12 +88,12 @@ public class GameChooserFrame extends HangmanFrame
     }
 
     private void openGame(int players) {
-        Callable<MasterController> openGameCallable = 
+        Callable<GameMasterController> openGameCallable = 
                 this.gameChooserController.openGame(players);
         Thread thread = new Thread() {
             @Override
             public void run() {
-                MasterController controller = null;
+                GameMasterController controller = null;
                 System.out.println("Opening game...");
                 try {
                     controller = openGameCallable.call();

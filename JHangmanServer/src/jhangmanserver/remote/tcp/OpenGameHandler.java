@@ -19,6 +19,7 @@ import tcp_interface.answers.OpenGameAnswer;
 import tcp_interface.answers.OpenGameCompletedAnswer;
 import tcp_interface.requests.OpenGameRequest;
 import tcp_interface.requests.Request;
+import utility.Cleaner;
 import utility.observer.JHObserver;
 import utility.observer.ObservationHandler;
 
@@ -39,17 +40,26 @@ class OpenGameHandler extends TCPHandler {
         try {
             this.printMessage("Starting to handle open game");
             String gameName = request.getNick();
+            boolean shouldAbort = false;
             if (!loggedInChecker.isLoggedIn(gameName,
                                                  request.getCookie())) {
                 this.printMessage("User wasn't logged in");
-                outputStream.writeObject(new OpenGameAnswer(false));
-                return;
+                shouldAbort = true;
             } 
             if (gameListHandler.isGameOpen(gameName)) {
                 this.printMessage("Game was already open");
+                shouldAbort = true;
+            } 
+            
+            if (request.getPlayers() <= 0) {
+                this.printMessage("Can't have non-positive players");
+                shouldAbort = true;
+            }
+            
+            if (shouldAbort) {
                 outputStream.writeObject(new OpenGameAnswer(false));
                 return;
-            } 
+            }
             String key = UUID.randomUUID().toString();
             this.printMessage("Creating confirmer...");
             OpenGameConfirmer confirmer = new OpenGameConfirmer(
@@ -61,26 +71,28 @@ class OpenGameHandler extends TCPHandler {
                 socket
             );
             this.printMessage("Confirmer created");
-            gameListHandler.openGame(gameName,
-                                     request.getPlayers(),
-                                     confirmer);
-            outputStream.writeObject(new OpenGameAnswer(true));
-            InetAddress address = confirmer.handleConfirmation();
-            printMessage("Here's the address! " + address);
-            if (address == null) {
-                printMessage("Aborting game");
-                gameListHandler.abortUserGames(gameName);
-            } else {
-                printMessage("Setting key and address!");
-                gameListHandler.setKeyAddress(gameName, key, address);
+            try (
+                Cleaner cleaner = gameListHandler.openGame(gameName,
+                                                           request.getPlayers(),
+                                                           confirmer)
+            ) {
+                outputStream.writeObject(new OpenGameAnswer(true));
+                InetAddress address = confirmer.handleConfirmation();
+                printMessage("Here's the address! " + address);
+                if (address == null) {
+                    printMessage("Aborting game");
+                    gameListHandler.abortUserGames(gameName);
+                } else {
+                    printMessage("Setting key and address!");
+                    gameListHandler.setKeyAddress(gameName, key, address);
+                } 
             }
         } catch (IOException e) {
             
         }
     }
     
-    private class OpenGameConfirmer implements JHObserver {
-
+    private class OpenGameConfirmer implements JHObserver { 
         private int timeout;
         private String key;
         private ObjectOutputStream output;
@@ -215,7 +227,6 @@ class OpenGameHandler extends TCPHandler {
                     }
                 }
             }
-        }
-
+        } 
     }
 }

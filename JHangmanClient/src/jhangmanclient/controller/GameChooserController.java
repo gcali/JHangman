@@ -93,7 +93,7 @@ public class GameChooserController implements JHObservable {
         basicHandleLogout();
     } 
     
-    public Callable<MasterController> openGame(int maxPlayers) {
+    public Callable<GameMasterController> openGame(int maxPlayers) {
         return new OpenGameTask(this.nick, 
                                 this.cookie, 
                                 maxPlayers, 

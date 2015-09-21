@@ -39,7 +39,7 @@ public class VisualFormattedTextField extends JFormattedTextField
     
     public VisualFormattedTextField(Format format) {
         super(new FormatParseAllOrNothing(format));
-        this.setFocusLostBehavior(this.PERSIST);
+        this.setFocusLostBehavior(VisualFormattedTextField.PERSIST);
         this.setUpdateVisualsFrequency();
     }
     
@@ -105,15 +105,6 @@ public class VisualFormattedTextField extends JFormattedTextField
                 this.wasValid = false;
             }
         } 
-    }
-    
-    private Object getValueFromString(String text) {
-        AbstractFormatter formatter = this.getFormatter();
-        try {
-            return formatter.stringToValue(text);
-        } catch (ParseException e) {
-            return null;
-        }
     }
     
     @Override

@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Set;
 
+import utility.Cleaner;
 import utility.Loggable;
 import utility.observer.JHObservable;
 import utility.observer.JHObservableSupport;
@@ -19,7 +20,7 @@ import utility.observer.JHObserver;
  * @author gcali
  *
  */
-public class ServerGameData extends Loggable implements JHObservable {
+public class ServerGameData implements Loggable, JHObservable {
 
     private JHObservableSupport observableSupport = new JHObservableSupport();
     private String name;
@@ -27,7 +28,6 @@ public class ServerGameData extends Loggable implements JHObservable {
     private Set<String> players;
 
     public ServerGameData(String name, int maxPlayers) {
-        super("GameData");
         this.name = name;
         this.maxPlayers = maxPlayers;
         this.players = new HashSet<String>();
@@ -41,7 +41,7 @@ public class ServerGameData extends Loggable implements JHObservable {
      *                         is registered
      * @return {@code true} if the game is complete, {@code false} otherwise
      */
-    public synchronized boolean addPlayer(String nick, 
+    public synchronized Cleaner addPlayer(String nick, 
                                           JHObserver fullGameObserver) 
             throws GameFullException {
         if (this.players.size() == this.maxPlayers) {
@@ -49,15 +49,19 @@ public class ServerGameData extends Loggable implements JHObservable {
         }
         this.players.add(nick);
         if (fullGameObserver != null) {
-            printMessage("Adding observer...");
+            printDebugMessage("Adding observer...");
             this.addObserver(fullGameObserver); 
         }
         if (this.players.size() == this.maxPlayers) {
             this.observableSupport.publish(new GameFullEvent());
-            return true;
-        } else {
-            return false;
         }
+        
+        return new Cleaner() { 
+            @Override
+            public void cleanUp() {
+                ServerGameData.this.observableSupport.remove(fullGameObserver);
+            }
+        };
     }
     
     public synchronized boolean removePlayer(String nick) {
@@ -90,7 +94,7 @@ public class ServerGameData extends Loggable implements JHObservable {
 
     @Override
     public void addObserver(JHObserver observer) {
-        printMessage("From " + this + ", Observer added: " + observer.toString());
+        printDebugMessage("From " + this + ", Observer added: " + observer.toString());
         this.observableSupport.add(observer); 
     }
 
@@ -100,13 +104,18 @@ public class ServerGameData extends Loggable implements JHObservable {
     }
 
     public void abortGame() {
-        printMessage("From " + this + ", abort sent");
+        printDebugMessage("From " + this + ", abort sent");
         this.observableSupport.publish(new AbortedGameEvent());
     }
     
     public void setKeyAddress(String key, InetAddress address) {
-        printMessage("Throwing GameStartingEvent");
+        printDebugMessage("Throwing GameStartingEvent");
         this.observableSupport.publish(new GameStartingEvent(key, address));
+    }
+
+    @Override
+    public String getId() {
+        return "GameData";
     }
     
 }

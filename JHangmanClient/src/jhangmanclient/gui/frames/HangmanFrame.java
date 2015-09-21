@@ -41,9 +41,7 @@ public abstract class HangmanFrame extends JFrame {
         this.setLocationRelativeTo(null);
     }
     
-    protected void initComponents() {
-        
-    }
+    protected abstract void initComponents();
     
     /**
      * Handle initializations regarding layout

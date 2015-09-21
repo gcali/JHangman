@@ -98,11 +98,11 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
                            String password, 
                            ClientCallbackRMI notifier)
                                    throws WrongPasswordException, RemoteException { 
-        User user = getUser(nick);
-        if (user == null) { 
-            throw new WrongPasswordException("User data incorrect");
+        try {
+            this.logOut(nick, 0, true);
+        } catch (UserNotLoggedInException e) {
+            //shouldn't happen, in any case safe to ignore
         }
-        user.logOut();
         try {
             return logIn(nick, password, notifier);
         } catch (UserAlreadyLoggedInException e) {
@@ -116,24 +116,33 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
     @Override
     public void logOut(String nick, int cookie) throws UserNotLoggedInException,
             RemoteException {
+        this.logOut(nick, cookie, false);
+    }
+    
+    private void logOut(String nick, int cookie, boolean override)
+        throws UserNotLoggedInException {
         User user = getUser(nick);
 
         if (user == null) {
             throw new UserNotLoggedInException();
         }
         
-        this.gameListHandler.abortUserGames(nick);
 
         synchronized(user) {
-            if (user.isLoggedIn() && user.checkCookie(cookie)) {
+            if (
+                user.isLoggedIn() && 
+                (override || user.checkCookie(cookie))
+            ) {
+                this.gameListHandler.abortUserGames(nick);
                 user.logOut();
                 this.gameListHandler.removeCallback(nick);
             } else {
                 throw new UserNotLoggedInException();
             }
         } 
+        
     }
-
+    
     @Override
     public void register(String nick, String password)
             throws UserAlreadyRegisteredException, RemoteException {

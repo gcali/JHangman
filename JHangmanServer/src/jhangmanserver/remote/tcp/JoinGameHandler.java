@@ -18,6 +18,7 @@ import tcp_interface.answers.JoinGameAnswer;
 import tcp_interface.answers.JoinGameCompletedAnswer;
 import tcp_interface.requests.JoinGameRequest;
 import tcp_interface.requests.Request;
+import utility.Cleaner;
 import utility.observer.JHObserver;
 import utility.observer.ObservationHandler;
 
@@ -58,17 +59,21 @@ class JoinGameHandler extends TCPHandler {
                     inputStream,
                     socket
             );
-            try {
-                printMessage("Calling joinGame");
-                gameListHandler.joinGame(nick, gameName, confirmer);
+            printMessage("Calling joinGame");
+            boolean gameJoined = false;
+            try (
+                Cleaner cleaner = 
+                    gameListHandler.joinGame(nick, gameName, confirmer);
+            ){
+                printMessage("Game list handler has joined game");
+                outputStream.writeObject(new JoinGameAnswer(true));
+                printMessage("first confirmation sent");
+                gameJoined = confirmer.handleConfirmation();
             } catch (GameFullException e) {
                 this.printMessage("Game was full!");
+                return;
             } 
-            printMessage("Game list handler has joined game");
-            outputStream.writeObject(new JoinGameAnswer(true));
-            printMessage("first confirmation sent");
-            boolean confirmed = confirmer.handleConfirmation();
-            if (!confirmed) {
+            if (!gameJoined) {
                 gameListHandler.leaveGame(nick, gameName);
             }
 
