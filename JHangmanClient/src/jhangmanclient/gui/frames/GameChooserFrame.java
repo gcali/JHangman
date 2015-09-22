@@ -16,9 +16,9 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import jhangmanclient.controller.GameChooserController;
-import jhangmanclient.controller.GameMasterController;
-import jhangmanclient.controller.PlayerController;
+import jhangmanclient.controller.common.GameChooserController;
+import jhangmanclient.controller.master.GameMasterController;
+import jhangmanclient.controller.player.PlayerController;
 import jhangmanclient.gui.components.ActionsPanel;
 import jhangmanclient.gui.components.AskPositiveNumberDialog;
 import jhangmanclient.gui.components.GameListTableModel;

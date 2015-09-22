@@ -1,4 +1,4 @@
-package jhangmanclient.controller;
+package jhangmanclient.controller.common;
 
 import java.io.EOFException;
 import java.io.IOException;

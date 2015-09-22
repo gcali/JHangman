@@ -7,10 +7,10 @@ import java.util.function.Consumer;
 
 import javax.swing.JFrame;
 
-import jhangmanclient.controller.AuthController;
-import jhangmanclient.controller.GameChooserController;
-import jhangmanclient.controller.LoginResult;
-import jhangmanclient.controller.RegistrationResult;
+import jhangmanclient.controller.common.AuthController;
+import jhangmanclient.controller.common.GameChooserController;
+import jhangmanclient.controller.common.LoginResult;
+import jhangmanclient.controller.common.RegistrationResult;
 import jhangmanclient.gui.components.LabeledField;
 import jhangmanclient.gui.components.LogInRegisterButtons;
 import jhangmanclient.gui.utility.ChangeMainFrame;

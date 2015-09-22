@@ -3,7 +3,7 @@ package udp_interface.master;
 import udp_interface.Message;
 import udp_interface.MessageID;
 
-public class MasterHandshakeMessage extends Message {
+public class MasterHelloMessage extends Message {
     
     /**
      * 
@@ -11,8 +11,8 @@ public class MasterHandshakeMessage extends Message {
     private static final long serialVersionUID = 1L;
     private final String word;
 
-    public MasterHandshakeMessage(String word) {
-        super(MessageID.MASTER_HANDSHAKE);
+    public MasterHelloMessage(String word) {
+        super(MessageID.MASTER_HELLO);
         this.word = word;
     }
     

@@ -13,7 +13,7 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import jhangmanclient.controller.AuthController;
+import jhangmanclient.controller.common.AuthController;
 import jhangmanclient.gui.frames.AuthFrame;
 import jhangmanclient.gui.frames.GameChooserFrame;
 import jhangmanclient.gui.utility.ChangeMainFrame;

@@ -1,4 +1,4 @@
-package jhangmanclient.controller;
+package jhangmanclient.controller.master;
 
 import java.io.Closeable;
 import java.io.EOFException;
@@ -13,10 +13,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import udp_interface.Message;
 import udp_interface.master.GameUpdateMessage;
-import udp_interface.master.MasterHandshakeMessage;
-import udp_interface.master.MasterHandshakeRequest;
+import udp_interface.master.MasterHelloMessage;
 import udp_interface.player.GuessMessage;
-import udp_interface.player.PlayerHandshake;
+import udp_interface.player.PlayerConnectionMessage;
 import utility.Loggable;
 
 public class GameMasterController implements Loggable, Closeable {
@@ -27,22 +26,24 @@ public class GameMasterController implements Loggable, Closeable {
     private String key;
     private String word = null;
     private String winner = null;
-    private boolean gameOver = false;
+    private Boolean gameOver = false;
     private boolean [] uncovered = null;
     private MulticastSocket socket = null;
     private MessageDispatcher messageDispatcher;
     
     private int updateCounter = 0;
     
-    private Object gmcLock = new Object();
+    private final Object gameOverLock = new Object();
+    private final Object connectionMessagesLock = new Object();
+    private final Object gameMessagesLock = new Object();
     
     private Set<String> playerSet = new HashSet<String>();
 
-    private BlockingQueue<PlayerHandshake> handshakeMessages = 
-        new LinkedBlockingQueue<PlayerHandshake>();
+    private BlockingQueue<PlayerConnectionMessage> connectionMessages = 
+        new LinkedBlockingQueue<PlayerConnectionMessage>();
     private BlockingQueue<GuessMessage> gameMessages =
         new LinkedBlockingQueue<GuessMessage>();
-    private Thread handshakeMessagesHandler;
+    private Thread connectionMessagesHandler;
     private Thread gameMessagesHandler;
     private int remainingTries;
 
@@ -72,21 +73,14 @@ public class GameMasterController implements Loggable, Closeable {
             throw new NullPointerException("Word not set");
         }
         this.socket = new MulticastSocket(); 
-        Message handshake = new MasterHandshakeMessage(this.word);
-        byte [] encryptedHandhsake = handshake.encode(this.key);
-        DatagramPacket packet = new DatagramPacket(
-            encryptedHandhsake, 
-            encryptedHandhsake.length, 
-            this.address, 
-            this.port
-        );
-        this.socket.send(packet); 
+        this.socket.joinGroup(this.address);
+        this.sendHello(); 
         this.messageDispatcher = new MessageDispatcher();
-        this.handshakeMessagesHandler = new Thread(new Runnable() {
+        this.connectionMessagesHandler = new Thread(new Runnable() {
             
             @Override
             public void run() {
-                handleHandshakeMessages();
+                handleConnectionMessages();
                 
             }
         });
@@ -100,6 +94,18 @@ public class GameMasterController implements Loggable, Closeable {
         });
         
     }
+
+    private void sendHello() throws IOException {
+        Message hello = new MasterHelloMessage(this.word);
+        byte [] encryptedHello = hello.encode(this.key);
+        DatagramPacket packet = new DatagramPacket(
+            encryptedHello, 
+            encryptedHello.length, 
+            this.address, 
+            this.port
+        );
+        this.socket.send(packet);
+    }
     
     protected void handleGameMessages() {
         while (!this.isGameOver()) {
@@ -107,10 +113,9 @@ public class GameMasterController implements Loggable, Closeable {
                 GuessMessage message = this.gameMessages.take();
                 if (message != null) {
                     if (!this.playerSet.contains(message.getNick())) {
-                        this.sendHandshakeRequest(message.getNick());
-                    } else {
-                        this.handleSingleGuessMessage(message); 
+                        this.playerSet.add(message.getNick());
                     }
+                    this.handleSingleGuessMessage(message); 
                 }
             } catch (InterruptedException e) {
             }
@@ -143,16 +148,6 @@ public class GameMasterController implements Loggable, Closeable {
         }
     }
 
-    private void sendHandshakeRequest(String player) {
-        Message message = new MasterHandshakeRequest(player);
-        byte [] encryptedMessage = message.encode(this.key);
-        try {
-            this.sendByteArrayToMulticast(encryptedMessage);
-        } catch (IOException e) {
-            printError("Couldn't send handshake request to " + player + ", ignoring error");
-        }
-    }
-    
     private void sendByteArrayToMulticast(byte [] data) throws IOException {
         DatagramPacket packet = new DatagramPacket(
             data,
@@ -236,9 +231,42 @@ public class GameMasterController implements Loggable, Closeable {
         return builder.toString();
     }
 
-    protected void handleHandshakeMessages() {
-        // TODO Auto-generated method stub
-        
+    protected void handleConnectionMessages() {
+        PlayerConnectionMessage message;
+        while (!this.isGameOver()) {
+            synchronized (this.connectionMessagesLock) {
+                message = this.connectionMessages.poll();
+                while (message == null && !this.isGameOver()) {
+                    try {
+                        this.connectionMessagesLock.wait();
+                    } catch (InterruptedException e) {
+                    }
+                    message = this.connectionMessages.poll();
+                }
+            } 
+            if (message != null) {
+                switch (message.getAction()) {
+                    case ABORT:
+                        this.handleAbort(message.getNick());
+                        break; 
+                    case HELLO:
+                        this.handleHello(message.getNick());
+                        break;
+                }
+            }
+        }
+    }
+
+    private void handleHello(String playerNick) {
+        this.playerSet.add(playerNick);
+    }
+
+    private void handleAbort(String playerNick) {
+        this.playerSet.remove(playerNick);
+        if (this.playerSet.size() == 0) {
+            //TODO Handle concurrency
+            this.gameOver = true;
+        }
     }
 
     @Override
@@ -252,7 +280,15 @@ public class GameMasterController implements Loggable, Closeable {
      */
     @Override
     public void close() {
-        this.socket.close(); 
+        if (this.socket != null) {
+            try {
+                this.socket.leaveGroup(this.address);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            this.socket.close(); 
+        }
     }
     
     class MessageDispatcher implements Runnable, Loggable {
@@ -287,13 +323,17 @@ public class GameMasterController implements Loggable, Closeable {
 
         private void handleDecodedMessage(Message message) {
             switch (message.getID()) {
-            case PLAYER_HANDSHAKE:
-                if (! (message instanceof MasterHandshakeMessage)) {
+            
+            case PLAYER_CONNECTION_MESSAGE:
+                if (!(message instanceof PlayerConnectionMessage)) {
                     printError("Invalid message received; discarding");
                 } else {
-                    GameMasterController.this.handshakeMessages.add(
-                        (PlayerHandshake) message
-                    ); 
+                    synchronized(GameMasterController.this.connectionMessagesLock) {
+                        GameMasterController.this.connectionMessages.add(
+                            (PlayerConnectionMessage) message
+                        ); 
+                        GameMasterController.this.connectionMessagesLock.notify();
+                    }
                 }
                 break;
                 
@@ -301,9 +341,12 @@ public class GameMasterController implements Loggable, Closeable {
                 if (!(message instanceof GuessMessage)) {
                     printError("Invalid message received; discarding");
                 } else {
-                    GameMasterController.this.gameMessages.add( 
-                        (GuessMessage) message
-                    ); 
+                    synchronized(GameMasterController.this.gameMessagesLock) {
+                        GameMasterController.this.gameMessages.add( 
+                            (GuessMessage) message
+                        ); 
+                        GameMasterController.this.gameMessagesLock.notify();
+                    }
                 }
                 break; 
 

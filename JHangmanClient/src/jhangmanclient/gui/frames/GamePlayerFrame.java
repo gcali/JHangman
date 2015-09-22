@@ -1,6 +1,6 @@
 package jhangmanclient.gui.frames;
 
-import jhangmanclient.controller.PlayerController;
+import jhangmanclient.controller.player.PlayerController;
 
 public class GamePlayerFrame extends HangmanFrame {
     

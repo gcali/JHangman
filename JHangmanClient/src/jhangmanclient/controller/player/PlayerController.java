@@ -1,4 +1,4 @@
-package jhangmanclient.controller;
+package jhangmanclient.controller.player;
 
 import java.net.InetAddress;
 

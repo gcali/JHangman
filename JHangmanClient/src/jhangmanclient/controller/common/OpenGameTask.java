@@ -1,4 +1,4 @@
-package jhangmanclient.controller;
+package jhangmanclient.controller.common;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import jhangmanclient.controller.master.GameMasterController;
 import tcp_interface.answers.Answer;
 import tcp_interface.answers.OpenGameAnswer;
 import tcp_interface.answers.OpenGameCompletedAnswer;

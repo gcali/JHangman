@@ -1,4 +1,4 @@
-package jhangmanclient.controller;
+package jhangmanclient.controller.common;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -7,6 +7,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import jhangmanclient.controller.master.GameMasterController;
+import jhangmanclient.controller.player.PlayerController;
 import jhangmanclient.game_data.GameListViewer;
 import rmi_interface.RMIServer;
 import rmi_interface.UserNotLoggedInException;

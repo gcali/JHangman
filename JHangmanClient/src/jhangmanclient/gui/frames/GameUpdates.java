@@ -5,7 +5,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.WindowConstants;
 
-import jhangmanclient.controller.GameMasterController;
+import jhangmanclient.controller.master.GameMasterController;
 
 public class GameUpdates extends JScrollPane {
     

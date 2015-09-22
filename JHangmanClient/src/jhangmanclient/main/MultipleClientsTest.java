@@ -2,7 +2,7 @@ package jhangmanclient.main;
 
 import java.rmi.RemoteException;
 
-import jhangmanclient.controller.AuthController;
+import jhangmanclient.controller.common.AuthController;
 
 public class MultipleClientsTest {
 

@@ -4,7 +4,7 @@ import javax.swing.Box;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-import jhangmanclient.controller.GameMasterController;
+import jhangmanclient.controller.master.GameMasterController;
 import jhangmanclient.gui.components.WordChooser;
 import jhangmanclient.gui.components.WordSubmittedEvent;
 import utility.observer.JHObserver;
