@@ -121,7 +121,7 @@ class OpenGameTask extends TCPServerInteractionTask<GameMasterController>
     }
 
     @Override
-    public String getId() {
+    public String getLoggableId() {
         return this.nick;
     } 
 }

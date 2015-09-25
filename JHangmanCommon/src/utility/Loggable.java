@@ -3,10 +3,10 @@ package utility;
 
 public interface Loggable {
     
-    public String getId();
+    public String getLoggableId();
 
     default String getPrefixedMessage(String message) {
-        return String.format("[%s] %s", this.getId(), message);
+        return String.format("[%s] %s", this.getLoggableId(), message);
     }
 
     default void printDebugMessage(String message) {

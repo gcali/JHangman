@@ -114,7 +114,7 @@ public class ServerGameData implements Loggable, JHObservable {
     }
 
     @Override
-    public String getId() {
+    public String getLoggableId() {
         return "GameData";
     }
     

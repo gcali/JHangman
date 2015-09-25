@@ -23,7 +23,7 @@ public class ConfigData {
 
     private static final Loggable logger = new Loggable() { 
         @Override
-        public String getId() {
+        public String getLoggableId() {
             return "ConfigData";
         }
     }; 

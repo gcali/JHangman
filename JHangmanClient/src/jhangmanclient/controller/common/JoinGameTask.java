@@ -128,7 +128,7 @@ public class JoinGameTask extends TCPServerInteractionTask<PlayerController>
     }
 
     @Override
-    public String getId() {
+    public String getLoggableId() {
         return this.nick;
     }
 

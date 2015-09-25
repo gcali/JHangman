@@ -1,15 +1,14 @@
 package jhangmanclient.controller.master;
 
 import java.io.Closeable;
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import udp_interface.Message;
 import udp_interface.master.GameUpdateMessage;
@@ -17,42 +16,57 @@ import udp_interface.master.MasterHelloMessage;
 import udp_interface.player.GuessMessage;
 import udp_interface.player.PlayerConnectionMessage;
 import utility.Loggable;
+import utility.observer.JHObservable;
+import utility.observer.JHObservableSupport;
+import utility.observer.JHObserver;
+import utility.observer.ObservationHandler;
 
-public class GameMasterController implements Loggable, Closeable {
+/**
+ * Published events:
+ * <ul>
+ *  <li>{@link InternalWordGuessedEvent}</li>
+ * </ul>
+ * @author gcali
+ *
+ */
+public class GameMasterController 
+    implements Loggable, Closeable, JHObserver, JHObservable {
     
-    private String nick;
-    private InetAddress address;
-    private int port;
-    private String key;
+    private final String nick;
+    private final InetAddress address;
+    private final int port;
+    private final String key;
+
     private String word = null;
+    private int remainingTries;
+    private final Object lock = new Object();
+
     private String winner = null;
-    private Boolean gameOver = false;
+    private boolean gameOver;
+
     private boolean [] uncovered = null;
     private MulticastSocket socket = null;
-    private MessageDispatcher messageDispatcher;
     
     private int updateCounter = 0;
     
-    private final Object gameOverLock = new Object();
-    private final Object connectionMessagesLock = new Object();
-    private final Object gameMessagesLock = new Object();
-    
     private Set<String> playerSet = new HashSet<String>();
-
-    private BlockingQueue<PlayerConnectionMessage> connectionMessages = 
-        new LinkedBlockingQueue<PlayerConnectionMessage>();
-    private BlockingQueue<GuessMessage> gameMessages =
-        new LinkedBlockingQueue<GuessMessage>();
-    private Thread connectionMessagesHandler;
-    private Thread gameMessagesHandler;
-    private int remainingTries;
+    
+    
+    private MessageDispatcher messageDispatcher;
+    private ConnectionMessagesHandler connectionMessagesHandler;
+    private GameMessagesHandler gameMessagesHandler;
+    
+    private final JHObservableSupport observableSupport =
+        new JHObservableSupport();
 
     public GameMasterController(String nick, 
-                            InetAddress address, 
+                            InetAddress address,
+                            int port,
                             String key,
                             int maxTries) {
         this.nick = nick;
         this.address = address;
+        this.port = port;
         this.key = key;
         this.remainingTries = maxTries;
         this.printDebugMessage("Address: " + address);
@@ -75,78 +89,50 @@ public class GameMasterController implements Loggable, Closeable {
         this.socket = new MulticastSocket(); 
         this.socket.joinGroup(this.address);
         this.sendHello(); 
-        this.messageDispatcher = new MessageDispatcher();
-        this.connectionMessagesHandler = new Thread(new Runnable() {
-            
-            @Override
-            public void run() {
-                handleConnectionMessages();
-                
-            }
-        });
-        this.gameMessagesHandler = new Thread(new Runnable() {
-            
-            @Override
-            public void run() {
-                handleGameMessages();
-                
-            }
-        });
+
+        Queue<PlayerConnectionMessage> connectionMessagesQueue = 
+            new ConcurrentLinkedQueue<PlayerConnectionMessage>();
+        Object connectionMessagesLock = new Object();
+
+        Queue<GuessMessage> gameMessages =
+            new ConcurrentLinkedQueue<GuessMessage>();
+        Object gameMessagesLock = new Object();
+
+        this.messageDispatcher = new MessageDispatcher(
+            connectionMessagesQueue,
+            connectionMessagesLock,
+            gameMessages,
+            gameMessagesLock,
+            this.socket,
+            this.key
+        );
+
+        this.connectionMessagesHandler = new ConnectionMessagesHandler(
+            connectionMessagesQueue, 
+            connectionMessagesLock
+        );
+
+        this.gameMessagesHandler = new GameMessagesHandler(
+            gameMessages, 
+            gameMessagesLock, 
+            word
+        ); 
+        
+        this.connectionMessagesHandler.addObserver(this);
+        this.gameMessagesHandler.addObserver(this);
+        
+        this.messageDispatcher.start();
+        this.connectionMessagesHandler.start();
+        this.gameMessagesHandler.start();
         
     }
-
+    
     private void sendHello() throws IOException {
         Message hello = new MasterHelloMessage(this.word);
         byte [] encryptedHello = hello.encode(this.key);
-        DatagramPacket packet = new DatagramPacket(
-            encryptedHello, 
-            encryptedHello.length, 
-            this.address, 
-            this.port
-        );
-        this.socket.send(packet);
+        this.sendByteArrayToMulticast(encryptedHello);
     }
     
-    protected void handleGameMessages() {
-        while (!this.isGameOver()) {
-            try {
-                GuessMessage message = this.gameMessages.take();
-                if (message != null) {
-                    if (!this.playerSet.contains(message.getNick())) {
-                        this.playerSet.add(message.getNick());
-                    }
-                    this.handleSingleGuessMessage(message); 
-                }
-            } catch (InterruptedException e) {
-            }
-        }
-    }
-
-    private void handleSingleGuessMessage(GuessMessage message) {
-        switch (message.getCategory()) {
-        case GUESS_LETTER:
-            String letter = message.getGuess();
-            if (letter == null || letter.length() != 1) {
-                printError("Invalid message received, discarding");
-            } else {
-                handleGuessLetter(letter.charAt(0)); 
-            }
-            break;
-            
-        case GUESS_WORD:
-            String word = message.getGuess();
-            if (word == null) {
-                printError("Invalid message received, discarding");
-            } else {
-                handleGuessWord(word, message.getNick());
-            }
-            break;
-            
-        default:
-            printError("Invalid message received, discarding");
-            break;
-        }
-    }
 
     private void sendByteArrayToMulticast(byte [] data) throws IOException {
         DatagramPacket packet = new DatagramPacket(
@@ -158,119 +144,40 @@ public class GameMasterController implements Loggable, Closeable {
         this.socket.send(packet);
     }
 
-    private void handleGuessWord(String guess, String playerNick) {
-        if (this.winner == null && this.word.equals(guess)) {
-            this.winner = playerNick;
-            this.gameOver = true;
-            for (int i=0; i < this.uncovered.length; i++) {
-                this.uncovered[i] = true;
-            }
-        } else {
-            handleWrongGuess();
-        }
-    }
-
-    private void handleWrongGuess() {
-        this.remainingTries--;
-        if (this.remainingTries <= 0) {
-            this.gameOver = true;
-        }
-    }
-
-    private void handleGuessLetter(char guess) {
-        boolean foundLetter = false;
-        for (int i=0; i < this.word.length(); i++) {
-            if (this.word.charAt(i) == guess && !this.uncovered[i]) {
-                this.uncovered[i] = true;
-                foundLetter = true;
-            }
-        }
-        if (!foundLetter) {
-            handleWrongGuess();
-        }
-        try {
-            sendUpdate();
-        } catch (IOException e) {
-            printError("Couldn't send update, ignoring error");
-        }
-    }
-    
-    private boolean isGameOver() {
-        return this.gameOver;
-    }
-
     private void sendUpdate() throws IOException {
-        String visibleWord = this.getVisibleWord();
-        String winnerNick = this.winner;
-        boolean isOver = this.isGameOver();
-        GameUpdateMessage message = new GameUpdateMessage(
-            this.updateCounter++, 
-            visibleWord, 
-            isOver, 
-            winnerNick
-        );
+        GameUpdateMessage message;
+        synchronized (this.lock) {
+            String visibleWord = this.getVisibleWord();
+            String winnerNick = this.winner;
+            boolean isOver = this.gameOver;
+            int counter = this.updateCounter++;
+            message = new GameUpdateMessage(
+                counter,
+                visibleWord, 
+                isOver, 
+                winnerNick
+            ); 
+        }
         byte[] encodedMessage = message.encode(this.key);
-        DatagramPacket packet = new DatagramPacket(
-            encodedMessage, 
-            encodedMessage.length, 
-            this.address, 
-            this.port
-        );
-        this.socket.send(packet);
+        this.sendByteArrayToMulticast(encodedMessage);
     }
 
-    private String getVisibleWord() {
+    public String getVisibleWord() {
         StringBuilder builder = new StringBuilder();
-        for (int i=0; i<this.uncovered.length; i++) {
-            if (this.uncovered[i]) {
-                builder.append(this.word.charAt(i));
-            } else {
-                builder.append('_');
-            }
+        synchronized(this.lock) {
+            for (int i=0; i<this.uncovered.length; i++) {
+                if (this.uncovered[i]) {
+                    builder.append(this.word.charAt(i));
+                } else {
+                    builder.append('_');
+                }
+            } 
         }
         return builder.toString();
     }
 
-    protected void handleConnectionMessages() {
-        PlayerConnectionMessage message;
-        while (!this.isGameOver()) {
-            synchronized (this.connectionMessagesLock) {
-                message = this.connectionMessages.poll();
-                while (message == null && !this.isGameOver()) {
-                    try {
-                        this.connectionMessagesLock.wait();
-                    } catch (InterruptedException e) {
-                    }
-                    message = this.connectionMessages.poll();
-                }
-            } 
-            if (message != null) {
-                switch (message.getAction()) {
-                    case ABORT:
-                        this.handleAbort(message.getNick());
-                        break; 
-                    case HELLO:
-                        this.handleHello(message.getNick());
-                        break;
-                }
-            }
-        }
-    }
-
-    private void handleHello(String playerNick) {
-        this.playerSet.add(playerNick);
-    }
-
-    private void handleAbort(String playerNick) {
-        this.playerSet.remove(playerNick);
-        if (this.playerSet.size() == 0) {
-            //TODO Handle concurrency
-            this.gameOver = true;
-        }
-    }
-
     @Override
-    public String getId() {
+    public String getLoggableId() {
         return "(M) " + this.nick;
     }
 
@@ -284,83 +191,103 @@ public class GameMasterController implements Loggable, Closeable {
             try {
                 this.socket.leaveGroup(this.address);
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
             }
             this.socket.close(); 
-        }
+            this.gameMessagesHandler.closeAndJoin();
+            this.connectionMessagesHandler.closeAndJoin();
+            this.messageDispatcher.closeAndJoin();
+            this.socket = null;
+        } 
     }
     
-    class MessageDispatcher implements Runnable, Loggable {
-        
-        private boolean shouldQuit = false;
-
-        @Override
-        public void run() {
-            byte[] buffer = new byte[64 << 10];
-            while (!shouldQuit) {
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-                try {
-                    GameMasterController.this.socket.receive(packet);
-                    byte[] data = new byte[packet.getLength()];
-                    System.arraycopy(packet.getData(), 
-                                     packet.getOffset(), 
-                                     data, 
-                                     0, 
-                                     packet.getLength());
-                    Message message = 
-                        Message.decode(data, GameMasterController.this.key);
-                    this.handleDecodedMessage(message);
-                } catch (EOFException e) {
-                    //socket closed, should quit
-                    shouldQuit = true;
-                } catch (IOException e) {
-                    this.printError("Got an exception while receiving from" +
-                                    " the socket, ignoring"); 
-                }
-            }
-        }
-
-        private void handleDecodedMessage(Message message) {
-            switch (message.getID()) {
-            
-            case PLAYER_CONNECTION_MESSAGE:
-                if (!(message instanceof PlayerConnectionMessage)) {
-                    printError("Invalid message received; discarding");
-                } else {
-                    synchronized(GameMasterController.this.connectionMessagesLock) {
-                        GameMasterController.this.connectionMessages.add(
-                            (PlayerConnectionMessage) message
-                        ); 
-                        GameMasterController.this.connectionMessagesLock.notify();
-                    }
-                }
-                break;
-                
-            case GUESS:
-                if (!(message instanceof GuessMessage)) {
-                    printError("Invalid message received; discarding");
-                } else {
-                    synchronized(GameMasterController.this.gameMessagesLock) {
-                        GameMasterController.this.gameMessages.add( 
-                            (GuessMessage) message
-                        ); 
-                        GameMasterController.this.gameMessagesLock.notify();
-                    }
-                }
-                break; 
-
-            default:
-                printError("Invalid message received; discarding");
-                break; 
-            }
-            
-        }
-
-        @Override
-        public String getId() {
-            return GameMasterController.this.getId() + " Dispatcher";
+    @ObservationHandler
+    public void onConnectedPlayerEvent(ConnectedPlayerEvent e) {
+        synchronized(this.lock) {
+            this.playerSet.add(e.getNick());
         } 
+    }
+    
+    @ObservationHandler
+    public void onDisconnectedPlayerEvent(DisconnectedPlayerEvent e) {
+        synchronized(this.lock) {
+            this.playerSet.remove(e.getNick());
+        }
     } 
     
+    @ObservationHandler
+    public void onLetterGuessedEvent(InternalLetterGuessedEvent e) {
+        synchronized(this.lock) {
+            if (!this.gameOver) {
+                boolean [] guessed = e.getGuessed();
+                for (int i =0; i < this.uncovered.length; i++) {
+                    this.uncovered[i] = this.uncovered[i] && guessed[i];
+                } 
+            } else {
+                printDebugMessage("Someone guessed a letter, but the game was " +
+                           "already over");
+                return;
+            }
+        }
+        this.observableSupport.publish(
+            new LetterGuessedEvent(this.getVisibleWord())
+        );
+    }
+    
+    @ObservationHandler
+    public void onWordGuessedEvent(InternalWordGuessedEvent e) {
+        synchronized(this.lock) {
+            if (!this.gameOver) {
+                for (int i=0; i < this.uncovered.length; i++) {
+                    this.uncovered[i] = true;
+                }
+                this.winner = e.getWinnerNick();
+                this.gameOver = true;
+                try {
+                    this.sendUpdate();
+                } catch (IOException e1) {
+                    printError("Couldn't send update after game won;" +
+                               " ignoring the error");
+                } 
+            } else {
+                printDebugMessage(e.getWinnerNick() + " got the word, but " +
+                                  "the game was already over");
+                return;
+            }
+        }
+        this.observableSupport.publish(
+            new WordGuessedEvent(this.word, e.getWinnerNick())
+        );
+    }
+    
+    @ObservationHandler
+    public void onInternalWrongGuessEvent(InternalWrongGuessEvent e) {
+        boolean gameLost = false;
+        synchronized(this.lock) {
+            this.remainingTries--;
+            if (this.remainingTries == 0) {
+                this.gameOver = true;
+                this.winner = null;
+                gameLost = true;
+            }
+        }
+        if (gameLost) {
+            this.observableSupport.publish(
+                new LostGameEvent()
+            );
+        } else {
+            this.observableSupport.publish(
+                new WrongGuessEvent()
+            );
+        }
+    }
+
+    @Override
+    public void addObserver(JHObserver observer) {
+        this.observableSupport.add(observer);
+    }
+
+    @Override
+    public void removeObserver(JHObserver observer) {
+        this.observableSupport.remove(observer);
+    }
 }
