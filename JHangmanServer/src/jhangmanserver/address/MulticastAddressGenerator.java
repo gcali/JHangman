@@ -4,7 +4,9 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,8 +14,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MulticastAddressGenerator {
     
     private final static Random randomGenerator = new Random(); 
-    private final static Set<List<Byte>> set = 
+    private final static Set<List<Byte>> addressSet = 
             Collections.newSetFromMap(new ConcurrentHashMap<List<Byte>,Boolean>());
+    private final static Object portLock = new Object();
+    private final static Map<Integer, Integer> portMap =
+            new HashMap<Integer, Integer>();
+    
+    private final static int minPortRange = 49125;
+    private final static int maxPortRange = 65535;
+    
+    private static int currentPort = minPortRange;
     
     /**
      * Generates a random address not in use in the range 239.255.0.0/16 
@@ -81,7 +91,7 @@ public class MulticastAddressGenerator {
                 address[fixed/8] = 
                     (byte)((singleByte[0] & (0xFF >>> (fixed % 8))) | address[fixed/8]);
             }
-            found = set.add(arrayToList(address));
+            found = addressSet.add(arrayToList(address));
         }
         
         try {
@@ -103,7 +113,7 @@ public class MulticastAddressGenerator {
     
     public static void freeAddress(InetAddress address) {
         System.out.println(toStringAsAddress(address.getAddress()));
-        set.remove(arrayToList(address.getAddress()));
+        addressSet.remove(arrayToList(address.getAddress()));
     }
     
     private static String toStringAsAddress(byte[] array) {
@@ -119,6 +129,47 @@ public class MulticastAddressGenerator {
         }
         builder.append(String.format("%d", array[i] & 0xFF));
         return builder.toString();
+    }
+    
+    public static int getFreePort() {
+        synchronized(portLock) {
+            while (true) { 
+                if (!portMap.containsKey(currentPort)) {
+                    portMap.put(currentPort, 0);
+                    return currentPort++;
+                } else {
+                    if ((++currentPort) > maxPortRange) {
+                        currentPort = minPortRange;
+                    }
+                } 
+            } 
+        }
+    }
+    
+    public static int getRandomPort() {
+        synchronized(portLock) {
+            int port = randomGenerator.nextInt(maxPortRange - minPortRange + 1) +
+               minPortRange; 
+            if (portMap.containsKey(port)) {
+                portMap.put(port, portMap.get(port) + 1);
+            } else {
+                portMap.put(port, 0);
+            }
+            return port;
+        }
+    }
+    
+    public static void freePort(int port) {
+        synchronized(portLock) {
+            Integer current = portMap.get(port);
+            if (current != null) {
+                if (current == 0) {
+                    portMap.remove(port);
+                } else {
+                    portMap.put(port, portMap.get(port) - 1);
+                }
+            }
+        }
     }
     
     
@@ -142,6 +193,6 @@ public class MulticastAddressGenerator {
             array[i] = getAddress("0.0.0.0/28");
             System.out.println(array[i]);
         }
-        System.out.println(set.size());
+        System.out.println(addressSet.size());
     }
 }

@@ -10,6 +10,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import jhangmanclient.controller.common.MessageDispatcher;
 import udp_interface.Message;
 import udp_interface.master.GameUpdateMessage;
 import udp_interface.master.MasterHelloMessage;
@@ -25,6 +26,10 @@ import utility.observer.ObservationHandler;
  * Published events:
  * <ul>
  *  <li>{@link InternalWordGuessedEvent}</li>
+ *  <li>{@link LetterGuessedEvent}</li>
+ *  <li>{@link WordGuessedEvent}</li>
+ *  <li>{@link WrongGuessEvent}</li>
+ *  <li>{@link LostGameEvent}</li>
  * </ul>
  * @author gcali
  *
@@ -71,11 +76,13 @@ public class GameMasterController
         this.remainingTries = maxTries;
         this.printDebugMessage("Address: " + address);
         this.printDebugMessage("Key: " + key);
+        this.printDebugMessage("Constructor done");
     }
 
     public void setWord(String word) {
         this.word = word;
         this.uncovered = new boolean[word.length()];
+        this.printDebugMessage("Word set");
     }
     
     /**
@@ -88,17 +95,21 @@ public class GameMasterController
         }
         this.socket = new MulticastSocket(); 
         this.socket.joinGroup(this.address);
+        this.printDebugMessage("Sending hello...");
         this.sendHello(); 
+        this.printDebugMessage("Hello sent");
 
         Queue<PlayerConnectionMessage> connectionMessagesQueue = 
             new ConcurrentLinkedQueue<PlayerConnectionMessage>();
         Object connectionMessagesLock = new Object();
+        this.printDebugMessage("Connection messages queue created");
 
         Queue<GuessMessage> gameMessages =
             new ConcurrentLinkedQueue<GuessMessage>();
         Object gameMessagesLock = new Object();
+        this.printDebugMessage("Game messages queue created");
 
-        this.messageDispatcher = new MessageDispatcher(
+        this.messageDispatcher = new MasterMessageDispatcher(
             connectionMessagesQueue,
             connectionMessagesLock,
             gameMessages,
@@ -106,24 +117,32 @@ public class GameMasterController
             this.socket,
             this.key
         );
+        
+        this.printDebugMessage("Message dispatcher created");
 
         this.connectionMessagesHandler = new ConnectionMessagesHandler(
             connectionMessagesQueue, 
             connectionMessagesLock
         );
+        this.printDebugMessage("Connection messages handler created");
 
         this.gameMessagesHandler = new GameMessagesHandler(
             gameMessages, 
             gameMessagesLock, 
             word
         ); 
+        this.printDebugMessage("Game messages handler created");
         
         this.connectionMessagesHandler.addObserver(this);
         this.gameMessagesHandler.addObserver(this);
         
+        this.printDebugMessage("Observation started");
+        
+        this.printDebugMessage("Starting threads...");
         this.messageDispatcher.start();
         this.connectionMessagesHandler.start();
         this.gameMessagesHandler.start();
+        this.printDebugMessage("All subthreads started");
         
     }
     

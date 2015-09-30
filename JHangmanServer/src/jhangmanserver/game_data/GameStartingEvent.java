@@ -8,10 +8,12 @@ public class GameStartingEvent implements JHEvent {
     
     private final String key;
     private final InetAddress address;
+    private int port;
 
-    public GameStartingEvent(String key, InetAddress address) {
+    public GameStartingEvent(String key, InetAddress address, int port) {
         this.key = key;
         this.address = address;
+        this.port = port;
     }
     
     public String getKey() {
@@ -21,4 +23,8 @@ public class GameStartingEvent implements JHEvent {
     public InetAddress getAddress() {
         return this.address;
     } 
+    
+    public int getPort() {
+        return this.port;
+    }
 }

@@ -77,19 +77,44 @@ class OpenGameHandler extends TCPHandler {
                                                            confirmer)
             ) {
                 outputStream.writeObject(new OpenGameAnswer(true));
-                InetAddress address = confirmer.handleConfirmation();
-                printMessage("Here's the address! " + address);
-                if (address == null) {
+                OpenGameData gameData = confirmer.handleConfirmation();
+                if (gameData == null) {
                     printMessage("Aborting game");
                     gameListHandler.abortUserGames(gameName);
                 } else {
+                    printMessage("Here's the address! " + gameData.getAddress());
+                    printMessage("Here's the port: " + gameData.getPort());
                     printMessage("Setting key and address!");
-                    gameListHandler.setKeyAddress(gameName, key, address);
+                    gameListHandler.setKeyAddressPort(
+                        gameName, 
+                        key, 
+                        gameData.getAddress(), 
+                        gameData.getPort()
+                    );
                 } 
             }
         } catch (IOException e) {
             
         }
+    }
+    
+    private static class OpenGameData {
+        private final InetAddress address;
+        private final int port;
+        
+        public OpenGameData(InetAddress address, int port) {
+            this.address = address;
+            this.port = port;
+        }
+
+        public InetAddress getAddress() {
+            return address;
+        }
+
+        public int getPort() {
+            return port;
+        }
+        
     }
     
     private class OpenGameConfirmer implements JHObserver { 
@@ -117,7 +142,7 @@ class OpenGameHandler extends TCPHandler {
             this.socket = socket;
         }
         
-        public InetAddress handleConfirmation() {
+        public OpenGameData handleConfirmation() {
             printMessage("Starting handling confirmation");
             try {
                 this.socket.setSoTimeout(this.timeout);
@@ -160,13 +185,13 @@ class OpenGameHandler extends TCPHandler {
             } 
         }
 
-        private InetAddress handleTimeout() {
+        private OpenGameData handleTimeout() {
             printMessage("Handling timeout");
             this.sendAbort();
             return null;
         }
 
-        private InetAddress handleEventOrInputClosed() {
+        private OpenGameData handleEventOrInputClosed() {
             synchronized(this.eventLock) {
                 switch (this.eventId) {
                 case FULL:
@@ -177,15 +202,27 @@ class OpenGameHandler extends TCPHandler {
                         System.out.println("Couldn't find a free address");
                         return null;
                     }
+                    int port =
+                        MulticastAddressGenerator.getFreePort();
+                    if (port < 0) {
+                        printError("Couldn't find a free port, falling back on" +
+                                   " a used one");
+                        port = MulticastAddressGenerator.getRandomPort();
+                        MulticastAddressGenerator.freeAddress(address);
+                        return null;
+                    }
+                    OpenGameData gameData = new OpenGameData(address, port);
                     printMessage("Generated address: " + address);
                     try {
                         this.output.writeObject(
                                 OpenGameCompletedAnswer.createAccepted(address, 
+                                                                       port,
                                                                        this.key)
                         );
-                        return address;
+                        return gameData;
                     } catch (IOException e) {
                         MulticastAddressGenerator.freeAddress(address);
+                        MulticastAddressGenerator.freePort(port);
                         return null;
                     }
                 case ABORT:

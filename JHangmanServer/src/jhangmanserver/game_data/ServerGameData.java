@@ -108,9 +108,9 @@ public class ServerGameData implements Loggable, JHObservable {
         this.observableSupport.publish(new AbortedGameEvent());
     }
     
-    public void setKeyAddress(String key, InetAddress address) {
+    public void setKeyAddressPort(String key, InetAddress address, int port) {
         printDebugMessage("Throwing GameStartingEvent");
-        this.observableSupport.publish(new GameStartingEvent(key, address));
+        this.observableSupport.publish(new GameStartingEvent(key, address, port));
     }
 
     @Override

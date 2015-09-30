@@ -157,10 +157,15 @@ public class GameListHandler implements Loggable, JHObservable {
         }
     }
 
-    public void setKeyAddress(String gameName, String key, InetAddress address) {
+    public void setKeyAddressPort(
+        String gameName, 
+        String key, 
+        InetAddress address,
+        int port
+    ) {
         ServerGameData data = this.gameDataMap.get(gameName);
         if (data != null) {
-            data.setKeyAddress(key, address);
+            data.setKeyAddressPort(key, address, port);
             this.cancelGame(gameName);
         }
     }
