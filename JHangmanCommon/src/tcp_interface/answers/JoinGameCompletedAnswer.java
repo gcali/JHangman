@@ -12,16 +12,19 @@ public class JoinGameCompletedAnswer extends Answer {
     private final boolean accepted;
     private final String key;
     private final InetAddress address;
+    private int port;
     
     public JoinGameCompletedAnswer(
         boolean accepted, 
         String key, 
-        InetAddress address
+        InetAddress address,
+        int port
     ) {
         super(id); 
         this.accepted = accepted;
         this.key = key;
         this.address = address; 
+        this.port = port;
     }
 
     public boolean isAccepted() {
@@ -35,5 +38,9 @@ public class JoinGameCompletedAnswer extends Answer {
     public InetAddress getAddress() {
         return address;
     } 
+    
+    public int getPort() {
+        return this.port;
+    }
     
 }

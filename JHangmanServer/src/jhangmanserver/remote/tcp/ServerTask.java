@@ -13,19 +13,21 @@ import tcp_interface.requests.OpenGameRequest;
 import tcp_interface.requests.Request;
 import utility.JHObjectInputStream;
 import utility.JHObjectOutputStream;
+import utility.Loggable;
 
 
-public class ServerTask extends TCPHandler implements Runnable {
+public class ServerTask extends TCPHandler implements Runnable, Loggable {
     
     private static final AtomicInteger idGenerator = new AtomicInteger();
     private Socket socket;
     private GameListHandler gameListHandler;
     private LoggedInChecker loggedInChecker;
+    private int id;
 
     public ServerTask(Socket socket, 
                       GameListHandler gameListHandler,
                       LoggedInChecker loggedInChecker) {
-        super(idGenerator.getAndIncrement());
+        this.id = idGenerator.getAndIncrement();
         this.socket = socket;
         this.gameListHandler = gameListHandler;
         this.loggedInChecker = loggedInChecker;
@@ -33,7 +35,7 @@ public class ServerTask extends TCPHandler implements Runnable {
     
     @Override
     public void run() {
-        this.printMessage("Starting task");
+        this.printDebugMessage("Starting task");
         try (
             ObjectOutputStream outputStream = 
                 new JHObjectOutputStream(socket.getOutputStream());
@@ -41,9 +43,9 @@ public class ServerTask extends TCPHandler implements Runnable {
                 new JHObjectInputStream(socket.getInputStream());
         ) {
             
-            this.printMessage("Getting request");
+            this.printDebugMessage("Getting request");
             Request request = getRequest(inputStream); 
-            this.printMessage("Got request");
+            this.printDebugMessage("Got request");
             this.handleRequest(request, outputStream, inputStream);
         } catch (IOException e) {
             System.err.println("Socket state corrupted");
@@ -57,11 +59,11 @@ public class ServerTask extends TCPHandler implements Runnable {
                                ObjectOutputStream outputStream, 
                                ObjectInputStream inputStream) {
         
-        this.printMessage("Starting request handling");
+        this.printDebugMessage("Starting request handling");
         switch (request.getId()) {
         case JOIN_GAME:
-            this.printMessage("Join game request");
-            new JoinGameHandler(this.getID()).handleJoinGame(
+            this.printDebugMessage("Join game request");
+            new JoinGameHandler(this.id).handleJoinGame(
                 (JoinGameRequest) request, 
                 outputStream, 
                 inputStream, 
@@ -71,8 +73,8 @@ public class ServerTask extends TCPHandler implements Runnable {
             );
             break;
         case OPEN_GAME:
-            this.printMessage("Open game request");
-            new OpenGameHandler(this.getID()).handleOpenGame(
+            this.printDebugMessage("Open game request");
+            new OpenGameHandler(this.id).handleOpenGame(
                 (OpenGameRequest) request, 
                 outputStream, 
                 inputStream, 
@@ -84,5 +86,10 @@ public class ServerTask extends TCPHandler implements Runnable {
         default:
             break;
         }
+    }
+
+    @Override
+    public String getLoggableId() {
+        return String.format("ServerTask %3d", this.id);
     } 
 }

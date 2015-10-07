@@ -4,9 +4,9 @@ import java.net.DatagramSocket;
 import java.util.Queue;
 
 import jhangmanclient.controller.common.MessageDispatcher;
-import udp_interface.Message;
-import udp_interface.player.GuessMessage;
-import udp_interface.player.PlayerConnectionMessage;
+import jhangmanclient.udp_interface.Message;
+import jhangmanclient.udp_interface.player.GuessMessage;
+import jhangmanclient.udp_interface.player.PlayerConnectionMessage;
 
 public class MasterMessageDispatcher extends MessageDispatcher {
 
@@ -54,9 +54,7 @@ public class MasterMessageDispatcher extends MessageDispatcher {
                 printError("Invalid message received; discarding");
             } else {
                 synchronized(this.gameMessagesLock) {
-                    this.gameMessages.add( 
-                        (GuessMessage) message
-                    ); 
+                    this.gameMessages.add((GuessMessage) message); 
                     this.gameMessagesLock.notify();
                 }
             }

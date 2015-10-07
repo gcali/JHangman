@@ -5,7 +5,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 
-import udp_interface.Message;
+import jhangmanclient.udp_interface.Message;
 import utility.Loggable;
 
 public abstract class MessageDispatcher extends Thread implements Loggable {

@@ -18,6 +18,7 @@ public class PlayerController implements Loggable, Closeable {
         String nick, 
         String gameName, 
         InetAddress address,
+        int port,
         String key
     ) {
         this.nick = nick;
@@ -35,13 +36,56 @@ public class PlayerController implements Loggable, Closeable {
 
     @Override
     public String getLoggableId() {
-        return this.nick;
+        return "(P) " + this.nick;
     }
 
     @Override
-    public void close() throws IOException {
-        // TODO Auto-generated method stub
-        
+    public void close() {
+        if (this.socket != null) {
+            try {
+                this.socket.leaveGroup(this.address);
+            } catch (IOException e) {
+                this.printError("Couldn't leave multicast group, ignoring");
+            }
+            this.socket.close();
+            this.socket = null;
+        }
     }
-
+    
+    public static void main(String[] args) throws IOException {
+        String nick = null;
+        String gameName = "Master";
+        String key = "ciao";
+        String addressArg = "239.255.54.67";
+        String portArg = "49312";
+        String word = "ciao";
+        
+        nick = args[0];
+        
+        try {
+            int i = 1;
+            key = args[i++];
+            word = args[i++]; 
+            gameName = args[i++];
+            addressArg = args[i++];
+            portArg = args[i++];
+        } catch (ArrayIndexOutOfBoundsException e) { 
+        }
+        
+        InetAddress address = InetAddress.getByName(addressArg);
+        int port = Integer.parseInt(portArg);
+        
+        PlayerController controller = new PlayerController(
+            nick, 
+            gameName, 
+            address, 
+            port, 
+        key);
+        
+        controller.initConnection();
+        
+        for (int i=0; i < 5; i++) {
+            
+        }
+    } 
 }

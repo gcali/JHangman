@@ -1,4 +1,4 @@
-package udp_interface;
+package jhangmanclient.udp_interface;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -7,10 +7,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+import jhangmanclient.udp_interface.master.MasterHelloMessage;
+
 import org.jasypt.encryption.pbe.PBEByteEncryptor;
 import org.jasypt.encryption.pbe.StandardPBEByteEncryptor;
-
-import udp_interface.master.MasterHelloMessage;
 
 public abstract class Message implements Serializable {
     

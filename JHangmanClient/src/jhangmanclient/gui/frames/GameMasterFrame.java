@@ -1,5 +1,7 @@
 package jhangmanclient.gui.frames;
 
+import java.io.IOException;
+
 import javax.swing.Box;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
@@ -52,7 +54,7 @@ public class GameMasterFrame extends HangmanFrame {
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
     }
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         //TODO stub
         JFrame frame = new GameMasterFrame(new GameMasterController("ciao", null, -1, "ciao", 10));
         frame.setVisible(true);

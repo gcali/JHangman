@@ -10,29 +10,6 @@ public abstract class TCPHandler {
     
     private int TIMEOUT = 300000;
     
-    private Integer id;
-
-    public TCPHandler(Integer id) {
-        this.id = id;
-    } 
-    
-    protected void printMessage(String message) {
-        System.out.println(this.buildMessage(message));
-    }
-    
-    protected void printError(String message) {
-        System.out.println(this.buildMessage(message));
-    }
-    
-    protected String buildMessage(String message) {
-        if (this.id != null) {
-            return String.format("[Server %3d] %s", this.id, message); 
-        } else {
-            return message;
-        }
-    }
-
-
     protected static Request getRequest(ObjectInputStream inputStream) 
             throws IOException {
         try {
@@ -43,10 +20,6 @@ public abstract class TCPHandler {
             throw new IOException(e);
         }
     } 
-    
-    protected int getID() {
-        return this.id;
-    }
     
     protected int getTimeout() {
         return this.TIMEOUT;

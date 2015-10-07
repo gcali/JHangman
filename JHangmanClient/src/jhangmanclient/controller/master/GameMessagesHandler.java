@@ -2,7 +2,7 @@ package jhangmanclient.controller.master;
 
 import java.util.Queue;
 
-import udp_interface.player.GuessMessage;
+import jhangmanclient.udp_interface.player.GuessMessage;
 import utility.Loggable;
 import utility.observer.JHObservable;
 import utility.observer.JHObservableSupport;

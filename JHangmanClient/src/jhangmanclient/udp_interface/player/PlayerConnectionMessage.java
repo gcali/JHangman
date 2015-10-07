@@ -1,7 +1,7 @@
-package udp_interface.player;
+package jhangmanclient.udp_interface.player;
 
-import udp_interface.Message;
-import udp_interface.MessageID;
+import jhangmanclient.udp_interface.Message;
+import jhangmanclient.udp_interface.MessageID;
 
 public class PlayerConnectionMessage extends Message {
 

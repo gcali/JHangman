@@ -78,6 +78,7 @@ public class JoinGameTask extends TCPServerInteractionTask<PlayerController>
                 this.nick,
                 this.gameName,
                 joinCompletedAnswer.getAddress(),
+                joinCompletedAnswer.getPort(),
                 joinCompletedAnswer.getKey()
             );
         } catch (IOException e) {

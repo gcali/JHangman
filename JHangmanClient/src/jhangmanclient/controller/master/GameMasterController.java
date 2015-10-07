@@ -9,13 +9,14 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import jhangmanclient.controller.common.MessageDispatcher;
-import udp_interface.Message;
-import udp_interface.master.GameUpdateMessage;
-import udp_interface.master.MasterHelloMessage;
-import udp_interface.player.GuessMessage;
-import udp_interface.player.PlayerConnectionMessage;
+import jhangmanclient.udp_interface.Message;
+import jhangmanclient.udp_interface.master.GameUpdateMessage;
+import jhangmanclient.udp_interface.master.MasterHelloMessage;
+import jhangmanclient.udp_interface.player.GuessMessage;
+import jhangmanclient.udp_interface.player.PlayerConnectionMessage;
 import utility.Loggable;
 import utility.observer.JHObservable;
 import utility.observer.JHObservableSupport;
@@ -25,7 +26,6 @@ import utility.observer.ObservationHandler;
 /**
  * Published events:
  * <ul>
- *  <li>{@link InternalWordGuessedEvent}</li>
  *  <li>{@link LetterGuessedEvent}</li>
  *  <li>{@link WordGuessedEvent}</li>
  *  <li>{@link WrongGuessEvent}</li>
@@ -68,12 +68,14 @@ public class GameMasterController
                             InetAddress address,
                             int port,
                             String key,
-                            int maxTries) {
+                            int maxTries) throws IOException {
         this.nick = nick;
         this.address = address;
         this.port = port;
         this.key = key;
         this.remainingTries = maxTries;
+        this.socket = new MulticastSocket(); 
+        this.socket.joinGroup(this.address);
         this.printDebugMessage("Address: " + address);
         this.printDebugMessage("Key: " + key);
         this.printDebugMessage("Constructor done");
@@ -93,11 +95,6 @@ public class GameMasterController
         if (this.word == null ) {
             throw new NullPointerException("Word not set");
         }
-        this.socket = new MulticastSocket(); 
-        this.socket.joinGroup(this.address);
-        this.printDebugMessage("Sending hello...");
-        this.sendHello(); 
-        this.printDebugMessage("Hello sent");
 
         Queue<PlayerConnectionMessage> connectionMessagesQueue = 
             new ConcurrentLinkedQueue<PlayerConnectionMessage>();
@@ -147,7 +144,7 @@ public class GameMasterController
     }
     
     private void sendHello() throws IOException {
-        Message hello = new MasterHelloMessage(this.word);
+        Message hello = new MasterHelloMessage(this.getVisibleWord());
         byte [] encryptedHello = hello.encode(this.key);
         this.sendByteArrayToMulticast(encryptedHello);
     }
@@ -224,6 +221,11 @@ public class GameMasterController
         synchronized(this.lock) {
             this.playerSet.add(e.getNick());
         } 
+        try {
+            this.sendUpdate();
+        } catch (IOException e1) {
+            this.printError("Couldn't send update, ignoring error");
+        } 
     }
     
     @ObservationHandler
@@ -231,6 +233,11 @@ public class GameMasterController
         synchronized(this.lock) {
             this.playerSet.remove(e.getNick());
         }
+        try {
+            this.sendUpdate();
+        } catch (IOException e1) {
+            this.printError("Couldn't send update, ignoring error");
+        } 
     } 
     
     @ObservationHandler
@@ -308,5 +315,87 @@ public class GameMasterController
     @Override
     public void removeObserver(JHObserver observer) {
         this.observableSupport.remove(observer);
+    }
+    
+    public static void main(String[] args) throws IOException {
+        
+        String key = "ciao";
+        String addressArg = "239.255.54.67";
+        String portArg = "49312";
+        String word = "ciao";
+        String nick = "Master"; 
+        
+        try {
+            int i = 0;
+            while (true) {
+                key = args[i++];
+                word = args[i++];
+                nick = args[i++];
+                addressArg = args[i++];
+                portArg = args[i++];
+            } 
+        } catch (ArrayIndexOutOfBoundsException e) { 
+        } 
+        
+        InetAddress address = InetAddress.getByName(addressArg);
+        int port = Integer.parseInt(portArg);
+        
+        GameMasterController controller = 
+            new GameMasterController(
+                nick, 
+                address, 
+                port, 
+                key, 
+                5
+            );
+        
+        controller.setWord(word);
+        controller.initConnection();
+        
+        Object lock = new Object();
+        AtomicBoolean b = new AtomicBoolean();
+        
+        controller.addObserver(new JHObserver() {
+            @ObservationHandler
+            public void onLetterGuessedEvent(LetterGuessedEvent e) {
+                print("Letter guessed " + e.getVisibileWord());
+            }
+            
+            @ObservationHandler
+            public void onWordGuessedEvent(WordGuessedEvent e) {
+                print("Word guessed " + e.getWinnerNick());
+                b.set(true);
+                synchronized(lock) {
+                    lock.notify();
+                }
+            }
+            
+            @ObservationHandler
+            public void onWrongGuessEvent(WrongGuessEvent e) {
+                print("Wrong guess");
+            }
+            
+            @ObservationHandler
+            public void onLostGameEvent(LostGameEvent e) {
+                print("Lost game");
+                b.set(true);
+                synchronized(lock) {
+                    lock.notify();
+                }
+            }
+            
+            private void print(String m) {
+                System.out.println("[] " + m);
+            } 
+        });
+
+        while (!b.get()) {
+            synchronized (lock) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException e) {
+                }
+            }
+        }
     }
 }

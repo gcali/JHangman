@@ -1,7 +1,7 @@
-package udp_interface.master;
+package jhangmanclient.udp_interface.master;
 
-import udp_interface.Message;
-import udp_interface.MessageID;
+import jhangmanclient.udp_interface.Message;
+import jhangmanclient.udp_interface.MessageID;
 
 public class GameUpdateMessage extends Message {
 
