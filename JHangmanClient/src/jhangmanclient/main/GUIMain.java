@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -57,7 +58,7 @@ public class GUIMain {
     } 
     
     public void start() {
-        java.awt.EventQueue.invokeLater(new Runnable() { 
+        SwingUtilities.invokeLater(new Runnable() { 
             @Override
             public void run() {
                 GUIMain.this.starter.run(); 

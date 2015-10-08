@@ -13,13 +13,14 @@ public class ChangeMainFrame implements JHObservable {
 
     private Map<String, JFrame> frames = 
             new ConcurrentHashMap<String, JFrame>();
+    private Map<String, Runnable> actions =
+            new ConcurrentHashMap<String, Runnable>();
     private JFrame currentlyVisible = null;
     
     private JHObservableSupport observableSupport = new JHObservableSupport();
     
     public ChangeMainFrame() {
-    }
-    
+    } 
     
     private void changePanelTo(JFrame frame) { 
         if (currentlyVisible != null) {
@@ -29,6 +30,21 @@ public class ChangeMainFrame implements JHObservable {
         frame.toFront();
         frame.requestFocus();
         currentlyVisible = frame;
+    }
+    
+    public void registerAction(String id, Runnable action) {
+        this.actions.put(id, action);
+    }
+    
+    public void removeAction(String id) {
+        this.actions.remove(id);
+    }
+    
+    public void executeAction(String id) {
+        Runnable action = this.actions.get(id);
+        if (action != null) {
+            action.run();
+        }
     }
 
     public void addPanel(JFrame container, String id) {
@@ -46,8 +62,7 @@ public class ChangeMainFrame implements JHObservable {
     public void publishNickChange(String nick) {
         System.out.println("Published nick event");
         this.observableSupport.publish(new SetNickEvent(nick));
-    }
-
+    } 
 
     @Override
     public void addObserver(JHObserver observer) {

@@ -194,9 +194,15 @@ public class GameMasterController
             } catch (IOException e) {
             }
             this.socket.close(); 
-            this.gameMessagesHandler.closeAndJoin();
-            this.connectionMessagesHandler.closeAndJoin();
-            this.messageDispatcher.closeAndJoin();
+            if (this.gameMessagesHandler != null) {
+                this.gameMessagesHandler.closeAndJoin(); 
+            }
+            if (this.connectionMessagesHandler != null) {
+                this.connectionMessagesHandler.closeAndJoin(); 
+            }
+            if (this.messageDispatcher != null) {
+                this.messageDispatcher.closeAndJoin(); 
+            }
             this.socket = null;
         } 
     }

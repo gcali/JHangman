@@ -53,6 +53,11 @@ public class WordChooser extends JPanel
         this.setLayout(new GridBagLayout());
     }
     
+    public void reset() {
+        this.textField.setText(null);
+        this.submitButton.setEnabled(true);
+    }
+    
     private void initComponents() {
         this.textField = new JTextField(this.columns);
         this.submitButton = new JButton("Submit");
