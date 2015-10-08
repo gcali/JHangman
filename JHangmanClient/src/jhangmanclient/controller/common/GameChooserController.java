@@ -4,8 +4,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import jhangmanclient.controller.master.GameMasterController;
 import jhangmanclient.controller.player.PlayerController;
@@ -24,7 +22,7 @@ public class GameChooserController implements JHObservable {
     private int cookie;
     private int logoutAction;
     private GameListViewer gameListViewer;
-    private final ThreadPoolExecutor threadPool;
+//    private final ThreadPoolExecutor threadPool;
     private final InetAddress address;
     private final int port;
     
@@ -36,7 +34,7 @@ public class GameChooserController implements JHObservable {
                                  GameListViewer viewer) {
         this.address = getAddress();
         this.port = getPort(); 
-        this.threadPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+//        this.threadPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
         this.server = server;
         this.nick = nick;
         this.cookie = cookie;

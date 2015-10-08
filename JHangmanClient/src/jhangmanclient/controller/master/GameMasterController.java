@@ -2,7 +2,6 @@ package jhangmanclient.controller.master;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.HashSet;
@@ -12,9 +11,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import jhangmanclient.controller.common.MessageDispatcher;
-import jhangmanclient.udp_interface.Message;
+import jhangmanclient.controller.common.MessageSender;
 import jhangmanclient.udp_interface.master.GameUpdateMessage;
-import jhangmanclient.udp_interface.master.MasterHelloMessage;
 import jhangmanclient.udp_interface.player.GuessMessage;
 import jhangmanclient.udp_interface.player.PlayerConnectionMessage;
 import utility.Loggable;
@@ -63,6 +61,7 @@ public class GameMasterController
     
     private final JHObservableSupport observableSupport =
         new JHObservableSupport();
+    private MessageSender sender;
 
     public GameMasterController(String nick, 
                             InetAddress address,
@@ -74,8 +73,9 @@ public class GameMasterController
         this.port = port;
         this.key = key;
         this.remainingTries = maxTries;
-        this.socket = new MulticastSocket(); 
+        this.socket = new MulticastSocket(this.port); 
         this.socket.joinGroup(this.address);
+        this.sender = new MessageSender(this.socket, address, port);
         this.printDebugMessage("Address: " + address);
         this.printDebugMessage("Key: " + key);
         this.printDebugMessage("Constructor done");
@@ -143,39 +143,24 @@ public class GameMasterController
         
     }
     
-    private void sendHello() throws IOException {
-        Message hello = new MasterHelloMessage(this.getVisibleWord());
-        byte [] encryptedHello = hello.encode(this.key);
-        this.sendByteArrayToMulticast(encryptedHello);
-    }
-    
-
-    private void sendByteArrayToMulticast(byte [] data) throws IOException {
-        DatagramPacket packet = new DatagramPacket(
-            data,
-            data.length,
-            this.address,
-            this.port
-        );
-        this.socket.send(packet);
-    }
-
     private void sendUpdate() throws IOException {
         GameUpdateMessage message;
         synchronized (this.lock) {
             String visibleWord = this.getVisibleWord();
+            int lives = this.remainingTries;
             String winnerNick = this.winner;
             boolean isOver = this.gameOver;
             int counter = this.updateCounter++;
             message = new GameUpdateMessage(
                 counter,
                 visibleWord, 
+                lives,
                 isOver, 
                 winnerNick
             ); 
         }
         byte[] encodedMessage = message.encode(this.key);
-        this.sendByteArrayToMulticast(encodedMessage);
+        this.sender.sendByteArrayToMulticast(encodedMessage);
     }
 
     public String getVisibleWord() {
@@ -218,6 +203,7 @@ public class GameMasterController
     
     @ObservationHandler
     public void onConnectedPlayerEvent(ConnectedPlayerEvent e) {
+        this.printDebugMessage("Player connected! " + e.getNick());
         synchronized(this.lock) {
             this.playerSet.add(e.getNick());
         } 
@@ -230,6 +216,7 @@ public class GameMasterController
     
     @ObservationHandler
     public void onDisconnectedPlayerEvent(DisconnectedPlayerEvent e) {
+        this.printDebugMessage("Player disconnected! " + e.getNick());
         synchronized(this.lock) {
             this.playerSet.remove(e.getNick());
         }
@@ -242,11 +229,20 @@ public class GameMasterController
     
     @ObservationHandler
     public void onLetterGuessedEvent(InternalLetterGuessedEvent e) {
+        StringBuilder builder = new StringBuilder("Letter guessed! ");
+        for (int i=0; i < e.getGuessed().length; i++) { 
+            if (e.getGuessed()[i]) {
+                builder.append(this.word.charAt(i));
+            } else {
+                builder.append("_");
+            } 
+        }
+        this.printDebugMessage(builder.toString());
         synchronized(this.lock) {
             if (!this.gameOver) {
                 boolean [] guessed = e.getGuessed();
                 for (int i =0; i < this.uncovered.length; i++) {
-                    this.uncovered[i] = this.uncovered[i] && guessed[i];
+                    this.uncovered[i] = this.uncovered[i] || guessed[i];
                 } 
             } else {
                 printDebugMessage("Someone guessed a letter, but the game was " +
@@ -261,6 +257,7 @@ public class GameMasterController
     
     @ObservationHandler
     public void onWordGuessedEvent(InternalWordGuessedEvent e) {
+        this.printDebugMessage("Word guessed! " + e.getWinnerNick());
         synchronized(this.lock) {
             if (!this.gameOver) {
                 for (int i=0; i < this.uncovered.length; i++) {
@@ -287,6 +284,7 @@ public class GameMasterController
     
     @ObservationHandler
     public void onInternalWrongGuessEvent(InternalWrongGuessEvent e) {
+        this.printDebugMessage("Wrong guess...");
         boolean gameLost = false;
         synchronized(this.lock) {
             this.remainingTries--;
@@ -355,7 +353,7 @@ public class GameMasterController
         Object lock = new Object();
         AtomicBoolean b = new AtomicBoolean();
         
-        controller.addObserver(new JHObserver() {
+        JHObserver observer = (new JHObserver() {
             @ObservationHandler
             public void onLetterGuessedEvent(LetterGuessedEvent e) {
                 print("Letter guessed " + e.getVisibileWord());
@@ -385,10 +383,12 @@ public class GameMasterController
             }
             
             private void print(String m) {
-                System.out.println("[] " + m);
+                System.out.println("[main] " + m);
             } 
         });
+        controller.addObserver(observer);
 
+        System.out.println("Looping!");
         while (!b.get()) {
             synchronized (lock) {
                 try {
@@ -397,5 +397,11 @@ public class GameMasterController
                 }
             }
         }
+        
+        System.out.println("Removing observer!");
+        controller.removeObserver(observer);
+        System.out.println("Closing everything...");
+        controller.close();
+        System.out.println("I'm out of here!");
     }
 }

@@ -7,7 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-import jhangmanclient.udp_interface.master.MasterHelloMessage;
+import jhangmanclient.udp_interface.player.GuessWordMessage;
 
 import org.jasypt.encryption.pbe.PBEByteEncryptor;
 import org.jasypt.encryption.pbe.StandardPBEByteEncryptor;
@@ -60,28 +60,16 @@ public abstract class Message implements Serializable {
     }
     
     public static void main(String[] args) throws IOException {
-        Message test = new Message(MessageID.MASTER_HELLO) {
-
-            /**
-             * 
-             */
-            private static final long serialVersionUID = 1L;
-        };
+        Message test = new GuessWordMessage("ciao", "mike");
         byte [] encrypted = test.encode("ciao");
         System.out.println("Byte array length: " + encrypted.length);
         printByteArray(encrypted);
-        Message decryptedTest;
-        decryptedTest = Message.decode(encrypted, "ciao");
+        GuessWordMessage decryptedTest;
+        decryptedTest = (GuessWordMessage) Message.decode(encrypted, "ciao");
         System.out.println(decryptedTest.getID());
-        
+        System.out.println("Word: " + decryptedTest.getWord() + 
+                          " Nick: " + decryptedTest.getNick()); 
         System.out.println("------");
-        System.out.println("Trying with MasterHandshake; using word 'ciao'");
-        Message handshake = new MasterHelloMessage("ciao");
-        byte [] encryptedHandshake = handshake.encode("ciao");
-        System.out.println("Byte length: " + encrypted.length);
-        printByteArray(encryptedHandshake); 
-        MasterHelloMessage decryptedHandshake = (MasterHelloMessage) Message.decode(encryptedHandshake, "ciao");
-        System.out.println("Word: " + decryptedHandshake.getWord());
     }
 
     private static void printByteArray(byte[] byteArray) {

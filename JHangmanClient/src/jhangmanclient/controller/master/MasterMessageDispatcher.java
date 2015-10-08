@@ -49,7 +49,8 @@ public class MasterMessageDispatcher extends MessageDispatcher {
             }
             break;
             
-        case GUESS:
+        case GUESS_LETTER:
+        case GUESS_WORD:
             if (!(message instanceof GuessMessage)) {
                 printError("Invalid message received; discarding");
             } else {
@@ -61,7 +62,7 @@ public class MasterMessageDispatcher extends MessageDispatcher {
             break; 
 
         default:
-            printDebugMessage("Invalid message received; discarding");
+            printDebugMessage("Invalid message received: " + message.getID() + "; discarding");
             break; 
         }
         

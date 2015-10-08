@@ -2,12 +2,13 @@ package jhangmanclient.controller.master;
 
 import java.util.Queue;
 
+import jhangmanclient.udp_interface.player.GuessLetterMessage;
 import jhangmanclient.udp_interface.player.GuessMessage;
+import jhangmanclient.udp_interface.player.GuessWordMessage;
 import utility.Loggable;
 import utility.observer.JHObservable;
 import utility.observer.JHObservableSupport;
 import utility.observer.JHObserver;
-import development_support.NotImplementedException;
 
 /**
  * Published events:
@@ -19,7 +20,7 @@ import development_support.NotImplementedException;
  * </ul>
  * @author gcali
  */
-public class GameMessagesHandler 
+class GameMessagesHandler 
     extends Thread 
     implements Loggable, JHObservable {
     
@@ -76,30 +77,19 @@ public class GameMessagesHandler
         this.observableSupport.publish(
             new ConnectedPlayerEvent(message.getNick())
         );
-        switch (message.getCategory()) {
-        case GUESS_LETTER:
-            String letter = message.getGuess();
-            if (letter == null || letter.length() != 1) {
-                printError("Invalid message received, discarding");
-            } else {
-                handleGuessLetter(letter.charAt(0)); 
-            }
-            break;
-            
-        case GUESS_WORD:
-            String word = message.getGuess();
+        if (message instanceof GuessLetterMessage) {
+            GuessLetterMessage letterMessage = (GuessLetterMessage) message;
+            char letter = letterMessage.getLetter();
+            handleGuessLetter(letter); 
+        } else if (message instanceof GuessWordMessage) {
+            GuessWordMessage wordMessage = (GuessWordMessage) message;
+            String word = wordMessage.getWord();
             if (word == null) {
                 printError("Invalid message received, discarding");
             } else {
-                handleGuessWord(word, message.getNick());
+                handleGuessWord(word, wordMessage.getNick());
             }
-            break;
-            
-        default:
-            printError("Invalid message received, discarding");
-            break;
         }
-        
     } 
 
     private void handleGuessWord(String guess, String playerNick) {
@@ -132,7 +122,10 @@ public class GameMessagesHandler
     }
     
     public void closeAndJoin() {
-        throw new NotImplementedException(); 
+        synchronized (this.lock) {
+            this.gameOver = true;
+            this.lock.notify();
+        }
     }
 
     @Override
