@@ -83,7 +83,7 @@ public class GUIMain {
     
     public static void main(String[] args) throws RemoteException {
         
-        String hostName = "localhost";
+        String hostName = RMIServer.defaultHost;
         try {
             hostName = args[0];
         } catch (ArrayIndexOutOfBoundsException e) {

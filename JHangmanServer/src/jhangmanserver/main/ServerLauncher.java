@@ -13,7 +13,7 @@ public class ServerLauncher {
         
         boolean shouldEncrypt = true;
         int port = RMIServer.defaultPort;
-        String hostName = "localhost";
+        String hostName = RMIServer.defaultHost;
         String name = RMIServer.name;
         try {
             shouldEncrypt = Boolean.parseBoolean(args[0]);
@@ -26,7 +26,10 @@ public class ServerLauncher {
         
         System.setProperty("java.rmi.server.hostname", hostName);
         GameListHandler gameListHandler = new GameListHandler();
-        ConcurrentRMIServer server = new ConcurrentRMIServer(gameListHandler, shouldEncrypt);
+        ConcurrentRMIServer server = new ConcurrentRMIServer(
+            gameListHandler, 
+            shouldEncrypt
+        );
         
         try {
             server.export(name,port);

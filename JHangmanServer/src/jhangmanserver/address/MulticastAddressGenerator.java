@@ -40,17 +40,33 @@ public class MulticastAddressGenerator {
         return total;
     }
     
-    public static InetAddress getAddress(String address) {
-        if (address == null) {
+    /**
+     * Restituisce un indirizzo nel range specificato
+     * 
+     * Il range è specificato dal parametro {@code addressRange}, che deve 
+     * essere della forma
+     * {@code
+     *      a.b.c.d/e
+     * }
+     * 
+     * dove {@code a, b, c, d} sono valori interi positivi fra 0 e 255 e
+     * {@code e} è un valore intero positivo compreso fra 0 e 32.
+     * 
+     * 
+     * @param addressRange il range degli indirizzi da restituire
+     * @return un indirizzo valido, se disponibile, {@code null} altrimenti
+     */
+    public static InetAddress getAddress(String addressRange) {
+        if (addressRange == null) {
             throw new IllegalArgumentException("Argument was null");
         }
-        String [] addressFixed = address.split("/");
+        String [] addressFixed = addressRange.split("/");
         if (addressFixed.length != 2) {
-            throw new IllegalArgumentException("Argument malformed: " + address);
+            throw new IllegalArgumentException("Argument malformed: " + addressRange);
         }
         String [] stringAddressBytes = addressFixed[0].split("\\.");
         if (stringAddressBytes.length != 4) {
-            throw new IllegalArgumentException("Argument malformed: "+ address);
+            throw new IllegalArgumentException("Argument malformed: "+ addressRange);
         }
         byte[] byteAddress = new byte[stringAddressBytes.length];
         for (int i=0; i < stringAddressBytes.length; i++) {
@@ -58,6 +74,17 @@ public class MulticastAddressGenerator {
         }
         int fixed = Integer.parseInt(addressFixed[1]);
         return getAddress(byteAddress, fixed);
+    }
+    
+    public static InetAddress getAddress(String minRange, String maxRange) {
+        
+        String [] minBytes = minRange.split("\\.");
+        String [] maxBytes = maxRange.split("\\.");
+        
+        if (minBytes.length != 4 || maxBytes.length != 4) {
+            throw new IllegalArgumentException("Argument malformed");
+        }
+        return null;
     }
 
     public static InetAddress getAddress(byte[] prefix, int fixed) {
@@ -76,7 +103,14 @@ public class MulticastAddressGenerator {
         int dimSuffix = needed/8;
         int dimPrefix = total/8 - dimSuffix;
         
-        System.out.println(String.format("[Generator] %d %d %d %d", total, needed, dimSuffix, dimPrefix));
+        System.out.println(
+            String.format("[Generator] %d %d %d %d", 
+                          total, 
+                          needed, 
+                          dimSuffix, 
+                          dimPrefix
+            )
+        );
 
         byte[] bytes = new byte[dimSuffix];
         

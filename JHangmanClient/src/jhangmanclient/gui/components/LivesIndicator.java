@@ -41,6 +41,8 @@ public class LivesIndicator extends JPanel {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
         Color backgroundColor = this.getBackground();
+        
+        
 
         //draw main ellipse
         g2d.setColor(Color.RED);
@@ -71,7 +73,7 @@ public class LivesIndicator extends JPanel {
         int intRadius = this.size.width/4;
         int extRadius = this.size.width/2;
         g2d.setColor(backgroundColor);
-        int n = 10;
+        int n = 9;
         for (int i=0; i < n; i++) {
             drawSeparator(g2d,new Point(this.size.width/2, this.size.height/2),intRadius, extRadius,i,n); 
         }
@@ -94,6 +96,10 @@ public class LivesIndicator extends JPanel {
         Point intLower = new Point((int)intX,(int)intY);
         Point extUpper = new Point((int)extX,(int)-extY);
         Point extLower = new Point((int)extX,(int)extY);
+//        highlight(g, intUpper);
+//        highlight(g, intLower);
+//        highlight(g, extUpper);
+//        highlight(g, extLower);
         Polygon p = new Polygon();
         p.addPoint(intUpper.x, intUpper.y);
         p.addPoint(intLower.x,intLower.y);
@@ -101,6 +107,13 @@ public class LivesIndicator extends JPanel {
         p.addPoint(extUpper.x * 2,extUpper.y * 2);
         g.fillPolygon(p);
         g.setTransform(original);
+    }
+    
+    private void highlight(Graphics2D g, Point p) {
+        Color c = g.getColor();
+        g.setColor(Color.BLACK);
+        g.fillRect(p.x-5, p.y-5, 10, 10);
+        g.setColor(c);
     }
     
     public static void main(String[] args) {

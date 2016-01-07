@@ -15,7 +15,10 @@ public class Launcher {
         
         Registry registry = null;
         try {
-            registry = LocateRegistry.getRegistry(RMIServer.defaultPort);
+            registry = LocateRegistry.getRegistry(
+                RMIServer.defaultHost, 
+                RMIServer.defaultPort
+            );
         } catch (RemoteException e) {
             System.out.println("Connection error");
             throw new RuntimeException(e);
