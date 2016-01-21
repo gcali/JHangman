@@ -31,7 +31,10 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
         this(gameListHandler, true);
     }
 
-	public ConcurrentRMIServer(GameListHandler gameListHandler, boolean shouldEncrypt) {
+	public ConcurrentRMIServer(
+	    GameListHandler gameListHandler, 
+	    boolean shouldEncrypt
+	) {
 	    this.gameListHandler = gameListHandler;
         this.shouldEncrypt = shouldEncrypt;
 	    try {
@@ -50,7 +53,8 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
         if (this.registry == null) {
                 this.registry = LocateRegistry.createRegistry(port);
         }
-        RMIServer stub = (RMIServer) UnicastRemoteObject.exportObject(this, port);
+        RMIServer stub = (RMIServer) UnicastRemoteObject.exportObject(
+            this, port);
         System.out.println("Stub exported");
         try {
             System.out.println("Binding...");
@@ -94,10 +98,11 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
         return cookie;
     }
     
-    public int forceLogIn(String nick, 
-                           String password, 
-                           ClientCallbackRMI notifier)
-                                   throws WrongPasswordException, RemoteException { 
+    public int forceLogIn(
+        String nick, 
+        String password, 
+        ClientCallbackRMI notifier
+    ) throws WrongPasswordException, RemoteException { 
         try {
             this.logOut(nick, 0, true);
         } catch (UserNotLoggedInException e) {
@@ -125,8 +130,7 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
 
         if (user == null) {
             throw new UserNotLoggedInException();
-        }
-        
+        } 
 
         synchronized(user) {
             if (
@@ -162,6 +166,5 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
                 return user.checkCookie(cookie) && user.isLoggedIn();
             }
         }
-    }
-
+    } 
 }

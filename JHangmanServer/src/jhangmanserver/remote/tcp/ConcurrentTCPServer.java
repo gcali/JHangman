@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import jhangmanserver.address.AddressRange;
 import jhangmanserver.game_data.GameListHandler;
 import jhangmanserver.remote.rmi.LoggedInChecker;
 
@@ -15,16 +16,19 @@ public class ConcurrentTCPServer implements Runnable {
     private LoggedInChecker loggedInChecker;
     private ServerSocket mainSocket;
     private ThreadPoolExecutor threadPool;
-    private final static int port = tcp_interface.Defaults.getPort();
     private boolean done = false;
     private GameListHandler gameListHandler;
+    private AddressRange addressRange;
 
     public ConcurrentTCPServer(LoggedInChecker loggedInChecker, 
-                               GameListHandler gameListHandler) 
+                               GameListHandler gameListHandler,
+                               int port,
+                               AddressRange addressRange) 
                                        throws IOException {
         this.loggedInChecker = loggedInChecker;
         this.gameListHandler = gameListHandler;
-        this.mainSocket = new ServerSocket(ConcurrentTCPServer.port);
+        this.addressRange = addressRange;
+        this.mainSocket = new ServerSocket(port);
         this.threadPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
     }
 
@@ -35,7 +39,8 @@ public class ConcurrentTCPServer implements Runnable {
                 Socket socket = this.mainSocket.accept();
                 ServerTask task = new ServerTask(socket, 
                                                  this.gameListHandler,
-                                                 this.loggedInChecker);
+                                                 this.loggedInChecker,
+                                                 this.addressRange);
                 this.threadPool.execute(task);
             } catch (IOException e) {
                 System.err.println("Error during socket acceptance; ignoring");

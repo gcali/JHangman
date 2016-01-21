@@ -67,7 +67,7 @@ class GameMessagesHandler
                 }
                 shouldQuit = this.gameOver;
             }
-            if (message != null) {
+            if (message != null && !this.gameOver) {
                 this.handleMessage(message);
             }
         }
@@ -80,7 +80,7 @@ class GameMessagesHandler
         if (message instanceof GuessLetterMessage) {
             GuessLetterMessage letterMessage = (GuessLetterMessage) message;
             char letter = letterMessage.getLetter();
-            handleGuessLetter(letter); 
+            handleGuessLetter(letter, letterMessage.getNick()); 
         } else if (message instanceof GuessWordMessage) {
             GuessWordMessage wordMessage = (GuessWordMessage) message;
             String word = wordMessage.getWord();
@@ -90,6 +90,9 @@ class GameMessagesHandler
                 handleGuessWord(word, wordMessage.getNick());
             }
         }
+        
+        this.observableSupport.publish(new SendUpdateEvent(message.getNick(),
+                                                           message.getUUID()));
     } 
 
     private void handleGuessWord(String guess, String playerNick) {
@@ -101,7 +104,7 @@ class GameMessagesHandler
     }
 
 
-    private void handleGuessLetter(char guess) {
+    private void handleGuessLetter(char guess, String playerNick) {
         boolean foundLetter = false;
         boolean[] guessed = new boolean[this.wordToGuess.length()];
         for (int i=0; i < this.wordToGuess.length(); i++) {
@@ -113,7 +116,9 @@ class GameMessagesHandler
         if (!foundLetter) {
             handleWrongGuess();
         } else {
-            this.observableSupport.publish(new InternalLetterGuessedEvent(guessed));
+            this.observableSupport.publish(
+                new InternalLetterGuessedEvent(guessed, playerNick)
+            );
         }
     }
 

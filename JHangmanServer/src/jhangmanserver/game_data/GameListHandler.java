@@ -96,16 +96,20 @@ public class GameListHandler implements Loggable, JHObservable {
      * @param name the name of the game
      * @throws GameFullException if the player could not join because
      *                           the game was full
+     * @throws PlayerIsMasterException 
      */
     public Cleaner joinGame(String nick, 
                             String name, 
                             JHObserver fullGameObserver) 
-                                throws GameFullException {
+                                throws GameFullException,
+                                       PlayerAlreadyJoinedException, 
+                                       PlayerIsMasterException {
         ServerGameData data = this.gameDataMap.get(name);
         if (data == null) {
             return Cleaner.newEmptyCleaner();
         }
         Cleaner cleaner = data.addPlayer(nick, fullGameObserver);
+        //notifies the clients
         this.executeCallback(c -> c.incrementGamePlayers(name)); 
         return cleaner;
     }
@@ -117,6 +121,7 @@ public class GameListHandler implements Loggable, JHObservable {
         }
         boolean removed = data.removePlayer(nick);
         if (removed) {
+            //notifies the clients
             this.executeCallback(c -> c.decrementGamePlayers(name));
         }
     }

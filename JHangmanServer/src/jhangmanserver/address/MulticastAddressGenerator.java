@@ -4,9 +4,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,125 +14,33 @@ public class MulticastAddressGenerator {
     private final static Random randomGenerator = new Random(); 
     private final static Set<List<Byte>> addressSet = 
             Collections.newSetFromMap(new ConcurrentHashMap<List<Byte>,Boolean>());
-    private final static Object portLock = new Object();
-    private final static Map<Integer, Integer> portMap =
-            new HashMap<Integer, Integer>();
     
     private final static int minPortRange = 49125;
     private final static int maxPortRange = 65535;
     
-    private static int currentPort = minPortRange;
     
-    /**
-     * Generates a random address not in use in the range 239.255.0.0/16 
-     * conforming to RFC2365 for multicast local use; an address is considered
-     * in use if it's been returned by {@link getAddress()} and not freed
-     * by {@link freeAddress(InetAddress)}
-     * 
-     * @return an InetAddress in the range 239.255.0.0/16
-     */
-    private static byte[] catByteArray(byte[] a, int lengthA, byte[] b) {
-        byte[] total = new byte[lengthA + b.length];
-        System.arraycopy(a, 0, total, 0, lengthA);
-        System.arraycopy(b, 0, total, lengthA, b.length);
-        return total;
-    }
-    
-    /**
-     * Restituisce un indirizzo nel range specificato
-     * 
-     * Il range è specificato dal parametro {@code addressRange}, che deve 
-     * essere della forma
-     * {@code
-     *      a.b.c.d/e
-     * }
-     * 
-     * dove {@code a, b, c, d} sono valori interi positivi fra 0 e 255 e
-     * {@code e} è un valore intero positivo compreso fra 0 e 32.
-     * 
-     * 
-     * @param addressRange il range degli indirizzi da restituire
-     * @return un indirizzo valido, se disponibile, {@code null} altrimenti
-     */
-    public static InetAddress getAddress(String addressRange) {
-        if (addressRange == null) {
-            throw new IllegalArgumentException("Argument was null");
-        }
-        String [] addressFixed = addressRange.split("/");
-        if (addressFixed.length != 2) {
-            throw new IllegalArgumentException("Argument malformed: " + addressRange);
-        }
-        String [] stringAddressBytes = addressFixed[0].split("\\.");
-        if (stringAddressBytes.length != 4) {
-            throw new IllegalArgumentException("Argument malformed: "+ addressRange);
-        }
-        byte[] byteAddress = new byte[stringAddressBytes.length];
-        for (int i=0; i < stringAddressBytes.length; i++) {
-            byteAddress[i] = (byte) (Integer.parseInt(stringAddressBytes[i]));
-        }
-        int fixed = Integer.parseInt(addressFixed[1]);
-        return getAddress(byteAddress, fixed);
-    }
-    
-    public static InetAddress getAddress(String minRange, String maxRange) {
-        
-        String [] minBytes = minRange.split("\\.");
-        String [] maxBytes = maxRange.split("\\.");
-        
-        if (minBytes.length != 4 || maxBytes.length != 4) {
-            throw new IllegalArgumentException("Argument malformed");
-        }
-        return null;
-    }
-
-    public static InetAddress getAddress(byte[] prefix, int fixed) {
-        if (fixed > 32 || fixed < 0) {
-            throw new IllegalArgumentException("Can't have " + fixed + " fixed bits");
-        }
-        if (prefix.length * 8 < fixed) {
-            throw new IllegalArgumentException("Prefix isn't long enough");
-        }
-        
-        System.out.println("[Generator] " + toStringAsAddress(prefix));
-        System.out.println("[Generator] " + fixed);
-        
-        int total = 32;
-        int needed = total - fixed;
-        int dimSuffix = needed/8;
-        int dimPrefix = total/8 - dimSuffix;
-        
-        System.out.println(
-            String.format("[Generator] %d %d %d %d", 
-                          total, 
-                          needed, 
-                          dimSuffix, 
-                          dimPrefix
-            )
-        );
-
-        byte[] bytes = new byte[dimSuffix];
-        
+    public static InetAddress getAddress(int minAddress, int maxAddress) { 
         boolean found = false;
-        byte[] address = null;
-        while (!found) {
-            randomGenerator.nextBytes(bytes); 
-            address = catByteArray(prefix, dimPrefix, bytes);
-            if (fixed % 8 != 0) {
-                byte [] singleByte = new byte[1];
-                randomGenerator.nextBytes(singleByte);
-                address[fixed/8] = 
-                    (byte)((singleByte[0] & (0xFF >>> (fixed % 8))) | address[fixed/8]);
-            }
-            found = addressSet.add(arrayToList(address));
-        }
         
-        try {
-            System.out.println("[Generator] Generated: " + toStringAsAddress(address));
-            return InetAddress.getByAddress(address);
-        } catch (UnknownHostException e) {
-            assert false;
+        do {
+            byte[] b = Utils.intToBytes(minAddress);
+            found = addressSet.add(arrayToList(b));
+        } while (!found && minAddress++ != maxAddress);
+        
+        if (found) {
+            try {
+                return InetAddress.getByAddress(Utils.intToBytes(minAddress));
+            } catch (UnknownHostException e) {
+                assert false;
+                throw new RuntimeException(e);
+            }
+        } else {
             return null;
         }
+    }
+    
+    public static InetAddress getAddress(AddressRange range) {
+        return getAddress(range.getMinAddress(), range.getMaxAddress());
     }
     
     private static List<Byte> arrayToList(byte[] array) {
@@ -146,7 +52,6 @@ public class MulticastAddressGenerator {
     }
     
     public static void freeAddress(InetAddress address) {
-        System.out.println(toStringAsAddress(address.getAddress()));
         addressSet.remove(arrayToList(address.getAddress()));
     }
     
@@ -165,68 +70,69 @@ public class MulticastAddressGenerator {
         return builder.toString();
     }
     
-    public static int getFreePort() {
-        synchronized(portLock) {
-            while (true) { 
-                if (!portMap.containsKey(currentPort)) {
-                    portMap.put(currentPort, 0);
-                    return currentPort++;
-                } else {
-                    if ((++currentPort) > maxPortRange) {
-                        currentPort = minPortRange;
-                    }
-                } 
-            } 
-        }
-    }
-    
     public static int getRandomPort() {
-        synchronized(portLock) {
-            int port = randomGenerator.nextInt(maxPortRange - minPortRange + 1) +
-               minPortRange; 
-            if (portMap.containsKey(port)) {
-                portMap.put(port, portMap.get(port) + 1);
-            } else {
-                portMap.put(port, 0);
-            }
-            return port;
-        }
-    }
-    
-    public static void freePort(int port) {
-        synchronized(portLock) {
-            Integer current = portMap.get(port);
-            if (current != null) {
-                if (current == 0) {
-                    portMap.remove(port);
-                } else {
-                    portMap.put(port, portMap.get(port) - 1);
-                }
-            }
-        }
+        return randomGenerator.nextInt(maxPortRange - minPortRange + 1) +
+           minPortRange; 
     }
     
     
     public static void main(String[] args) {
         
-        int dim=20;
-        InetAddress[] array = new InetAddress[dim];
+//        int dim=20;
+//        InetAddress[] array = new InetAddress[dim];
+//        
+//        for (int i=0; i < dim; i++) {
+//            byte[] addressPrefix = new byte[]{(byte)239,(byte)254};
+//            array[i] = getAddress(addressPrefix, 15);
+//            System.out.println(array[i]);
+//        }
+//        System.out.println("----------");
+//
+//        for (InetAddress address: array) {
+//            freeAddress(address);
+//        }
+//        System.out.println("----------");
+//        for (int i=0; i < 16; i++) {
+//            array[i] = getAddress("0.0.0.0/28");
+//            System.out.println(array[i]);
+//        }
+//        System.out.println(addressSet.size());
         
-        for (int i=0; i < dim; i++) {
-            byte[] addressPrefix = new byte[]{(byte)239,(byte)254};
-            array[i] = getAddress(addressPrefix, 15);
-            System.out.println(array[i]);
+        byte[] test = new byte[] {
+            0x01,
+            0x02,
+            0x03,
+            0x04 
+        };
+        
+        for (byte b : test) {
+            System.out.printf("0x%02X ", b & 0xFF);
         }
-        System.out.println("----------");
-
-        for (InetAddress address: array) {
-            freeAddress(address);
+        System.out.println();
+        
+        int temp = Utils.byteToInt(test);
+        
+        test = Utils.intToBytes(temp);
+        for (byte b : test) {
+            System.out.printf("0x%02X ", b & 0xFF);
         }
-        System.out.println("----------");
-        for (int i=0; i < 16; i++) {
-            array[i] = getAddress("0.0.0.0/28");
-            System.out.println(array[i]);
+        System.out.println(); 
+        
+        List<InetAddress> addresses = new ArrayList<InetAddress>();
+        
+//        AddressRange range = AddressRange.fromRange("192.168.0.1/29");
+        AddressRange range = AddressRange.fromMin("192.168.0.1");
+        range.setMaxAddress("192.168.0.9");
+        for (int i=0; i < 10; i++) {
+            InetAddress address = getAddress(range);
+            addresses.add(address); 
         }
-        System.out.println(addressSet.size());
+        
+        for (InetAddress a : addresses) {
+            System.out.println(a);
+            if (a != null) {
+                freeAddress(a); 
+            }
+        }
     }
 }

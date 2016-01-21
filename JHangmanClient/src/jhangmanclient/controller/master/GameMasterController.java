@@ -7,6 +7,7 @@ import java.net.MulticastSocket;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -41,7 +42,7 @@ public class GameMasterController
     private final String key;
 
     private String word = null;
-    private int remainingTries;
+    private int remainingLives;
     private final Object lock = new Object();
 
     private String winner = null;
@@ -62,17 +63,19 @@ public class GameMasterController
     private final JHObservableSupport observableSupport =
         new JHObservableSupport();
     private MessageSender sender;
+    private int maxLives;
 
     public GameMasterController(String nick, 
                             InetAddress address,
                             int port,
                             String key,
-                            int maxTries) throws IOException {
+                            int lives) throws IOException {
         this.nick = nick;
         this.address = address;
         this.port = port;
         this.key = key;
-        this.remainingTries = maxTries;
+        this.maxLives = lives;
+        this.remainingLives = lives;
         this.socket = new MulticastSocket(this.port); 
         this.socket.joinGroup(this.address);
         this.sender = new MessageSender(this.socket, address, port);
@@ -91,7 +94,7 @@ public class GameMasterController
      * Must be called after {@link #setWord(String)}
      * @throws IOException
      */
-    public void initConnection() throws IOException {
+    public void start() throws IOException {
         if (this.word == null ) {
             throw new NullPointerException("Word not set");
         }
@@ -140,14 +143,14 @@ public class GameMasterController
         this.connectionMessagesHandler.start();
         this.gameMessagesHandler.start();
         this.printDebugMessage("All subthreads started");
-        
+        sendUpdate(null, null);
     }
     
-    private void sendUpdate() throws IOException {
+    private void sendUpdate(String ackNick, UUID uuid) throws IOException {
         GameUpdateMessage message;
         synchronized (this.lock) {
             String visibleWord = this.getVisibleWord();
-            int lives = this.remainingTries;
+            int lives = this.remainingLives;
             String winnerNick = this.winner;
             boolean isOver = this.gameOver;
             int counter = this.updateCounter++;
@@ -156,7 +159,9 @@ public class GameMasterController
                 visibleWord, 
                 lives,
                 isOver, 
-                winnerNick
+                winnerNick,
+                ackNick,
+                uuid
             ); 
         }
         byte[] encodedMessage = message.encode(this.key);
@@ -210,14 +215,17 @@ public class GameMasterController
     @ObservationHandler
     public void onConnectedPlayerEvent(ConnectedPlayerEvent e) {
         this.printDebugMessage("Player connected! " + e.getNick());
+        boolean shouldUpdate = false;
         synchronized(this.lock) {
-            this.playerSet.add(e.getNick());
+            shouldUpdate = this.playerSet.add(e.getNick());
         } 
-        try {
-            this.sendUpdate();
-        } catch (IOException e1) {
-            this.printError("Couldn't send update, ignoring error");
-        } 
+        if (shouldUpdate) {
+            try {
+                this.sendUpdate(null, null);
+            } catch (IOException e1) {
+                this.printError("Couldn't send update, ignoring error");
+            } 
+        }
     }
     
     @ObservationHandler
@@ -226,11 +234,6 @@ public class GameMasterController
         synchronized(this.lock) {
             this.playerSet.remove(e.getNick());
         }
-        try {
-            this.sendUpdate();
-        } catch (IOException e1) {
-            this.printError("Couldn't send update, ignoring error");
-        } 
     } 
     
     @ObservationHandler
@@ -244,21 +247,30 @@ public class GameMasterController
             } 
         }
         this.printDebugMessage(builder.toString());
+        boolean allDiscovered = true;
         synchronized(this.lock) {
             if (!this.gameOver) {
                 boolean [] guessed = e.getGuessed();
                 for (int i =0; i < this.uncovered.length; i++) {
                     this.uncovered[i] = this.uncovered[i] || guessed[i];
+                    allDiscovered = allDiscovered && this.uncovered[i];
                 } 
+                gameOver = true;
             } else {
                 printDebugMessage("Someone guessed a letter, but the game was " +
                            "already over");
                 return;
             }
         }
-        this.observableSupport.publish(
-            new LetterGuessedEvent(this.getVisibleWord())
-        );
+        if (allDiscovered) {
+            this.observableSupport.publish(
+                new WordGuessedEvent(word, e.getNick())
+            );
+        } else {
+            this.observableSupport.publish(
+                new LetterGuessedEvent(this.getVisibleWord())
+            ); 
+        }
     }
     
     @ObservationHandler
@@ -271,12 +283,6 @@ public class GameMasterController
                 }
                 this.winner = e.getWinnerNick();
                 this.gameOver = true;
-                try {
-                    this.sendUpdate();
-                } catch (IOException e1) {
-                    printError("Couldn't send update after game won;" +
-                               " ignoring the error");
-                } 
             } else {
                 printDebugMessage(e.getWinnerNick() + " got the word, but " +
                                   "the game was already over");
@@ -293,8 +299,8 @@ public class GameMasterController
         this.printDebugMessage("Wrong guess...");
         boolean gameLost = false;
         synchronized(this.lock) {
-            this.remainingTries--;
-            if (this.remainingTries == 0) {
+            this.remainingLives--;
+            if (this.remainingLives == 0) {
                 this.gameOver = true;
                 this.winner = null;
                 gameLost = true;
@@ -308,6 +314,15 @@ public class GameMasterController
             this.observableSupport.publish(
                 new WrongGuessEvent()
             );
+        }
+    }
+    
+    @ObservationHandler
+    public void onSendUpdateEvent(SendUpdateEvent event) {
+        try {
+            sendUpdate(event.getNick(), event.getUUID());
+        } catch (IOException e) {
+            printError("Couldn't send update");
         }
     }
 
@@ -354,7 +369,7 @@ public class GameMasterController
             );
         
         controller.setWord(word);
-        controller.initConnection();
+        controller.start();
         
         Object lock = new Object();
         AtomicBoolean b = new AtomicBoolean();
@@ -368,6 +383,10 @@ public class GameMasterController
             @ObservationHandler
             public void onWordGuessedEvent(WordGuessedEvent e) {
                 print("Word guessed " + e.getWinnerNick());
+                try {
+                    controller.sendUpdate(null, null);
+                } catch (IOException e1) {
+                }
                 b.set(true);
                 synchronized(lock) {
                     lock.notify();
@@ -409,5 +428,9 @@ public class GameMasterController
         System.out.println("Closing everything...");
         controller.close();
         System.out.println("I'm out of here!");
+    }
+
+    public int getMaxLives() {
+        return maxLives;
     }
 }

@@ -40,14 +40,24 @@ public class ServerGameData implements Loggable, JHObservable {
      * @param fullGameObserver the observer to add; if {@code null}, no observer
      *                         is registered
      * @return {@code true} if the game is complete, {@code false} otherwise
+     * @throws PlayerAlreadyJoinedException 
      */
     public synchronized Cleaner addPlayer(String nick, 
                                           JHObserver fullGameObserver) 
-            throws GameFullException {
+            throws GameFullException, 
+                   PlayerAlreadyJoinedException,
+                   PlayerIsMasterException {
         if (this.players.size() == this.maxPlayers) {
             throw new GameFullException();
         }
-        this.players.add(nick);
+        if (this.name.equals(nick)) {
+            throw new PlayerIsMasterException();
+        }
+        boolean newPlayer = this.players.add(nick);
+        printDebugMessage(nick + " newPlayer: " + newPlayer);
+        if (!newPlayer) {
+            throw new PlayerAlreadyJoinedException();
+        }
         if (fullGameObserver != null) {
             printDebugMessage("Adding observer...");
             this.addObserver(fullGameObserver); 

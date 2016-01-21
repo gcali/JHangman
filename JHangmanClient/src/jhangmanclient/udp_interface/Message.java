@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.UUID;
 
 import jhangmanclient.udp_interface.player.GuessWordMessage;
 
@@ -21,12 +22,26 @@ public abstract class Message implements Serializable {
 
     private final MessageID id;
 
-    protected Message(MessageID id) {
+    private String nick;
+
+    private UUID uuid;
+
+    protected Message(MessageID id, String nick, UUID uuid) {
         this.id = id;
+        this.uuid = uuid;
+        this.nick = nick;
     }
     
     public MessageID getID() {
         return this.id;
+    }
+    
+    public String getNick() {
+        return this.nick;
+    }
+    
+    public UUID getUUID() {
+        return this.uuid;
     }
     
     public byte[] encode(String key) {
@@ -60,7 +75,7 @@ public abstract class Message implements Serializable {
     }
     
     public static void main(String[] args) throws IOException {
-        Message test = new GuessWordMessage("ciao", "mike");
+        Message test = new GuessWordMessage("ciao", "mike", UUID.randomUUID());
         byte [] encrypted = test.encode("ciao");
         System.out.println("Byte array length: " + encrypted.length);
         printByteArray(encrypted);

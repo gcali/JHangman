@@ -21,15 +21,29 @@ public class LivesIndicator extends JPanel {
      */
     private static final long serialVersionUID = 1L;
     private Dimension size;
+    private int lives;
 
     public LivesIndicator(Dimension size) {
-        this.size = size;
+        this(size, 10);
     }
     
-    public void setSize(Dimension size) {
+    public LivesIndicator(Dimension size, int lives) {
+        this.size = size; 
+        this.lives = lives;
+    }
+    
+    public void setIndicatorSize(Dimension size) {
         this.size = size;
         this.repaint();
     } 
+    
+    public int getLives() {
+        return lives;
+    }
+    
+    public void setLives(int lives) {
+        this.lives = lives;
+    }
     
     @Override
     public Dimension getPreferredSize() {
@@ -40,10 +54,7 @@ public class LivesIndicator extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
-        Color backgroundColor = this.getBackground();
-        
-        
-
+        Color backgroundColor = this.getBackground(); 
         //draw main ellipse
         g2d.setColor(Color.RED);
         g2d.fillOval(0, 0, this.size.width, this.size.height);
@@ -73,7 +84,7 @@ public class LivesIndicator extends JPanel {
         int intRadius = this.size.width/4;
         int extRadius = this.size.width/2;
         g2d.setColor(backgroundColor);
-        int n = 9;
+        int n = lives;
         for (int i=0; i < n; i++) {
             drawSeparator(g2d,new Point(this.size.width/2, this.size.height/2),intRadius, extRadius,i,n); 
         }
@@ -96,10 +107,6 @@ public class LivesIndicator extends JPanel {
         Point intLower = new Point((int)intX,(int)intY);
         Point extUpper = new Point((int)extX,(int)-extY);
         Point extLower = new Point((int)extX,(int)extY);
-//        highlight(g, intUpper);
-//        highlight(g, intLower);
-//        highlight(g, extUpper);
-//        highlight(g, extLower);
         Polygon p = new Polygon();
         p.addPoint(intUpper.x, intUpper.y);
         p.addPoint(intLower.x,intLower.y);
@@ -109,13 +116,13 @@ public class LivesIndicator extends JPanel {
         g.setTransform(original);
     }
     
-    private void highlight(Graphics2D g, Point p) {
-        Color c = g.getColor();
-        g.setColor(Color.BLACK);
-        g.fillRect(p.x-5, p.y-5, 10, 10);
-        g.setColor(c);
-    }
-    
+//    private void highlight(Graphics2D g, Point p) {
+//        Color c = g.getColor();
+//        g.setColor(Color.BLACK);
+//        g.fillRect(p.x-5, p.y-5, 10, 10);
+//        g.setColor(c);
+//    }
+//    
     public static void main(String[] args) {
         JFrame frame = new JFrame("Test");
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

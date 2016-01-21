@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.UUID;
 
+import jhangmanserver.address.AddressRange;
 import jhangmanserver.game_data.GameListHandler;
 import jhangmanserver.remote.rmi.LoggedInChecker;
 import tcp_interface.answers.OpenGameAnswer;
@@ -33,7 +34,8 @@ class OpenGameHandler implements Loggable {
         ObjectInputStream inputStream,
         Socket socket,
         LoggedInChecker loggedInChecker,
-        GameListHandler gameListHandler
+        GameListHandler gameListHandler, 
+        AddressRange addressRange
     ) {
         try {
             this.printDebugMessage("Starting to handle open game");
@@ -63,6 +65,7 @@ class OpenGameHandler implements Loggable {
             OpenGameConfirmer confirmer = new OpenGameConfirmer(
                 gameName,
                 key, 
+                addressRange,
                 outputStream, 
                 inputStream,
                 socket
@@ -75,6 +78,7 @@ class OpenGameHandler implements Loggable {
             ) {
                 outputStream.writeObject(new OpenGameAnswer(true));
                 OpenGameData gameData = confirmer.handleConfirmation();
+                printDebugMessage("Confirmer passed this gameData: " + gameData);
                 if (gameData == null) {
                     this.printDebugMessage("Aborting game");
                     gameListHandler.abortUserGames(gameName);

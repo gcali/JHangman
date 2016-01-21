@@ -1,5 +1,7 @@
 package utility.observer;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -22,7 +24,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @author gcali
  *
  */
-public class JHObservableSupport {
+public class JHObservableSupport implements Closeable {
     
     private final Map<Class<? extends JHEvent>, Queue<ObserverInfo>> map = 
             new ConcurrentHashMap<Class<? extends JHEvent>, Queue<ObserverInfo>>();
@@ -147,6 +149,13 @@ public class JHObservableSupport {
 
         synchronized Object getObserver() {
             return this.observer;
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        synchronized(lock) {
+            map.clear();
         }
     } 
 }

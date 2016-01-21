@@ -9,6 +9,7 @@ import java.net.SocketException;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import jhangmanserver.address.AddressRange;
 import jhangmanserver.address.MulticastAddressGenerator;
 import jhangmanserver.game_data.AbortedGameEvent;
 import jhangmanserver.game_data.GameFullEvent;
@@ -32,9 +33,11 @@ class OpenGameConfirmer extends TCPHandler
     private final Object lock = new Object();
     private String loggableId;
     private Queue<DispatchedRequest> queue;
+    private AddressRange addressRange;
     
     public OpenGameConfirmer(String name,
                              String key,
+                             AddressRange addressRange,
                              ObjectOutputStream output,
                              ObjectInputStream input,
                              Socket socket) {
@@ -43,6 +46,7 @@ class OpenGameConfirmer extends TCPHandler
         this.output = output;
         this.input = input;
         this.socket = socket;
+        this.addressRange = addressRange;
     }
     
     public OpenGameData handleConfirmation() {
@@ -60,18 +64,24 @@ class OpenGameConfirmer extends TCPHandler
         DispatchedRequest request = null;
         synchronized(lock) {
             request = queue.poll();
+            if (this.eventId != eventId.NOT_HANDLED) {
+                return this.handleEvent(this.eventId);
+            }
             while (request == null) {
-                if (this.eventId != eventId.NOT_HANDLED) {
-                    return this.handleEvent(this.eventId);
-                }
                 try {
                     lock.wait();
                 } catch (InterruptedException e) {
                 }
                 request = queue.poll();
+                if (this.eventId != eventId.NOT_HANDLED) {
+                    return this.handleEvent(this.eventId);
+                }
             }
         }
         if (request.isEof()) {
+            if (this.eventId != eventId.NOT_HANDLED) {
+                return this.handleEvent(this.eventId);
+            }
             this.printDebugMessage("Client closed connection");
             return null;
         } else if (request.isTimeout()) {
@@ -125,20 +135,12 @@ class OpenGameConfirmer extends TCPHandler
     private OpenGameData handleFullEvent() {
         this.printDebugMessage("Game full!");
         InetAddress address = 
-            MulticastAddressGenerator.getAddress("239.255.0.0/16");
+            MulticastAddressGenerator.getAddress(addressRange);
         if (address == null) {
             System.out.println("Couldn't find a free address");
             return null;
         }
-        int port =
-            MulticastAddressGenerator.getFreePort();
-        if (port < 0) {
-            printError("Couldn't find a free port, falling back on" +
-                       " a used one");
-            port = MulticastAddressGenerator.getRandomPort();
-            MulticastAddressGenerator.freeAddress(address);
-            return null;
-        }
+        int port = MulticastAddressGenerator.getRandomPort();
         OpenGameData gameData = new OpenGameData(address, port);
         this.printDebugMessage("Generated address: " + address);
         try {
@@ -150,7 +152,6 @@ class OpenGameConfirmer extends TCPHandler
             return gameData;
         } catch (IOException e) {
             MulticastAddressGenerator.freeAddress(address);
-            MulticastAddressGenerator.freePort(port);
             return null;
         }
     }

@@ -7,6 +7,8 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 
+import jhangmanserver.address.AddressRange;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -16,27 +18,33 @@ import utility.Loggable;
 
 public class ConfigData {
     
-    private static String multicastAddressRange = "239.255.0.0/16";
-    private static int port = RMIServer.defaultPort;
-    private static int maxGames = 10;
-    private static boolean shouldEncrypt = true;
+    private int rmiPort = RMIServer.defaultPort;
+    private int tcpPort = tcp_interface.Defaults.getPort(); 
+    private AddressRange addressRange = AddressRange.fromRange("239.255.0.0/16");
+    private int maxGames = 10;
+    private boolean shouldEncrypt = true;
+    private String hostName = RMIServer.defaultHost;
+    private String name = RMIServer.name;
 
-    private static final Loggable logger = new Loggable() { 
+    private final Loggable logger = new Loggable() { 
         @Override
         public String getLoggableId() {
             return "ConfigData";
         }
-    }; 
-    private static final String defaultConfigPath = 
+    };
+    private final static String defaultConfigPath = 
         System.getProperty("user.home") + File.separator + 
         ".jhangman_server.json";
 
-    //static initializer
-    static {
-        initData(System.getProperty("server_config_file", defaultConfigPath));
+    public ConfigData(String ifAbsentPath) {
+        initData(System.getProperty("server_config_file", ifAbsentPath)); 
     }
     
-    private static void initData(String fileName) {
+    public ConfigData() {
+        this(defaultConfigPath);
+    }
+
+    private void initData(String fileName) {
         try {
             parseConfigString(readFile(fileName));
         } catch (IOException e) {
@@ -46,7 +54,7 @@ public class ConfigData {
         }
     }
     
-    private static void parseConfigString(String content) {
+    private void parseConfigString(String content) {
         try {
             JSONParser parser = new JSONParser();
             JSONObject parsedObject = (JSONObject) parser.parse(content);
@@ -59,26 +67,53 @@ public class ConfigData {
     }
     
     @SuppressWarnings("unchecked")
-    private static void parseJSONObject(JSONObject parsedObject) {
+    private void parseJSONObject(JSONObject parsedObject) {
         for (Map.Entry<String,Object> entry : 
                 (Set<Map.Entry<String, Object>>)parsedObject.entrySet()) {
             handleEntry(entry.getKey(), entry.getValue());
         }
     }
 
-    private static void handleEntry(String key, Object value) {
+    private void handleEntry(String key, Object value) {
         switch (key) {
+
         case "multicastAddressRange":
             if (value instanceof String) {
-                multicastAddressRange = (String) value;
+                addressRange = AddressRange.fromRange((String) value);
                 logger.printDebugMessage("Set " + key + " to " + value);
             } else {
                 logger.printError("Invalid value for " + key);
             }
             break; 
-        case "port":
+            
+        case "multicastAddressMin":
+            if (value instanceof String) {
+                addressRange.setMinAddress((String) value);
+                logger.printDebugMessage("Set " + key + " to " + value);
+            } else {
+                logger.printError("Invalid value for " + key);
+            }
+
+        case "multicastAddressMax":
+            if (value instanceof String) {
+                addressRange.setMaxAddress((String) value);
+                logger.printDebugMessage("Set " + key + " to " + value);
+            } else {
+                logger.printError("Invalid value for " + key);
+            }
+
+        case "RMIport":
             if (value instanceof Number) {
-                port = (int) port;
+                rmiPort = ((Number) value).intValue();
+                logger.printDebugMessage("Set " + key + " to " + value);
+            } else {
+                logger.printError("Invalid value for " + key);
+            }
+            break;
+            
+        case "TCPport":
+            if (value instanceof Number) {
+                tcpPort = ((Number) value).intValue();
                 logger.printDebugMessage("Set " + key + " to " + value);
             } else {
                 logger.printError("Invalid value for " + key);
@@ -87,7 +122,7 @@ public class ConfigData {
             
         case "maxGames":
             if (value instanceof Number) {
-                maxGames = (int) maxGames;
+                maxGames = ((Number)value).intValue();
                 logger.printDebugMessage("Set " + key + " to " + value);
             } else {
                 logger.printError("Invalid value for " + key);
@@ -102,6 +137,22 @@ public class ConfigData {
                 logger.printError("Invalid value for " + key);
             }
             break;
+            
+        case "hostName":
+            if (value instanceof String) {
+                hostName = (String) value;
+                logger.printDebugMessage("Set " + key + " to " + value);
+            } else {
+                logger.printError("Invalid value for " + key);
+            }
+
+        case "name":
+            if (value instanceof String) {
+                name = (String) value;
+                logger.printDebugMessage("Set " + key + " to " + value);
+            } else {
+                logger.printError("Invalid value for " + key);
+            }
             
         default:
             logger.printDebugMessage(String.format(
@@ -120,20 +171,56 @@ public class ConfigData {
         
     }
 
-    public static String getMulticastAddressRange() {
-        return multicastAddressRange;
+    public int getRMIPort() {
+        return rmiPort;
+    }
+    
+    public void setRMIPort(int port) {
+        this.rmiPort = port;
+    }
+    
+    public int getTCPPort() {
+        return tcpPort;
+    }
+    
+    public void setTCPPort(int port) {
+        this.tcpPort = port;
     }
 
-    public static int getPort() {
-        return port;
-    }
-
-    public static int getMaxGames() {
+    public int getMaxGames() {
         return maxGames;
     }
+    
+    public void setMaxGames(int maxGames) {
+        this.maxGames = maxGames;
+    }
 
-    public static boolean shouldEncrypt() {
+    public boolean getShouldEncrypt() {
         return shouldEncrypt;
     } 
+    
+    public void setShouldEncrypt(boolean shouldEncrypt) {
+        this.shouldEncrypt = shouldEncrypt;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    public String getHostName() {
+        return hostName;
+    }
+    
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
+    }
 
+    public AddressRange getAddressRange() {
+        return addressRange;
+    }
+    
 }

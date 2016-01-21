@@ -11,6 +11,8 @@ import jhangmanserver.game_data.AbortedGameEvent;
 import jhangmanserver.game_data.GameFullException;
 import jhangmanserver.game_data.GameListHandler;
 import jhangmanserver.game_data.GameStartingEvent;
+import jhangmanserver.game_data.PlayerAlreadyJoinedException;
+import jhangmanserver.game_data.PlayerIsMasterException;
 import jhangmanserver.game_data.PlayerLeftEvent;
 import jhangmanserver.remote.rmi.LoggedInChecker;
 import tcp_interface.answers.Answer;
@@ -74,14 +76,23 @@ class JoinGameHandler extends TCPHandler implements Loggable {
                 gameJoined = confirmer.handleConfirmation();
             } catch (GameFullException e) {
                 this.printDebugMessage("Game was full!");
+                outputStream.writeObject(new JoinGameAnswer(false));
+                return;
+            } catch (PlayerAlreadyJoinedException e1) {
+                this.printDebugMessage("Player is already in the game!");
+                outputStream.writeObject(new JoinGameAnswer(false));
+                return;
+            } catch (PlayerIsMasterException e1) {
+                this.printDebugMessage("Player is the master!");
+                outputStream.writeObject(new JoinGameAnswer(false));
                 return;
             } 
             if (!gameJoined) {
                 gameListHandler.leaveGame(nick, gameName);
             }
 
-        } catch (IOException e) {
-            
+        } catch (IOException e) { 
+            printError("Got and IOException during handleJoinGame"); 
         }
         
     }

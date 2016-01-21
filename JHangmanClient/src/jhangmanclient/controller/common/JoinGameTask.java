@@ -70,7 +70,12 @@ public class JoinGameTask extends TCPServerInteractionTask<PlayerController>
                 getJoinGameCompletedAnswer(output, input);
             printDebugMessage("Got complete answer");
             if (joinCompletedAnswer == null || !joinCompletedAnswer.isAccepted()) {
-                printDebugMessage("And I wasn't accepted...");
+                printDebugMessage("And I wasn't accepted... ");
+                if (joinCompletedAnswer == null) {
+                    printDebugMessage("Answer was null!");
+                } else {
+                    printDebugMessage("isAccepted: " + joinCompletedAnswer.isAccepted());
+                }
                 return null;
             }
             printDebugMessage("And I was accepted!");

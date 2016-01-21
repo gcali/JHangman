@@ -34,6 +34,7 @@ public class MasterMessageDispatcher extends MessageDispatcher {
 
     @Override
     protected void handleDecodedMessage(Message message) {
+        printDebugMessage("Handling " + message.getID());
         switch (message.getID()) {
         
         case PLAYER_CONNECTION_MESSAGE:

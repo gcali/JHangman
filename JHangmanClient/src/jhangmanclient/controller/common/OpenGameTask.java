@@ -76,11 +76,12 @@ class OpenGameTask extends TCPServerInteractionTask<GameMasterController>
         }
     }
 
-    private static OpenGameCompletedAnswer getOpenGameCompleteAnswer(
+    private OpenGameCompletedAnswer getOpenGameCompleteAnswer(
             ObjectOutputStream objOutput, 
             ObjectInputStream objInput
     ) throws IOException {
         Answer answer = getAnswer(objOutput, objInput);
+        printDebugMessage("My answer was: " + answer);
         if (answer == null) {
             return null;
         }

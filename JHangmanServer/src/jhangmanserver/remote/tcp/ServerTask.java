@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import jhangmanserver.address.AddressRange;
 import jhangmanserver.game_data.GameListHandler;
 import jhangmanserver.remote.rmi.LoggedInChecker;
 import tcp_interface.requests.JoinGameRequest;
@@ -23,14 +24,17 @@ public class ServerTask extends TCPHandler implements Runnable, Loggable {
     private GameListHandler gameListHandler;
     private LoggedInChecker loggedInChecker;
     private int id;
+    private AddressRange addressRange;
 
     public ServerTask(Socket socket, 
                       GameListHandler gameListHandler,
-                      LoggedInChecker loggedInChecker) {
+                      LoggedInChecker loggedInChecker,
+                      AddressRange addressRange) {
         this.id = idGenerator.getAndIncrement();
         this.socket = socket;
         this.gameListHandler = gameListHandler;
         this.loggedInChecker = loggedInChecker;
+        this.addressRange = addressRange;
     }
     
     @Override
@@ -80,7 +84,8 @@ public class ServerTask extends TCPHandler implements Runnable, Loggable {
                 inputStream, 
                 this.socket, 
                 this.loggedInChecker, 
-                this.gameListHandler
+                this.gameListHandler,
+                this.addressRange
             );
             break;
         default:

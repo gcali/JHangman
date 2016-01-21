@@ -10,6 +10,8 @@ public class MessageSender {
     private MulticastSocket socket;
     private InetAddress address;
     private int port;
+    
+    private final Object lock = new Object();
 
     public MessageSender(
         MulticastSocket socket, 
@@ -22,13 +24,15 @@ public class MessageSender {
     }
     
     public void sendByteArrayToMulticast(byte [] data) throws IOException {
-        DatagramPacket packet = new DatagramPacket(
-            data,
-            data.length,
-            this.address,
-            this.port
-        );
-        this.socket.send(packet);
+        synchronized(lock) {
+            DatagramPacket packet = new DatagramPacket(
+                data,
+                data.length,
+                this.address,
+                this.port
+            );
+            this.socket.send(packet); 
+        }
     }
 
 }

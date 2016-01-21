@@ -24,6 +24,7 @@ public abstract class TCPServerInteractionTask<V>
         } catch (ClassNotFoundException e) {
             throw new IOException(e);
         } catch (EOFException | SocketTimeoutException e) {
+            e.printStackTrace();
             try {
                 objOutput.writeObject(new AbortRequest());
             } catch (Exception eIgnore) {

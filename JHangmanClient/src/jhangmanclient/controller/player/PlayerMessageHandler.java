@@ -14,6 +14,7 @@ import utility.observer.JHObserver;
  *  <ul>
  *      <li>{@link UpdatedPlayingStatusEvent}</li>
  *      <li>{@link GameOverEvent}</li>
+ *      <li>{@link AckEvent}</li>
  *  </ul>
  * @author gcali
  *
@@ -27,6 +28,7 @@ public class PlayerMessageHandler
     
     private String id = "PlayerMessageHandler";
 
+    private String nick;
     private Queue<GameUpdateMessage> queue; 
     private Object lock;
     
@@ -35,10 +37,12 @@ public class PlayerMessageHandler
     private Integer lastSequenceNumber = null;
     
     public PlayerMessageHandler(
+        String nick,
         Queue<GameUpdateMessage> messageQueue, 
         Object messageLock
     ) {
         super();
+        this.nick = nick;
         this.queue = messageQueue;
         this.lock = messageLock; 
     }
@@ -67,11 +71,15 @@ public class PlayerMessageHandler
     }
 
     private void handleMessage(GameUpdateMessage message) {
-        this.printDebugMessage("Starting packet handling");
-        if (this.lastSequenceNumber == null ||
-            message.getSequenceNumber() > this.lastSequenceNumber) {
-            this.lastSequenceNumber = message.getSequenceNumber();
-            this.printDebugMessage("Packet was valid!");
+        this.printDebugMessage("Starting packet handling " + this.nick);
+        if (this.nick.equals(message.getNick())) {
+            printDebugMessage("Got ack");
+            this.publish(new AckEvent(message.getUUID()));
+        }
+        if (lastSequenceNumber == null || 
+            message.getSequenceNumber() > lastSequenceNumber) {
+            printDebugMessage("Message was recent");
+            lastSequenceNumber = message.getSequenceNumber();
             if (message.isOver()) {
                 this.handleGameOver(message.getVisibleWord(), 
                                     message.getWinnerNick());
@@ -81,8 +89,6 @@ public class PlayerMessageHandler
                                                   message.getLives())
                 );
             }
-        } else {
-            this.printDebugMessage("Packet ignored for sequence number!");
         }
     }
     
