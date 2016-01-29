@@ -38,7 +38,7 @@ public class PlayerController
                JHObservable,
                JHObserver {
 
-    private String nick;
+    private final String nick;
     private InetAddress address;
     private String key;
     private MulticastSocket socket = null;
@@ -54,7 +54,7 @@ public class PlayerController
     
     private MessageSender sender;
     private PlayerMessageChecker checker;
-
+    
     public PlayerController(
         String nick, 
         String gameName, 
@@ -286,7 +286,7 @@ public class PlayerController
                 UpdatedPlayingStatusEvent e
             ) {
                 l.printDebugMessage(
-                    String.format("Update: %s (%d)", e.getWord(), e.getLives())
+                    String.format("Update: %s (%d)", e.getWord(), e.getRemainingLives())
                 );
             }
         });
@@ -367,4 +367,9 @@ public class PlayerController
     public boolean shouldPrintDebug() {
         return true;
     }
+
+    public String getNick() {
+        return nick;
+    }
+    
 }

@@ -19,8 +19,7 @@ public class MultipleClientsTest {
                                 new GUIMain.User("Phil", "test")};
         for (int i=0; i<users.length; i++) {
             AuthController controller = GUIMain.initConnection(hostName);
-            GUIMain frame = new GUIMain(controller);
-            frame.startLogged(users[i].getNick(), users[i].getPass());
+            GUIMain.startLogged(users[i].getNick(), users[i].getPass(), controller);
         }
     }
 

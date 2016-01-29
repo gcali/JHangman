@@ -41,7 +41,7 @@ public abstract class MessageDispatcher extends Thread implements Loggable {
                     Message.decode(data, this.key);
                 this.printDebugMessage("Packet decoded");
                 this.handleDecodedMessage(message);
-                this.printDebugMessage("Packet handled");
+                this.printDebugMessage("Packet handled"); 
             } catch (SocketException e) {
                 //socket closed, should quit
                 shouldQuit = true;

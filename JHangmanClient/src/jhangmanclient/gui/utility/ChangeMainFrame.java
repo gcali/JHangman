@@ -9,6 +9,7 @@ import utility.observer.JHObservable;
 import utility.observer.JHObservableSupport;
 import utility.observer.JHObserver;
 
+@Deprecated
 public class ChangeMainFrame implements JHObservable {
 
     private Map<String, JFrame> frames = 

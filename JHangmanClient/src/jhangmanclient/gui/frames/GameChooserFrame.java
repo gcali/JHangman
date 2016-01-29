@@ -22,8 +22,8 @@ import jhangmanclient.controller.player.PlayerController;
 import jhangmanclient.gui.components.ActionsPanel;
 import jhangmanclient.gui.components.AskPositiveNumberDialog;
 import jhangmanclient.gui.components.GameListTableModel;
-import jhangmanclient.gui.utility.ChangeMainFrame;
 import jhangmanclient.gui.utility.SetNickEvent;
+import jhangmanclient.gui.utility.Switcher;
 import utility.observer.JHObserver;
 import utility.observer.ObservationHandler;
 
@@ -36,7 +36,6 @@ public class GameChooserFrame extends HangmanFrame
      * 
      */
     private static final long serialVersionUID = 1L;
-    ChangeMainFrame changer = null;
     private GameChooserController gameChooserController;
 
     private JTable table;
@@ -47,12 +46,19 @@ public class GameChooserFrame extends HangmanFrame
 
     private String nick;
 
-    public GameChooserFrame(ChangeMainFrame changer) {
+    private Switcher switcher;
+
+    public GameChooserFrame(
+        GameChooserController gameChooserController,
+        String nick,
+        Switcher switcher
+    ) {
         super(10);
-        this.changer = changer;
-        this.setVisible(false);
+        this.switcher = switcher;
+        this.nick = nick;
+        setGameController(gameChooserController);
     }
-    
+
     @Override
     protected void initComponents() { 
         JComponent table = initTable();
@@ -180,11 +186,11 @@ public class GameChooserFrame extends HangmanFrame
 
     private JButton initLogOutButton() {
         JButton button = new JButton("Log out");
-        button.addActionListener(e -> this.changer.changeFrame("auth"));
         button.addActionListener(new ActionListener() {
             
             @Override
             public void actionPerformed(ActionEvent e) {
+                switcher.showAuth(GameChooserFrame.this);
                 try {
                     gameChooserController.handleLogout();
                 } catch (RemoteException e1) {

@@ -5,19 +5,26 @@ import utility.observer.JHEvent;
 public class UpdatedPlayingStatusEvent implements JHEvent {
     
     private final String word;
-    private int lives;
+    private final int remainingLives;
+    private final int maxLives;
     
-    public UpdatedPlayingStatusEvent(String word, int lives) {
+    public UpdatedPlayingStatusEvent(String word, 
+        int remainingLives, int maxLives) {
         this.word = word;
-        this.lives = lives;
+        this.remainingLives = remainingLives;
+        this.maxLives = maxLives;
     }
     
     public String getWord() {
         return this.word;
     }
     
-    public int getLives() {
-        return this.lives;
+    public int getRemainingLives() {
+        return this.remainingLives;
+    }
+
+    public int getMaxLives() {
+        return maxLives;
     }
 
 }

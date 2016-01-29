@@ -24,7 +24,7 @@ public class LivesIndicator extends JPanel {
     private int lives;
 
     public LivesIndicator(Dimension size) {
-        this(size, 10);
+        this(size, 0);
     }
     
     public LivesIndicator(Dimension size, int lives) {
@@ -43,6 +43,7 @@ public class LivesIndicator extends JPanel {
     
     public void setLives(int lives) {
         this.lives = lives;
+        this.repaint();
     }
     
     @Override
@@ -53,6 +54,9 @@ public class LivesIndicator extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        if (lives <= 0) {
+            return;
+        }
         Graphics2D g2d = (Graphics2D) g;
         Color backgroundColor = this.getBackground(); 
         //draw main ellipse
@@ -84,9 +88,8 @@ public class LivesIndicator extends JPanel {
         int intRadius = this.size.width/4;
         int extRadius = this.size.width/2;
         g2d.setColor(backgroundColor);
-        int n = lives;
-        for (int i=0; i < n; i++) {
-            drawSeparator(g2d,new Point(this.size.width/2, this.size.height/2),intRadius, extRadius,i,n); 
+        for (int i=0; i < lives; i++) {
+            drawSeparator(g2d,new Point(this.size.width/2, this.size.height/2),intRadius, extRadius,i,lives); 
         }
     }
     
@@ -96,7 +99,7 @@ public class LivesIndicator extends JPanel {
         double rotation = (2*Math.PI * ((double)sector))/(nSectors);
         System.out.println(rotation);
         g.rotate(rotation);
-        g.fillRect(-10, -10, 20, 20);
+//        g.fillRect(-10, -10, 20, 20);
         double coeff = Math.cos((2*Math.PI)/(nSectors*6));
         double intX = coeff * intRadius;
         double extX = coeff * extRadius;

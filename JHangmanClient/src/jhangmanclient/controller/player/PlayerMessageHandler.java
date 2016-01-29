@@ -86,7 +86,8 @@ public class PlayerMessageHandler
             } else {
                 this.publish( 
                     new UpdatedPlayingStatusEvent(message.getVisibleWord(), 
-                                                  message.getLives())
+                                                  message.getRemainingLives(),
+                                                  message.getMaxLives())
                 );
             }
         }

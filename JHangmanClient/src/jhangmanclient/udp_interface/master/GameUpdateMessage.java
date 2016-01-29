@@ -14,13 +14,15 @@ public class GameUpdateMessage extends Message {
     private final String visibleWord;
     private final boolean isOver;
     private final String winnerNick;
-    private int lives;
-    private int sequenceNumber;
+    private final int remainingLives;
+    private final int sequenceNumber;
+    private final int maxLives;
     
     public GameUpdateMessage(
         int sequenceNumber,
         String visibleWord, 
-        int lives,
+        int remainingLives,
+        int maxLives,
         boolean isOver, 
         String winnerNick,
         String ackNick,
@@ -29,7 +31,8 @@ public class GameUpdateMessage extends Message {
         super(MessageID.GAME_UPDATE_MESSAGE, ackNick, uuid);
         this.sequenceNumber = sequenceNumber;
         this.visibleWord = visibleWord;
-        this.lives = lives;
+        this.remainingLives = remainingLives;
+        this.maxLives = maxLives;
         this.isOver = isOver;
         this.winnerNick = winnerNick;
     } 
@@ -38,8 +41,8 @@ public class GameUpdateMessage extends Message {
         return this.visibleWord;
     }
     
-    public int getLives() {
-        return this.lives;
+    public int getRemainingLives() {
+        return this.remainingLives;
     }
 
     public boolean isOver() {
@@ -52,5 +55,9 @@ public class GameUpdateMessage extends Message {
 
     public int getSequenceNumber() {
         return sequenceNumber;
+    }
+
+    public int getMaxLives() {
+        return maxLives;
     }
 }

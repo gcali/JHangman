@@ -22,6 +22,7 @@ import jhangmanclient.gui.components.LivesIndicatorPanel;
 import jhangmanclient.gui.components.NotificationPanel;
 import jhangmanclient.gui.components.WordInputPanel;
 import jhangmanclient.gui.components.WordPlayerDisplay;
+import jhangmanclient.gui.utility.Switcher;
 import utility.Loggable;
 import utility.observer.JHObserver;
 
@@ -36,8 +37,6 @@ public class GameMasterFrame extends HangmanFrame
 
     private GameMasterController controller;
 
-    private final Runnable activateFrameAfterAbort;
-
     private NotificationPanel notificationPanel;
 
     private LivesIndicatorPanel livesPanel;
@@ -50,13 +49,14 @@ public class GameMasterFrame extends HangmanFrame
 
     private WordPlayerDisplay wordPanel;
 
+    private Switcher switcher;
+
     public GameMasterFrame(
-        GameMasterController controller, 
-        Runnable activateFrameAfterAbort
+        GameMasterController controller
     ) {
         super();
         this.controller = controller;
-        this.activateFrameAfterAbort = activateFrameAfterAbort;
+        this.switcher = switcher;
         setUpActions();
         terminateInitialization();
     }
@@ -162,7 +162,7 @@ public class GameMasterFrame extends HangmanFrame
         if (this.controller != null) {
             this.controller.close();
         }
-        this.activateFrameAfterAbort.run();
+        this.setVisible(false);
     }
     
     @Override
@@ -183,7 +183,7 @@ public class GameMasterFrame extends HangmanFrame
         GameMasterController controller = new GameMasterController("master", address, port, "ciao", 5);
         System.out.println(controller);
         //TODO stub
-        JFrame frame = new GameMasterFrame(controller, () -> {});
+        JFrame frame = new GameMasterFrame(controller);
         frame.setVisible(true);
     }
 }

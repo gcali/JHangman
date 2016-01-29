@@ -150,14 +150,16 @@ public class GameMasterController
         GameUpdateMessage message;
         synchronized (this.lock) {
             String visibleWord = this.getVisibleWord();
-            int lives = this.remainingLives;
+            int remainingLives = this.remainingLives;
+            int maxLives = this.maxLives;
             String winnerNick = this.winner;
             boolean isOver = this.gameOver;
             int counter = this.updateCounter++;
             message = new GameUpdateMessage(
                 counter,
                 visibleWord, 
-                lives,
+                remainingLives,
+                maxLives,
                 isOver, 
                 winnerNick,
                 ackNick,
@@ -238,15 +240,15 @@ public class GameMasterController
     
     @ObservationHandler
     public void onLetterGuessedEvent(InternalLetterGuessedEvent e) {
-        StringBuilder builder = new StringBuilder("Letter guessed! ");
-        for (int i=0; i < e.getGuessed().length; i++) { 
-            if (e.getGuessed()[i]) {
-                builder.append(this.word.charAt(i));
-            } else {
-                builder.append("_");
-            } 
-        }
-        this.printDebugMessage(builder.toString());
+//        StringBuilder builder = new StringBuilder("Letter guessed! ");
+//        for (int i=0; i < e.getGuessed().length; i++) { 
+//            if (e.getGuessed()[i]) {
+//                builder.append(this.word.charAt(i));
+//            } else {
+//                builder.append("_");
+//            } 
+//        }
+//        this.printDebugMessage(builder.toString());
         boolean allDiscovered = true;
         synchronized(this.lock) {
             if (!this.gameOver) {
@@ -255,13 +257,14 @@ public class GameMasterController
                     this.uncovered[i] = this.uncovered[i] || guessed[i];
                     allDiscovered = allDiscovered && this.uncovered[i];
                 } 
-                gameOver = true;
+                gameOver = allDiscovered;
             } else {
                 printDebugMessage("Someone guessed a letter, but the game was " +
                            "already over");
                 return;
             }
         }
+        printDebugMessage(getVisibleWord());
         if (allDiscovered) {
             this.observableSupport.publish(
                 new WordGuessedEvent(word, e.getNick())

@@ -26,6 +26,7 @@ import jhangmanclient.gui.components.NonEmptyFieldEvent;
 import jhangmanclient.gui.components.NotificationPanel;
 import jhangmanclient.gui.components.WordInputPanel;
 import jhangmanclient.gui.components.WordPlayerDisplay;
+import utility.GUIUtils;
 import utility.Loggable;
 import utility.observer.JHObserver;
 import utility.observer.ObservationHandler;
@@ -92,7 +93,7 @@ public class GamePlayerFrame extends HangmanFrame
         JPanel leftPanel = createMinimumWidthPanel();
 
         JPanel buttonPanel = createButtonPanel(); 
-        livesPanel = new LivesIndicatorPanel(10); 
+        livesPanel = new LivesIndicatorPanel(0); 
         wordPanel = new WordPlayerDisplay(8); 
         wordPanel.setFontSize(40);
         inputPanel = new WordInputPanel();
@@ -189,6 +190,7 @@ public class GamePlayerFrame extends HangmanFrame
     @ObservationHandler
     public void onUpdatedPlayingStatusEvent(UpdatedPlayingStatusEvent event) {
         String eventWord = event.getWord();
+        livesPanel.setLives(event.getMaxLives());
         if (wordPanel.isUpdate(eventWord)) {
             notificationPanel.addLine("New move!");
             wordPanel.setWord(event.getWord());
@@ -197,7 +199,17 @@ public class GamePlayerFrame extends HangmanFrame
     
     @ObservationHandler
     public void onGameOverEvent(GameOverEvent event) {
-        wordPanel.setWord(event.getWord());
+        GUIUtils.invokeAndWait(() -> {
+            guessButton.setEnabled(false);
+            String nick = event.getWinnerNick();
+            wordPanel.setWord(event.getWord());
+            if (nick != null && nick.equals(controller.getNick())) {
+                wordPanel.setWinner();
+            } else {
+                wordPanel.setLoser();
+            }
+            inputPanel.setEditable(false);
+        });
         notificationPanel.addLine("Game over! Winner is " + event.getWinnerNick());
     }
     

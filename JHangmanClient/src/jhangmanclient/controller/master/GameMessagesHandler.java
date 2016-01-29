@@ -1,6 +1,11 @@
 package jhangmanclient.controller.master;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
+import java.util.UUID;
 
 import jhangmanclient.udp_interface.player.GuessLetterMessage;
 import jhangmanclient.udp_interface.player.GuessMessage;
@@ -28,6 +33,8 @@ class GameMessagesHandler
     private Queue<GuessMessage> messageQueue;
     private Object lock;
     private String id = null;
+    private final Map<String, Set<UUID>> receivedMessages = 
+        new HashMap<String, Set<UUID>>();
     
     private JHObservableSupport observableSupport = new JHObservableSupport();
     private String wordToGuess;
@@ -49,6 +56,18 @@ class GameMessagesHandler
     
     public void setLoggableId(String id) {
         this.id = id;
+    }
+    
+    public boolean checkAndAddMessage(String nick, UUID uuid) {
+        Set<UUID> messages;
+        if (receivedMessages.containsKey(nick)) {
+            messages = receivedMessages.get(nick);
+        } else {
+            messages = new HashSet<UUID>();
+            receivedMessages.put(nick, messages);
+        }
+        printDebugMessage("Why the null? " + messages);
+        return messages.add(uuid);
     }
     
     @Override
@@ -74,25 +93,31 @@ class GameMessagesHandler
     }
 
     private void handleMessage(GuessMessage message) {
+        String nick = message.getNick();
         this.observableSupport.publish(
-            new ConnectedPlayerEvent(message.getNick())
+            new ConnectedPlayerEvent(nick)
         );
-        if (message instanceof GuessLetterMessage) {
-            GuessLetterMessage letterMessage = (GuessLetterMessage) message;
-            char letter = letterMessage.getLetter();
-            handleGuessLetter(letter, letterMessage.getNick()); 
-        } else if (message instanceof GuessWordMessage) {
-            GuessWordMessage wordMessage = (GuessWordMessage) message;
-            String word = wordMessage.getWord();
-            if (word == null) {
-                printError("Invalid message received, discarding");
-            } else {
-                handleGuessWord(word, wordMessage.getNick());
-            }
+        UUID uuid = message.getUUID();
+        if (uuid == null || checkAndAddMessage(nick, uuid)) {
+            printDebugMessage("New message");
+            if (message instanceof GuessLetterMessage) {
+                GuessLetterMessage letterMessage = (GuessLetterMessage) message;
+                char letter = letterMessage.getLetter();
+                handleGuessLetter(letter, letterMessage.getNick()); 
+            } else if (message instanceof GuessWordMessage) {
+                GuessWordMessage wordMessage = (GuessWordMessage) message;
+                String word = wordMessage.getWord();
+                if (word == null) {
+                    printError("Invalid message received, discarding");
+                } else {
+                    handleGuessWord(word, wordMessage.getNick());
+                }
+            } 
+        } else {
+            printDebugMessage("Message already received");
         }
         
-        this.observableSupport.publish(new SendUpdateEvent(message.getNick(),
-                                                           message.getUUID()));
+        this.observableSupport.publish(new SendUpdateEvent(nick, uuid));
     } 
 
     private void handleGuessWord(String guess, String playerNick) {

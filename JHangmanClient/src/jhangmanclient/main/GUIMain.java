@@ -1,77 +1,45 @@
 package jhangmanclient.main; 
 
-import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.function.Consumer;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import jhangmanclient.controller.common.AuthController;
 import jhangmanclient.gui.frames.AuthFrame;
-import jhangmanclient.gui.frames.GameChooserFrame;
-import jhangmanclient.gui.utility.ChangeMainFrame;
+import jhangmanclient.gui.utility.Switcher;
 import rmi_interface.RMIServer;
+import utility.GUIUtils;
 
 public class GUIMain {
     
-    private AuthController authController;
-    private Runnable starter;
-    private Consumer<User> forceLogin;
-
-    public GUIMain(AuthController authController) throws HeadlessException {
-        this.authController = authController;
-        init();
-    }
-
-    private void init() { 
-        createPanels(); 
-    }
-
-    private void createPanels() {
-        ChangeMainFrame changer = new ChangeMainFrame();
-        GameChooserFrame gameChooserFrame = new GameChooserFrame(changer);
-        changer.addObserver(gameChooserFrame);
-        AuthFrame authFrame = new AuthFrame(
-                authController, 
-                controller -> gameChooserFrame.setGameController(controller),
-                changer);
-        changer.addPanel(gameChooserFrame, "gameChooser");
-        changer.addPanel(authFrame, "auth");
-        this.starter = () -> changer.changeFrame("auth");
-        this.forceLogin = new Consumer<User>() {
-
-            @Override
-            public void accept(User t) {
-                authFrame.setNick(t.getNick());
-                authFrame.setPass(t.getPass());
-                authFrame.actionPerformed(new ActionEvent(authFrame, 0, "login")); 
-            }
-        };
-    } 
-    
-    public void start() {
-        SwingUtilities.invokeLater(new Runnable() { 
+    public static void start(AuthController controller) {
+        GUIUtils.invokeLater(new Runnable() {
+            
             @Override
             public void run() {
-                GUIMain.this.starter.run(); 
+                Switcher switcher = new Switcher();
+                switcher.showAuth(null, controller);
             }
         });
     }
     
-    void startLogged(String nick, String pass) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
+    static void startLogged(String nick, String pass, AuthController controller) {
+        GUIUtils.invokeLater(new Runnable() {
             
             @Override
             public void run() {
-                GUIMain.this.forceLogin.accept(new User(nick, pass)); 
+                Switcher switcher = new Switcher();
+                AuthFrame frame = new AuthFrame(controller, switcher);
+                frame.setNick(nick);
+                frame.setPass(pass);
+                frame.actionPerformed(new ActionEvent(null, 0, "login"));
             }
         });
     }
@@ -90,8 +58,7 @@ public class GUIMain {
             
         }
         AuthController authController = initConnection(hostName);
-        GUIMain frame = new GUIMain(authController);
-        frame.start();
+        start(authController);
     }
 
     static AuthController initConnection(String hostName) throws RemoteException {

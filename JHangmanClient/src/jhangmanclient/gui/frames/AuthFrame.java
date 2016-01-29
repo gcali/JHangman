@@ -13,7 +13,7 @@ import jhangmanclient.controller.common.LoginResult;
 import jhangmanclient.controller.common.RegistrationResult;
 import jhangmanclient.gui.components.LabeledField;
 import jhangmanclient.gui.components.LogInRegisterButtons;
-import jhangmanclient.gui.utility.ChangeMainFrame;
+import jhangmanclient.gui.utility.Switcher;
 import utility.ReturnCodeObj;
 
 /**
@@ -35,7 +35,7 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
     /**
      * Window changer; used to change to other windows when needed
      */
-    private ChangeMainFrame changer = null;
+    private Switcher switcher = null;
     /**
      * Nick component of the login labels
      */
@@ -64,22 +64,17 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
     /**
      * Create a new {@link AuthFrame}; its components are initialized 
      * and positioned and its visibility is set to false
-     * @param authController        the controller to interface with the actual
-     *                              data for authentication
-     * @param gameControllerSetter  the procedure to be called on a new
-     *                              {@link GameChooserController} creation
-     *                              to link the controller with the right
-     *                              structures
+     * @param authController    the controller to interface with the actual
+     *                          data for authentication
+     * @param switcher          the switcher, to change the current frame
      * @return  The newly created {@link AuthFrame}
      */
     public AuthFrame (
             AuthController authController, 
-            Consumer<GameChooserController> gameControllerSetter,
-            ChangeMainFrame changer) {
+            Switcher switcher) {
         super(10);
         this.authController = authController;
-        this.gameControllerSetter = gameControllerSetter;
-        this.changer = changer;
+        this.switcher = switcher;
         this.setVisible(false);
     }
     
@@ -99,16 +94,6 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
     }
 
     /**
-     * Sets the {@link ChangeMainFrame} for this structure;
-     *  the {@link ChangeMainFrame} is used
-     * to change the currently visible frame, when needed.
-     * @param changer   the {@link ChangeMainFrame} to be used
-     */
-    public void setChanger(ChangeMainFrame changer) {
-        this.changer = changer;
-    }
-    
-    /**
      * {@inheritDoc}
      * 
      * Initiate handling of login and registration events; 
@@ -122,7 +107,7 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
             break;
         case "register":
             handleRegister();
-        break;
+            break;
         }
         
     }
@@ -213,9 +198,7 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
             GameChooserController gameChooserController
     ) {
         this.nickComponent.clear();
-        this.gameControllerSetter.accept(gameChooserController);
-        this.changer.publishNickChange(nick);
-        this.changer.changeFrame(GameChooserFrame.idString);
+        switcher.showChooser(this, gameChooserController, nick);
     }
 
     /**
