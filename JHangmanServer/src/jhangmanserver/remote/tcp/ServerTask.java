@@ -30,7 +30,7 @@ public class ServerTask extends TCPHandler implements Runnable, Loggable {
                       GameListHandler gameListHandler,
                       LoggedInChecker loggedInChecker,
                       AddressRange addressRange) {
-        this.id = idGenerator.getAndIncrement();
+        this.id = idGenerator.getAndIncrement(); //debug ID
         this.socket = socket;
         this.gameListHandler = gameListHandler;
         this.loggedInChecker = loggedInChecker;

@@ -80,7 +80,7 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
     public int logIn(String nick, String password, ClientCallbackRMI notifier)
             throws WrongPasswordException, RemoteException, UserAlreadyLoggedInException {
         User user = getUser(nick);
-        if (user == null) {
+        if (user == null || password == null) {
             throw new WrongPasswordException("User data incorrect");
         }
         int cookie;
