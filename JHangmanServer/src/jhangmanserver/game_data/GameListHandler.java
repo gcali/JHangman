@@ -26,6 +26,14 @@ public class GameListHandler implements Loggable, JHObservable {
     private Map<String, ClientCallbackRMI> callbacks =
             new ConcurrentHashMap<String, ClientCallbackRMI>();
     
+    private final Object openGamesLock = new Object();
+    private int openGames = 0;
+    private int maxOpenGames;
+    
+    public GameListHandler(int maxOpenGames) {
+        this.maxOpenGames = maxOpenGames;
+    }
+    
     public void addCallback(String nick, ClientCallbackRMI notifier) {
         this.callbacks.put(nick, notifier); 
         this.executeCallback(c -> c.setGameData(this.getGameList()));
@@ -52,7 +60,8 @@ public class GameListHandler implements Loggable, JHObservable {
         this.callbacks.remove(nick); 
     }
     
-    public Cleaner openGame(String name, int maxPlayers, JHObserver observer) {
+    public Cleaner openGame(String name, int maxPlayers, JHObserver observer) 
+        throws FullListException {
         System.out.println("Hi, I've been called!");
         if (maxPlayers <= 0) {
             throw new IllegalArgumentException(
@@ -60,6 +69,12 @@ public class GameListHandler implements Loggable, JHObservable {
             );
         }
         ServerGameData data = new ServerGameData(name, maxPlayers);
+        synchronized(openGamesLock) {
+            if (openGames >= maxOpenGames) {
+                throw new FullListException("" + openGames);
+            }
+            openGames++;
+        }
         this.gameDataMap.put(name, data);
         System.out.println("Adding observer...");
         data.addObserver(observer);
@@ -75,6 +90,9 @@ public class GameListHandler implements Loggable, JHObservable {
     }
     
     public void cancelGame(String name) {
+        synchronized(openGamesLock) {
+            openGames--;
+        }
         this.gameDataMap.remove(name);
         this.executeCallback(c -> c.removeGame(name));
     }

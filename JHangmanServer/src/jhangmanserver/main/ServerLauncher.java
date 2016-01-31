@@ -23,7 +23,9 @@ public class ServerLauncher {
         }
         
         System.setProperty("java.rmi.server.hostname", config.getHostName());
-        GameListHandler gameListHandler = new GameListHandler();
+        GameListHandler gameListHandler = new GameListHandler(
+            config.getMaxGames()
+        );
         ConcurrentRMIServer server = new ConcurrentRMIServer(
             gameListHandler, 
             config.getShouldEncrypt()

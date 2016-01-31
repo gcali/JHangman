@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.util.UUID;
 
 import jhangmanserver.address.AddressRange;
+import jhangmanserver.game_data.FullListException;
 import jhangmanserver.game_data.GameListHandler;
 import jhangmanserver.remote.rmi.LoggedInChecker;
 import tcp_interface.answers.OpenGameAnswer;
@@ -93,6 +94,9 @@ class OpenGameHandler implements Loggable {
                         gameData.getPort()
                     );
                 } 
+            } catch (FullListException e) {
+                printDebugMessage("Game list was full");
+                outputStream.writeObject(new OpenGameAnswer(false));
             }
         } catch (IOException e) {
             
