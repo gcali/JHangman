@@ -2,6 +2,8 @@ package jhangmanclient.gui.frames;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.rmi.RemoteException;
 import java.util.function.Consumer;
 
@@ -53,6 +55,8 @@ public class GameChooserFrame extends HangmanFrame
 
     private Switcher switcher;
 
+    private boolean inputEnabled = true;
+
 
 
     public GameChooserFrame(
@@ -64,8 +68,13 @@ public class GameChooserFrame extends HangmanFrame
         this.switcher = switcher;
         this.nick = nick;
         setGameController(gameChooserController); 
-        
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); 
+        addWindowListener(new WindowAdapter() { 
+            @Override
+            public void windowClosing(WindowEvent e) {
+                handleLogout();
+            }
+        });
     }
 
     @Override
@@ -107,21 +116,9 @@ public class GameChooserFrame extends HangmanFrame
             new ConfirmGameDialog<GameMasterController>(
                 this,
                 openGameCallable, 
-                new Runnable() { 
-                    @Override
-                    public void run() {
-                        openGameCallable.abort();
-                        enableInput();
-                    } 
-                }, 
-                new Consumer<GameMasterController>() { 
-                    @Override
-                    public void accept(GameMasterController t) {
-                        switcher.showMaster(GameChooserFrame.this, t);
-                        enableInput();
-                    }
-                
-                }
+                () -> openGameCallable.abort(), 
+                t -> switcher.showMaster(GameChooserFrame.this, t),
+                () -> enableInput()
             );
         disableInput();
         confirmDialog.start(); 
@@ -134,21 +131,9 @@ public class GameChooserFrame extends HangmanFrame
             new ConfirmGameDialog<PlayerController>(
                 this,
                 joinGameCallable,
-                new Runnable() { 
-                    @Override
-                    public void run() {
-                        joinGameCallable.abort();
-                        enableInput();
-                    }
-                },
-                new Consumer<PlayerController>() {
-
-                    @Override
-                    public void accept(PlayerController t) {
-                        switcher.showPlayer(GameChooserFrame.this, t);
-                        enableInput();
-                    }
-                }
+                () -> joinGameCallable.abort(),
+                t -> switcher.showPlayer(GameChooserFrame.this, t),
+                () -> enableInput()
             );
         disableInput();
         confirmDialog.start();
@@ -202,12 +187,7 @@ public class GameChooserFrame extends HangmanFrame
             
             @Override
             public void actionPerformed(ActionEvent e) {
-                switcher.showAuth(GameChooserFrame.this);
-                try {
-                    gameChooserController.handleLogout();
-                } catch (RemoteException e1) {
-                    showErrorDialog("Couldn't reach the server");
-                }
+                handleLogout();
                 
             }
         });
@@ -215,7 +195,7 @@ public class GameChooserFrame extends HangmanFrame
     }
     
     private void setJoinGameButtonEnabled(boolean b) {
-        if (this.joinGameButton != null) {
+        if (this.joinGameButton != null && inputEnabled) {
             this.joinGameButton.setEnabled(b);
         }
     }
@@ -245,6 +225,7 @@ public class GameChooserFrame extends HangmanFrame
     
     private void disableInput() {
         GUIUtils.invokeAndWait(() -> {
+            inputEnabled = false;
             logOutButton.setEnabled(false);
             joinGameButton.setEnabled(false);
             openGameButton.setEnabled(false);
@@ -253,6 +234,7 @@ public class GameChooserFrame extends HangmanFrame
     
     private void enableInput() {
         GUIUtils.invokeAndWait(() -> {
+            inputEnabled = true;
             logOutButton.setEnabled(true);
             joinGameButton.setEnabled(true);
             openGameButton.setEnabled(true);
@@ -291,5 +273,14 @@ public class GameChooserFrame extends HangmanFrame
     @Override
     public String getLoggableId() {
         return "GameChooserFrame";
+    }
+
+    private void handleLogout() {
+        switcher.showAuth(GameChooserFrame.this);
+        try {
+            gameChooserController.handleLogout();
+        } catch (RemoteException e1) {
+            showErrorDialog("Couldn't reach the server");
+        }
     }
 }

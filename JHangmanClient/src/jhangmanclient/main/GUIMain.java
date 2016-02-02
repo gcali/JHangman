@@ -37,6 +37,7 @@ public class GUIMain {
             
             @Override
             public void run() {
+                switcher.setAuth(frame);
                 frame.setNick(nick);
                 frame.setPass(pass);
                 frame.actionPerformed(new ActionEvent(frame, 0, "login"));

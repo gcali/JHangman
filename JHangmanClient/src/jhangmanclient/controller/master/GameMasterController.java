@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import jhangmanclient.controller.common.MessageDispatcher;
 import jhangmanclient.controller.common.MessageSender;
 import jhangmanclient.udp_interface.master.GameUpdateMessage;
+import jhangmanclient.udp_interface.master.GameUpdateMessage.GameStatus;
 import jhangmanclient.udp_interface.player.GuessMessage;
 import jhangmanclient.udp_interface.player.PlayerConnectionMessage;
 import utility.Loggable;
@@ -147,27 +148,45 @@ public class GameMasterController
     }
     
     private void sendUpdate(String ackNick, UUID uuid) throws IOException {
+        printDebugMessage("Sending update");
+        GameUpdateMessage message;
+        message = createUpdateMessage(ackNick, uuid);
+        printDebugMessage("Sending update " + message.toString());
+        byte[] encodedMessage = message.encode(this.key);
+        this.sender.sendByteArrayToMulticast(encodedMessage);
+    }
+
+    private GameUpdateMessage createUpdateMessage(
+        String ackNick, 
+        UUID uuid 
+    ) {
         GameUpdateMessage message;
         synchronized (this.lock) {
             String visibleWord = this.getVisibleWord();
             int remainingLives = this.remainingLives;
             int maxLives = this.maxLives;
             String winnerNick = this.winner;
-            boolean isOver = this.gameOver;
+            GameStatus status;
+            if (!gameOver) {
+                status = GameStatus.PLAYING;
+            } else if (winnerNick != null) {
+                status = GameStatus.WON;
+            } else {
+                status = GameStatus.LOST;
+            }
             int counter = this.updateCounter++;
             message = new GameUpdateMessage(
                 counter,
                 visibleWord, 
                 remainingLives,
                 maxLives,
-                isOver, 
+                status,
                 winnerNick,
                 ackNick,
                 uuid
             ); 
         }
-        byte[] encodedMessage = message.encode(this.key);
-        this.sender.sendByteArrayToMulticast(encodedMessage);
+        return message;
     }
 
     public String getVisibleWord() {
@@ -196,6 +215,13 @@ public class GameMasterController
     @Override
     public void close() {
         if (this.socket != null) {
+            if (!gameOver) {
+                try {
+                    sendAbortNotice();
+                } catch (IOException e) {
+                    printError("Couldn't send abort notice");
+                }
+            }
             try {
                 this.socket.leaveGroup(this.address);
             } catch (IOException e) {
@@ -214,6 +240,25 @@ public class GameMasterController
         } 
     }
     
+    private void sendAbortNotice() throws IOException {
+        printDebugMessage("Sending abort notice");
+        GameUpdateMessage message;
+        synchronized(lock) {
+            message = new GameUpdateMessage(
+                updateCounter++, 
+                null, 
+                0, 
+                0, 
+                GameStatus.ABORTED , 
+                null, 
+                null, 
+                null
+            );
+        }
+        byte[] encodedMessage = message.encode(this.key);
+        this.sender.sendByteArrayToMulticast(encodedMessage);
+    }
+
     @ObservationHandler
     public void onConnectedPlayerEvent(ConnectedPlayerEvent e) {
         this.printDebugMessage("Player connected! " + e.getNick());
@@ -240,15 +285,6 @@ public class GameMasterController
     
     @ObservationHandler
     public void onLetterGuessedEvent(InternalLetterGuessedEvent e) {
-//        StringBuilder builder = new StringBuilder("Letter guessed! ");
-//        for (int i=0; i < e.getGuessed().length; i++) { 
-//            if (e.getGuessed()[i]) {
-//                builder.append(this.word.charAt(i));
-//            } else {
-//                builder.append("_");
-//            } 
-//        }
-//        this.printDebugMessage(builder.toString());
         boolean allDiscovered = true;
         synchronized(this.lock) {
             if (!this.gameOver) {
@@ -310,6 +346,7 @@ public class GameMasterController
             }
         }
         if (gameLost) {
+            printDebugMessage("Game was lost!");
             this.observableSupport.publish(
                 new LostGameEvent()
             );

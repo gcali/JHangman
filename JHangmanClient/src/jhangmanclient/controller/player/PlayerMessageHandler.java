@@ -13,7 +13,9 @@ import utility.observer.JHObserver;
  * Published events:
  *  <ul>
  *      <li>{@link UpdatedPlayingStatusEvent}</li>
- *      <li>{@link GameOverEvent}</li>
+ *      <li>{@link GameLostEvent}</li>
+ *      <li>{@link GameAbortedEvent}</li>
+ *      <li>{@link GameWonEvent}</li>
  *      <li>{@link AckEvent}</li>
  *  </ul>
  * @author gcali
@@ -80,23 +82,68 @@ public class PlayerMessageHandler
             message.getSequenceNumber() > lastSequenceNumber) {
             printDebugMessage("Message was recent");
             lastSequenceNumber = message.getSequenceNumber();
-            if (message.isOver()) {
-                this.handleGameOver(message.getVisibleWord(), 
-                                    message.getWinnerNick());
-            } else {
+            switch (message.getStatus()) {
+            case WON:
+                handleGameWon(message.getVisibleWord(),
+                              message.getNick());
+                break;
+            
+            case ABORTED:
+                handleGameAborted();
+                break;
+            
+            case LOST:
+                handleGameLost(message.getVisibleWord());
+                break;
+            
+            case PLAYING:
                 this.publish( 
                     new UpdatedPlayingStatusEvent(message.getVisibleWord(), 
                                                   message.getRemainingLives(),
                                                   message.getMaxLives())
                 );
+                break;
             }
+//            if (message.isOver()) {
+//                this.handleGameOver(message.getVisibleWord(), 
+//                                    message.getWinnerNick());
+//            } else {
+//                this.publish( 
+//                    new UpdatedPlayingStatusEvent(message.getVisibleWord(), 
+//                                                  message.getRemainingLives(),
+//                                                  message.getMaxLives())
+//                );
+//            }
         }
     }
     
+    private void handleGameLost(String visibleWord) {
+        printDebugMessage("Game was lost .-.");
+        synchronized(this.lock) {
+            gameOver = true;
+        }
+        publish(new GameLostEvent(visibleWord));
+    }
+
+    private void handleGameAborted() {
+        synchronized(this.lock) {
+            gameOver = true;
+        }
+        publish(new GameAbortedEvent()); 
+    }
+
+    private void handleGameWon(String visibleWord, String winnerNick) {
+        synchronized(this.lock) {
+            gameOver = true;
+        }
+        publish(new GameWonEvent(visibleWord, winnerNick)); 
+    }
+
     private void publish(JHEvent event) {
         this.observableSupport.publish(event);
     }
 
+    @Deprecated
     private void handleGameOver(String visibleWord, String winnerNick) {
         synchronized(this.lock) {
             this.gameOver = true; 

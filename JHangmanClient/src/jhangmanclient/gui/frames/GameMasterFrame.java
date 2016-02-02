@@ -16,6 +16,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import jhangmanclient.controller.master.GameMasterController;
 import jhangmanclient.controller.master.LetterGuessedEvent;
+import jhangmanclient.controller.master.LostGameEvent;
 import jhangmanclient.controller.master.WordGuessedEvent;
 import jhangmanclient.controller.master.WrongGuessEvent;
 import jhangmanclient.gui.components.ActionsPanel;
@@ -48,13 +49,36 @@ public class GameMasterFrame extends HangmanFrame
     private WordInputPanel inputPanel;
 
     private WordPlayerDisplay wordPanel;
-
+    
+    private Thread timeoutThread;
+    
+    private long longTimeout = 10000000;
+    
     public GameMasterFrame(GameMasterController controller) {
         super(10);
+        timeoutThread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(longTimeout);
+                    if (controller != null) {
+                        controller.close();
+                        submitButton.setEnabled(false);
+                        inputPanel.setEditable(false);
+                        GUIUtils.invokeLater(() -> notificationPanel.addLine(
+                            "Game closed after long timeout"
+                        ));
+                    }
+                } catch (InterruptedException e) {
+                }
+            }
+        };
         this.controller = controller;
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setUpActions();
         terminateInitialization();
+        controller.addObserver(this);
+        timeoutThread.start();
     }
     
     private void setUpActions() {
@@ -72,10 +96,15 @@ public class GameMasterFrame extends HangmanFrame
                 notificationPanel.addLine("Connection error, please retry");
             }
         });
-        closeButton.addActionListener(e -> {
-            controller.close();
-            GUIUtils.invokeLater(() -> GameMasterFrame.this.dispose());
-        });
+        closeButton.addActionListener(e -> close());
+    }
+
+    private void close() {
+        if (timeoutThread != null && timeoutThread.isAlive()) {
+            timeoutThread.interrupt();
+        }
+        controller.close();
+        GUIUtils.invokeLater(() -> GameMasterFrame.this.dispose());
     }
 
     @Override
@@ -131,15 +160,9 @@ public class GameMasterFrame extends HangmanFrame
         this.controller.setWord(word);
         try {
             this.controller.start();
-            this.showGame();
         } catch (IOException e1) {
             this.printError("Couldn't init controller, should retry");
         }
-    }
-    
-    private void showGame() {
-        // TODO Auto-generated method stub
-        
     }
     
     private void terminateInitialization() {
@@ -158,7 +181,7 @@ public class GameMasterFrame extends HangmanFrame
         if (this.controller != null) {
             this.controller.close();
         }
-        this.setVisible(false);
+        this.dispose();
     }
     
     @Override
@@ -176,20 +199,13 @@ public class GameMasterFrame extends HangmanFrame
         String addressName = "239.255.54.67";
         int port = 49312;
         InetAddress address = InetAddress.getByName(addressName);
-        GameMasterController controller = new GameMasterController("master", address, port, "ciao", 5);
+        GameMasterController controller = new GameMasterController("master", address, port, "ciao", 2);
         System.out.println(controller);
         //TODO stub
         JFrame frame = new GameMasterFrame(controller);
-        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        GUIUtils.invokeLater(() -> frame.setVisible(true));
     }
-    
-    /*
-     * 
-     *  <li>{@link LetterGuessedEvent}</li>
-     *  <li>{@link WordGuessedEvent}</li>
-     *  <li>{@link WrongGuessEvent}</li>
-     *  <li>{@link LostGameEvent}</li>
-     */
     
     @ObservationHandler
     public void onLetterGuessedEvent(LetterGuessedEvent e) {
@@ -207,5 +223,16 @@ public class GameMasterFrame extends HangmanFrame
     }
     
     public void onWrongGuessEvent(WrongGuessEvent e) {
+        GUIUtils.invokeLater(() -> {
+            notificationPanel.addLine("Wrong guess");
+        });
+
+    }
+    
+    public void onLostGameEvent(LostGameEvent e) {
+        GUIUtils.invokeLater(() -> {
+            notificationPanel.addLine("Game over!");
+            submitButton.setEnabled(false);
+        });
     }
 }

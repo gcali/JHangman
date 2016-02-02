@@ -16,7 +16,9 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import jhangmanclient.controller.player.AckedMessageEvent;
-import jhangmanclient.controller.player.GameOverEvent;
+import jhangmanclient.controller.player.GameAbortedEvent;
+import jhangmanclient.controller.player.GameLostEvent;
+import jhangmanclient.controller.player.GameWonEvent;
 import jhangmanclient.controller.player.GuessCollisionException;
 import jhangmanclient.controller.player.PlayerController;
 import jhangmanclient.controller.player.UpdatedPlayingStatusEvent;
@@ -43,12 +45,12 @@ public class GamePlayerFrame extends HangmanFrame
     private WordInputPanel inputPanel;
 
     public GamePlayerFrame(PlayerController controller) {
-        super(4);
+        super(10);
         this.controller = controller;
         controller.start();
         setUpActions();
         
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     }
     
     private void setUpActions() {
@@ -78,6 +80,7 @@ public class GamePlayerFrame extends HangmanFrame
 
     protected void abort() {
         controller.close();
+        this.dispose();
     }
 
     @Override
@@ -143,7 +146,7 @@ public class GamePlayerFrame extends HangmanFrame
     }
 
     private JPanel createButtonPanel() {
-        abortButton = new JButton("Abort");
+        abortButton = new JButton("Close");
         guessButton = new JButton("Guess");
         guessButton.setEnabled(false);
         
@@ -190,28 +193,53 @@ public class GamePlayerFrame extends HangmanFrame
     
     @ObservationHandler
     public void onUpdatedPlayingStatusEvent(UpdatedPlayingStatusEvent event) {
-        String eventWord = event.getWord();
-        livesPanel.setLives(event.getMaxLives());
-        if (wordPanel.isUpdate(eventWord)) {
-            notificationPanel.addLine("New move!");
-            wordPanel.setWord(event.getWord());
-        }
+        GUIUtils.invokeAndWait(() -> {
+            String eventWord = event.getWord();
+            livesPanel.setLives(event.getMaxLives());
+            if (wordPanel.isUpdate(eventWord)) {
+                wordPanel.setWord(event.getWord());
+            }
+            notificationPanel.addLine(
+                "New move! Lives: " + 
+                event.getRemainingLives() + "/" +
+                event.getMaxLives()); 
+        });
     }
     
     @ObservationHandler
-    public void onGameOverEvent(GameOverEvent event) {
+    public void onGameWonEvent(GameWonEvent e) { 
+        String nick = e.getWinnerNick();
         GUIUtils.invokeAndWait(() -> {
             guessButton.setEnabled(false);
-            String nick = event.getWinnerNick();
-            wordPanel.setWord(event.getWord());
+            inputPanel.setEditable(false);
+            wordPanel.setWord(e.getVisibleWord());
             if (nick != null && nick.equals(controller.getNick())) {
                 wordPanel.setWinner();
             } else {
                 wordPanel.setLoser();
             }
+        });
+        notificationPanel.addLine("Player " + nick + " has won!");
+    }
+    
+    @ObservationHandler
+    public void onGameLostEvent(GameLostEvent e)  {
+        GUIUtils.invokeAndWait(() -> {
+            guessButton.setEnabled(false);
+            inputPanel.setEditable(false);
+            wordPanel.setWord(e.getWord());
+            wordPanel.setLoser();
+        });
+        notificationPanel.addLine("Game was lost...");
+    }
+    
+    @ObservationHandler
+    public void onGameAbortedEvent(GameAbortedEvent e) {
+        GUIUtils.invokeAndWait(() -> {
+            guessButton.setEnabled(false);
             inputPanel.setEditable(false);
         });
-        notificationPanel.addLine("Game over! Winner is " + event.getWinnerNick());
+        notificationPanel.addLine("Master player left the game");
     }
     
     @ObservationHandler
@@ -234,7 +262,9 @@ public class GamePlayerFrame extends HangmanFrame
         SwingUtilities.invokeLater(new Runnable() { 
             @Override
             public void run() {
-                new GamePlayerFrame(controller).setVisible(true); 
+                JFrame frame = new GamePlayerFrame(controller);
+                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                frame.setVisible(true); 
             }
         });
         

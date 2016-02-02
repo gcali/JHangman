@@ -12,7 +12,7 @@ public class GameUpdateMessage extends Message {
      */
     private static final long serialVersionUID = 1L;
     private final String visibleWord;
-    private final boolean isOver;
+    private final GameStatus status;
     private final String winnerNick;
     private final int remainingLives;
     private final int sequenceNumber;
@@ -23,7 +23,7 @@ public class GameUpdateMessage extends Message {
         String visibleWord, 
         int remainingLives,
         int maxLives,
-        boolean isOver, 
+        GameStatus status, 
         String winnerNick,
         String ackNick,
         UUID uuid
@@ -33,7 +33,7 @@ public class GameUpdateMessage extends Message {
         this.visibleWord = visibleWord;
         this.remainingLives = remainingLives;
         this.maxLives = maxLives;
-        this.isOver = isOver;
+        this.status = status;
         this.winnerNick = winnerNick;
     } 
     
@@ -45,8 +45,8 @@ public class GameUpdateMessage extends Message {
         return this.remainingLives;
     }
 
-    public boolean isOver() {
-        return this.isOver;
+    public GameStatus getStatus() {
+        return this.status;
     }
 
     public String getWinnerNick() {
@@ -59,5 +59,25 @@ public class GameUpdateMessage extends Message {
 
     public int getMaxLives() {
         return maxLives;
+    }
+    
+    public String toString() {
+    
+        StringBuilder builder = new StringBuilder();
+        
+        builder.append(visibleWord);
+        builder.append(" ");
+        builder.append(status);
+        builder.append(" ");
+        builder.append(winnerNick);
+        builder.append(" ");
+        builder.append(getNick());
+        
+        return builder.toString();
+        
+    }
+    
+    public enum GameStatus {
+        PLAYING, WON, LOST, ABORTED
     }
 }

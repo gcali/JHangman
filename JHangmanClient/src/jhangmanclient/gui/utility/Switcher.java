@@ -19,6 +19,10 @@ public class Switcher {
     private AuthFrame authFrame = null;
     private GameChooserFrame gameChooser;
     
+    public void setAuth(AuthFrame frame) {
+        GUIUtils.invokeAndWait(() -> authFrame = frame);
+    }
+    
     public void showAuth(
         JFrame oldFrame,
         AuthController controller

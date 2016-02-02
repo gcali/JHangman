@@ -25,7 +25,9 @@ import utility.observer.ObservationHandler;
  * Published events:
  *  <ul>
  *      <li>{@link UpdatedPlayingStatusEvent}</li>
- *      <li>{@link GameOverEvent}</li>
+ *      <li>{@link GameLostEvent}</li>
+ *      <li>{@link GameAbortedEvent}</li>
+ *      <li>{@link GameWonEvent}</li>
  *      <li>{@link AckEvent}</li>
  *      <li>{@link MessageLostEvent}</li>
  *  </ul>
@@ -109,12 +111,14 @@ public class PlayerController
     }
     
     public void sendGuess(char letter) throws IOException {
+        printDebugMessage("Sending not to be acked");
         Message message = new GuessLetterMessage(
             letter, 
             this.nick, 
             UUID.randomUUID()
         );
         this.sender.sendByteArrayToMulticast(message.encode(this.key)); 
+        printDebugMessage("Sent not to be acked");
     }
     
     public void sendGuessToBeAcked(char letter) throws IOException,
@@ -193,7 +197,18 @@ public class PlayerController
     }
 
     @ObservationHandler
-    public void onGameOverEvent(GameOverEvent e) {
+    public void onGameLostEvent(GameLostEvent e) {
+        this.observableSupport.publish(e);
+    }
+
+    @ObservationHandler
+    public void onGameAbortedEvent(GameAbortedEvent e) {
+        printDebugMessage("Game aborted!!!!!!!!");
+        this.observableSupport.publish(e);
+    }
+
+    @ObservationHandler
+    public void onGameWonEvent(GameWonEvent e) {
         this.observableSupport.publish(e);
     }
     

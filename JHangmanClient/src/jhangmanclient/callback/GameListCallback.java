@@ -69,7 +69,12 @@ public class GameListCallback implements ClientCallbackRMI,
      */
     @Override
     public void incrementGamePlayers(String game) throws RemoteException {
-        this.gameData.get(game).incrementCurrentPlayers();
+        GamePlayerDataAtomic data = this.gameData.get(game);
+        if (data == null) {
+            throw new RemoteException("Data was null");
+        } else {
+            data.incrementCurrentPlayers(); 
+        }
         this.observableSupport.publish(new GamePlayersChangedEvent(game));
     }
 
@@ -78,7 +83,12 @@ public class GameListCallback implements ClientCallbackRMI,
      */
     @Override
     public void decrementGamePlayers(String game) throws RemoteException {
-        this.gameData.get(game).decrementCurrentPlayers();
+        GamePlayerDataAtomic data = this.gameData.get(game);
+        if (data == null) {
+            throw new RemoteException("Data was null");
+        } else {
+            data.decrementCurrentPlayers(); 
+        }
         this.observableSupport.publish(new GamePlayersChangedEvent(game));
     }
 

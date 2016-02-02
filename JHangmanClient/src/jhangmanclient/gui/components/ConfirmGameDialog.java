@@ -16,18 +16,21 @@ public class ConfirmGameDialog<T> extends JDialog {
     private final Callable<T> confirm;
     private final Consumer<T> showScreen;
     private final JFrame parent;
+    private Runnable atEnd;
     
     public ConfirmGameDialog(
         JFrame frame, 
         Callable<T> confirm,
         Runnable abort,
-        Consumer<T> showScreen
+        Consumer<T> showScreen,
+        Runnable atEnd
     ) {
         super(frame, "Waiting");
         
         this.parent = frame;
         this.confirm = confirm;
         this.showScreen = showScreen;
+        this.atEnd = atEnd;
         
         setModal(false);
         
@@ -41,6 +44,7 @@ public class ConfirmGameDialog<T> extends JDialog {
             public void actionPerformed(ActionEvent e) {
                 abort.run();
                 ConfirmGameDialog.this.dispose();
+                atEnd.run();
             }
         });
         
@@ -66,6 +70,7 @@ public class ConfirmGameDialog<T> extends JDialog {
                 } catch (Exception e) { 
                 } finally {
                     ConfirmGameDialog.this.dispose();
+                    atEnd.run();
                 }
             }
         });

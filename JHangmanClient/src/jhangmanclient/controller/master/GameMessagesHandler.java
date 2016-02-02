@@ -66,7 +66,6 @@ class GameMessagesHandler
             messages = new HashSet<UUID>();
             receivedMessages.put(nick, messages);
         }
-        printDebugMessage("Why the null? " + messages);
         return messages.add(uuid);
     }
     

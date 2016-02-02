@@ -70,6 +70,7 @@ public class PlayerMessageChecker extends Thread implements Loggable,
                 if (!reset) {
                     try {
                         sender.sendByteArrayToMulticast(message.encode(key));
+                        printDebugMessage("Resent!");
                     } catch (IOException e) {
                     }
                     tries += 1;
@@ -88,7 +89,7 @@ public class PlayerMessageChecker extends Thread implements Loggable,
     }
     
     public void setMessageToBeAcked(Message message) {
-        setMessageToBeAcked(message, 1000);
+        setMessageToBeAcked(message, 5000);
     }
     
     public void setMessageToBeAcked(Message message, long timeout) {
