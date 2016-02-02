@@ -30,18 +30,19 @@ public class GUIMain {
         });
     }
     
-    static void startLogged(String nick, String pass, AuthController controller) {
-        GUIUtils.invokeLater(new Runnable() {
+    static AuthFrame startLogged(String nick, String pass, AuthController controller) {
+        Switcher switcher = new Switcher();
+        AuthFrame frame = new AuthFrame(controller, switcher);
+        GUIUtils.invokeAndWait(new Runnable() {
             
             @Override
             public void run() {
-                Switcher switcher = new Switcher();
-                AuthFrame frame = new AuthFrame(controller, switcher);
                 frame.setNick(nick);
                 frame.setPass(pass);
-                frame.actionPerformed(new ActionEvent(null, 0, "login"));
+                frame.actionPerformed(new ActionEvent(frame, 0, "login"));
             }
         });
+        return frame;
     }
     
     private static void showTopFatalError(String message) {

@@ -75,7 +75,7 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
         super(10);
         this.authController = authController;
         this.switcher = switcher;
-        this.setVisible(false);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
     
     /**
@@ -215,5 +215,10 @@ public class AuthFrame extends HangmanFrame implements ActionListener {
         } catch (RemoteException e1) {
             showErrorDialog("Couldn't connect to the server");
         } 
+    }
+
+    @Override
+    public String getLoggableId() {
+        return "AuthFrame";
     } 
 }

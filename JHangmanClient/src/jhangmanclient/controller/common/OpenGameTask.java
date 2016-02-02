@@ -16,8 +16,9 @@ import utility.JHObjectOutputStream;
 import utility.observer.JHObserver;
 import utility.observer.ObservationHandler;
 
-class OpenGameTask extends TCPServerInteractionTask<GameMasterController> 
-                   implements JHObserver {
+public class OpenGameTask 
+    extends TCPServerInteractionTask<GameMasterController> 
+    implements JHObserver {
     
     private InetAddress address;
     private int port;
@@ -119,6 +120,14 @@ class OpenGameTask extends TCPServerInteractionTask<GameMasterController>
                 this.socket.shutdownInput();
             } catch (IOException e) { 
             }
+        }
+    }
+
+    public void abort() {
+        try {
+            this.socket.shutdownInput();
+        } catch (IOException e) {
+            printError("Couldn't abort the game");
         }
     }
 

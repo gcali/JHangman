@@ -132,6 +132,14 @@ public class JoinGameTask extends TCPServerInteractionTask<PlayerController>
                                   ", got " + answer.getId());
         }
     }
+    
+    public void abort() {
+        try {
+            this.socket.shutdownInput();
+        } catch (IOException e) {
+            printError("Couldn't abort the game");
+        }
+    }
 
     @Override
     public String getLoggableId() {

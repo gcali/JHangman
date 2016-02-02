@@ -89,7 +89,7 @@ public class AskPositiveNumberDialog extends JDialog {
         this.setModalityType(ModalityType.APPLICATION_MODAL);
         this.setVisible(false);
         this.pack(); 
-        this.setLocationRelativeTo(null);
+        this.setLocationRelativeTo(frame);
     }
 
     private void handleCancel() {

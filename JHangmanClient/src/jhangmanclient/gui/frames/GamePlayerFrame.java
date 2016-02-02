@@ -1,14 +1,15 @@
 package jhangmanclient.gui.frames;
 
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.InetAddress;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -27,13 +28,11 @@ import jhangmanclient.gui.components.NotificationPanel;
 import jhangmanclient.gui.components.WordInputPanel;
 import jhangmanclient.gui.components.WordPlayerDisplay;
 import utility.GUIUtils;
-import utility.Loggable;
 import utility.observer.JHObserver;
 import utility.observer.ObservationHandler;
 
 public class GamePlayerFrame extends HangmanFrame
-                             implements Loggable,
-                                        JHObserver {
+                             implements JHObserver {
     
     private PlayerController controller;
     private LivesIndicatorPanel livesPanel;
@@ -48,35 +47,37 @@ public class GamePlayerFrame extends HangmanFrame
         this.controller = controller;
         controller.start();
         setUpActions();
+        
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
     
     private void setUpActions() {
-        this.abortButton.addActionListener(new ActionListener() {
-            
+        this.abortButton.addActionListener(e -> abort());
+        
+        addWindowListener(new WindowAdapter() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                notificationPanel.addLine("Abort clicked");
+            public void windowClosing(WindowEvent e) {
+                abort();
             }
         });
         
-        this.guessButton.addActionListener(new ActionListener() {
-            
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String text = inputPanel.getText();
-                if (text != null && text.length() > 0) { 
-                    guessButton.setEnabled(false);
-                    if (text.length() == 1) {
-                        guessLetter(text.charAt(0));
-                    } else {
-                        guessWord(text);
-                    }
+        this.guessButton.addActionListener(e -> { 
+            String text = inputPanel.getText();
+            if (text != null && text.length() > 0) { 
+                guessButton.setEnabled(false);
+                if (text.length() == 1) {
+                    guessLetter(text.charAt(0));
+                } else {
+                    guessWord(text);
                 }
             }
-
         });
         
         controller.addObserver(this);
+    }
+
+    protected void abort() {
+        controller.close();
     }
 
     @Override

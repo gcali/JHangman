@@ -2,13 +2,12 @@ package jhangmanclient.gui.frames;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.rmi.RemoteException;
-import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -17,13 +16,17 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import jhangmanclient.controller.common.GameChooserController;
+import jhangmanclient.controller.common.JoinGameTask;
+import jhangmanclient.controller.common.OpenGameTask;
 import jhangmanclient.controller.master.GameMasterController;
 import jhangmanclient.controller.player.PlayerController;
 import jhangmanclient.gui.components.ActionsPanel;
 import jhangmanclient.gui.components.AskPositiveNumberDialog;
+import jhangmanclient.gui.components.ConfirmGameDialog;
 import jhangmanclient.gui.components.GameListTableModel;
 import jhangmanclient.gui.utility.SetNickEvent;
 import jhangmanclient.gui.utility.Switcher;
+import utility.GUIUtils;
 import utility.observer.JHObserver;
 import utility.observer.ObservationHandler;
 
@@ -41,12 +44,16 @@ public class GameChooserFrame extends HangmanFrame
     private JTable table;
 
     private JButton joinGameButton;
+    private JButton logOutButton;
+    private JButton openGameButton;
 
     private AskPositiveNumberDialog askPlayersDialog;
 
     private String nick;
 
     private Switcher switcher;
+
+
 
     public GameChooserFrame(
         GameChooserController gameChooserController,
@@ -56,7 +63,9 @@ public class GameChooserFrame extends HangmanFrame
         super(10);
         this.switcher = switcher;
         this.nick = nick;
-        setGameController(gameChooserController);
+        setGameController(gameChooserController); 
+        
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); 
     }
 
     @Override
@@ -64,11 +73,9 @@ public class GameChooserFrame extends HangmanFrame
         JComponent table = initTable();
         this.add(table);
 
-        JButton logOutButton = initLogOutButton(); 
-        
-        JButton joinGameButton = initJoinGameButton();
-        
-        JButton openGameButton = initOpenGameButton();
+        logOutButton = initLogOutButton(); 
+        joinGameButton = initJoinGameButton(); 
+        openGameButton = initOpenGameButton();
         
         JButton[] leftButtons = {joinGameButton, openGameButton};
         JButton[] rightButtons = {logOutButton};
@@ -94,35 +101,57 @@ public class GameChooserFrame extends HangmanFrame
     }
 
     private void openGame(int players) {
-        Callable<GameMasterController> openGameCallable = 
+        OpenGameTask openGameCallable = 
                 this.gameChooserController.openGame(players);
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                GameMasterController controller = null;
-                System.out.println("Opening game...");
-                try {
-                    controller = openGameCallable.call();
-                } catch (InterruptedException e) {
-                    System.err.println("I got interrupted!");
-                    return;
-                } catch (IOException e) {
-                    System.err.println("Failure during communication");
-                    return;
-                } catch (Exception e) {
-                    System.err.println("Execution exception, damn");
-                    e.printStackTrace();
-                    return;
+        ConfirmGameDialog<GameMasterController> confirmDialog = 
+            new ConfirmGameDialog<GameMasterController>(
+                this,
+                openGameCallable, 
+                new Runnable() { 
+                    @Override
+                    public void run() {
+                        openGameCallable.abort();
+                        enableInput();
+                    } 
+                }, 
+                new Consumer<GameMasterController>() { 
+                    @Override
+                    public void accept(GameMasterController t) {
+                        switcher.showMaster(GameChooserFrame.this, t);
+                        enableInput();
+                    }
+                
                 }
-                if (controller != null) {
-                    System.out.println("Game open!"); 
-                } else {
-                    System.out.println("Game not open...");
+            );
+        disableInput();
+        confirmDialog.start(); 
+    }
+
+    private void joinGame(String name) {
+        JoinGameTask joinGameCallable =
+            gameChooserController.joinGame(name);
+        ConfirmGameDialog<PlayerController> confirmDialog =
+            new ConfirmGameDialog<PlayerController>(
+                this,
+                joinGameCallable,
+                new Runnable() { 
+                    @Override
+                    public void run() {
+                        joinGameCallable.abort();
+                        enableInput();
+                    }
+                },
+                new Consumer<PlayerController>() {
+
+                    @Override
+                    public void accept(PlayerController t) {
+                        switcher.showPlayer(GameChooserFrame.this, t);
+                        enableInput();
+                    }
                 }
-            }
-        };
-        thread.start();
-        
+            );
+        disableInput();
+        confirmDialog.start();
     }
 
     private Integer askForMaxPlayers() {
@@ -145,7 +174,6 @@ public class GameChooserFrame extends HangmanFrame
                             this,
                             "How many players for the game?"
                     );
-//            );
         } 
     }
 
@@ -159,28 +187,12 @@ public class GameChooserFrame extends HangmanFrame
                 int pos = table.getSelectedRow();
                 if (pos >= 0) {
                     String name = (String) table.getValueAt(pos, 0);
-                    Callable<PlayerController> joinGameCallable =
-                        gameChooserController.joinGame(name);
-                    new Thread() {
-                        @Override
-                        public void run() {
-                            PlayerController controller = null;
-                            try {
-                                controller = joinGameCallable.call();
-                            } catch (Exception e) {
-                            }
-                            if (controller == null) {
-                                return;
-                            } else {
-                                System.out.println("Yuhu!");
-                            }
-                        }
-                    }.start();
+                    joinGame(name);
                 }
                 
             }
+
         });
-        this.joinGameButton = button;
         return button;
     }
 
@@ -231,6 +243,22 @@ public class GameChooserFrame extends HangmanFrame
         this.table.getColumnModel().getColumn(1).setMaxWidth(50);
     } 
     
+    private void disableInput() {
+        GUIUtils.invokeAndWait(() -> {
+            logOutButton.setEnabled(false);
+            joinGameButton.setEnabled(false);
+            openGameButton.setEnabled(false);
+        });
+    }
+    
+    private void enableInput() {
+        GUIUtils.invokeAndWait(() -> {
+            logOutButton.setEnabled(true);
+            joinGameButton.setEnabled(true);
+            openGameButton.setEnabled(true);
+        });
+    }
+    
     @ObservationHandler
     public void onSetNickEvent(SetNickEvent e) {
         System.out.println("Hi!");
@@ -259,5 +287,9 @@ public class GameChooserFrame extends HangmanFrame
                 this.setButtonVisibility.accept(this.table.getSelectedRow() >= 0); 
             }
         }
+    }
+    @Override
+    public String getLoggableId() {
+        return "GameChooserFrame";
     }
 }

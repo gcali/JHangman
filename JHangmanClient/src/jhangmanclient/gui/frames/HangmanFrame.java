@@ -9,8 +9,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
 
+import utility.Loggable;
 
-public abstract class HangmanFrame extends JFrame {
+
+public abstract class HangmanFrame extends JFrame
+                                   implements Loggable {
 
     /**
      * 
@@ -37,7 +40,7 @@ public abstract class HangmanFrame extends JFrame {
         minimumWidth = this.getWidth();
         minimumHeight = this.getHeight();
         this.setMinimumSize(new Dimension(minimumWidth, minimumHeight));
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         this.setLocationRelativeTo(null);
     }
     

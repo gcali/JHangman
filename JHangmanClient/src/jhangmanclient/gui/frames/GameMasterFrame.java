@@ -1,8 +1,6 @@
 package jhangmanclient.gui.frames;
 
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -17,18 +15,20 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import jhangmanclient.controller.master.GameMasterController;
+import jhangmanclient.controller.master.LetterGuessedEvent;
+import jhangmanclient.controller.master.WordGuessedEvent;
+import jhangmanclient.controller.master.WrongGuessEvent;
 import jhangmanclient.gui.components.ActionsPanel;
 import jhangmanclient.gui.components.LivesIndicatorPanel;
 import jhangmanclient.gui.components.NotificationPanel;
 import jhangmanclient.gui.components.WordInputPanel;
 import jhangmanclient.gui.components.WordPlayerDisplay;
-import jhangmanclient.gui.utility.Switcher;
-import utility.Loggable;
+import utility.GUIUtils;
 import utility.observer.JHObserver;
+import utility.observer.ObservationHandler;
 
 public class GameMasterFrame extends HangmanFrame 
-                             implements JHObserver,
-                                        Loggable {
+                             implements JHObserver {
     
     /**
      * 
@@ -43,42 +43,38 @@ public class GameMasterFrame extends HangmanFrame
 
     private JButton submitButton;
 
-    private JButton abortButton;
+    private JButton closeButton;
 
     private WordInputPanel inputPanel;
 
     private WordPlayerDisplay wordPanel;
 
-    private Switcher switcher;
-
-    public GameMasterFrame(
-        GameMasterController controller
-    ) {
-        super();
+    public GameMasterFrame(GameMasterController controller) {
+        super(10);
         this.controller = controller;
-        this.switcher = switcher;
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setUpActions();
         terminateInitialization();
     }
     
     private void setUpActions() {
-        submitButton.addActionListener(new ActionListener() {
-            
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String text = inputPanel.getText();
-                controller.setWord(text);
-                try {
-                    controller.start();
-                    if (text != null && !text.equals("")) {
-                        submitButton.setEnabled(false);
-                        inputPanel.setEditable(false);
-                    }
-                    wordPanel.setWordLength(text.length());
-                } catch (IOException e1) {
-                    notificationPanel.addLine("Connection error, please retry");
+        submitButton.addActionListener(e -> {
+            String text = inputPanel.getText();
+            controller.setWord(text);
+            try {
+                controller.start();
+                if (text != null && !text.equals("")) {
+                    submitButton.setEnabled(false);
+                    inputPanel.setEditable(false);
                 }
+                wordPanel.setWordLength(text.length());
+            } catch (IOException e1) {
+                notificationPanel.addLine("Connection error, please retry");
             }
+        });
+        closeButton.addActionListener(e -> {
+            controller.close();
+            GUIUtils.invokeLater(() -> GameMasterFrame.this.dispose());
         });
     }
 
@@ -103,9 +99,9 @@ public class GameMasterFrame extends HangmanFrame
         inputPanel.setFontSize(40);
         
         submitButton = new JButton("Submit");
-        abortButton = new JButton("Abort");
+        closeButton = new JButton("Close");
         
-        JButton [] leftButtons = {abortButton};
+        JButton [] leftButtons = {closeButton};
         JButton [] rightButtons = {submitButton};
         
         JPanel buttonPanel = new ActionsPanel(leftButtons, rightButtons);
@@ -185,5 +181,31 @@ public class GameMasterFrame extends HangmanFrame
         //TODO stub
         JFrame frame = new GameMasterFrame(controller);
         frame.setVisible(true);
+    }
+    
+    /*
+     * 
+     *  <li>{@link LetterGuessedEvent}</li>
+     *  <li>{@link WordGuessedEvent}</li>
+     *  <li>{@link WrongGuessEvent}</li>
+     *  <li>{@link LostGameEvent}</li>
+     */
+    
+    @ObservationHandler
+    public void onLetterGuessedEvent(LetterGuessedEvent e) {
+        GUIUtils.invokeLater(() -> notificationPanel.addLine("Letter guessed"));
+    }
+    
+    @ObservationHandler
+    public void onWordGuessedEvent(WordGuessedEvent e) {
+        GUIUtils.invokeLater(() -> {
+            notificationPanel.addLine("Word guessed by " + e.getWinnerNick() +
+                "!");
+            submitButton.setEnabled(false);
+
+        });
+    }
+    
+    public void onWrongGuessEvent(WrongGuessEvent e) {
     }
 }

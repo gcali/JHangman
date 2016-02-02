@@ -3,10 +3,7 @@ package jhangmanclient.controller.common;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
-import java.util.concurrent.Callable;
 
-import jhangmanclient.controller.master.GameMasterController;
-import jhangmanclient.controller.player.PlayerController;
 import jhangmanclient.game_data.GameListViewer;
 import rmi_interface.RMIServer;
 import rmi_interface.UserNotLoggedInException;
@@ -93,7 +90,7 @@ public class GameChooserController implements JHObservable {
         basicHandleLogout();
     } 
     
-    public Callable<GameMasterController> openGame(int maxPlayers) {
+    public OpenGameTask openGame(int maxPlayers) {
         return new OpenGameTask(this.nick, 
                                 this.cookie, 
                                 maxPlayers, 
@@ -101,7 +98,7 @@ public class GameChooserController implements JHObservable {
                                 this.port);
     }
     
-    public Callable<PlayerController> joinGame(String name) {
+    public JoinGameTask joinGame(String name) {
         return new JoinGameTask(name, 
                                 this.nick, 
                                 this.cookie, 
