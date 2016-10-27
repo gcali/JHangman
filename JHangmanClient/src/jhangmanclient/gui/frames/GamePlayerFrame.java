@@ -200,7 +200,7 @@ public class GamePlayerFrame extends HangmanFrame
                 wordPanel.setWord(event.getWord());
             }
             notificationPanel.addLine(
-                "New move! Lives: " + 
+                "Update! Lives: " + 
                 event.getRemainingLives() + "/" +
                 event.getMaxLives()); 
         });

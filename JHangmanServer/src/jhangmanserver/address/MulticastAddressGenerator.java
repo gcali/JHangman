@@ -9,6 +9,15 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Raccolta di utility per la generazione (più o meno) casuale di indirizzi
+ * di multicast validi. Utilizza in alcune sue funzioni il {@link AddressRange}
+ * 
+ * Un indirizzo già generato non può essere nuovamente prodotto, finché
+ * non è stato rimosso
+ * @author gcali
+ *
+ */
 public class MulticastAddressGenerator {
     
     private final static Random randomGenerator = new Random(); 
@@ -19,6 +28,12 @@ public class MulticastAddressGenerator {
     private final static int maxPortRange = 65535;
     
     
+    /**
+     * Restituisce un indirizzo compreso fra gli estremi
+     * @param minAddress il minimo del range
+     * @param maxAddress il massimo del range
+     * @return l'indirizzo generato
+     */
     public static InetAddress getAddress(int minAddress, int maxAddress) { 
         boolean found = false;
         
@@ -39,6 +54,11 @@ public class MulticastAddressGenerator {
         }
     }
     
+    /**
+     * Restituisce un indirizzo appartenente al range
+     * @param range il range di indirizzi
+     * @return l'indirizzo generato
+     */
     public static InetAddress getAddress(AddressRange range) {
         return getAddress(range.getMinAddress(), range.getMaxAddress());
     }
@@ -51,6 +71,10 @@ public class MulticastAddressGenerator {
         return l;
     }
     
+    /**
+     * Libera un indirizzo, in modo che possa essere nuovamente generato
+     * @param address l'indirizzo da liberare
+     */
     public static void freeAddress(InetAddress address) {
         addressSet.remove(arrayToList(address.getAddress()));
     }
@@ -70,6 +94,10 @@ public class MulticastAddressGenerator {
         return builder.toString();
     }
     
+    /**
+     * Restituisce una porta compresa fra il range di porte accettabili
+     * @return la porta generata
+     */
     public static int getRandomPort() {
         return randomGenerator.nextInt(maxPortRange - minPortRange + 1) +
            minPortRange; 
@@ -77,26 +105,6 @@ public class MulticastAddressGenerator {
     
     
     public static void main(String[] args) {
-        
-//        int dim=20;
-//        InetAddress[] array = new InetAddress[dim];
-//        
-//        for (int i=0; i < dim; i++) {
-//            byte[] addressPrefix = new byte[]{(byte)239,(byte)254};
-//            array[i] = getAddress(addressPrefix, 15);
-//            System.out.println(array[i]);
-//        }
-//        System.out.println("----------");
-//
-//        for (InetAddress address: array) {
-//            freeAddress(address);
-//        }
-//        System.out.println("----------");
-//        for (int i=0; i < 16; i++) {
-//            array[i] = getAddress("0.0.0.0/28");
-//            System.out.println(array[i]);
-//        }
-//        System.out.println(addressSet.size());
         
         byte[] test = new byte[] {
             0x01,

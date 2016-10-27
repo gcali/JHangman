@@ -1,5 +1,11 @@
 package jhangmanserver.address;
 
+/**
+ * Rappresenta un range di indirizzi, dove per range si intende un intervallo
+ * chiuso e limitato da un indirizzo minimo e un indirizzo massimo
+ * @author gcali
+ *
+ */
 public class AddressRange {
     
     //One of the two should always be set

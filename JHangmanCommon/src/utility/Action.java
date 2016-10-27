@@ -1,6 +1,11 @@
 package utility;
 
 
+/**
+ * Azione da aggiungere ad un {@link ActionExecutor}
+ * @author gcali
+ *
+ */
 public class Action {
     
     Runnable action;

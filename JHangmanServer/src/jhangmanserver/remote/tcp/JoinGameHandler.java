@@ -33,6 +33,16 @@ class JoinGameHandler extends TCPHandler implements Loggable {
         this.id = String.format("JoinGameHandler %3d", id);
     }
 
+    /**
+     * Gestisce l'attesa della richiesta di conferma, bloccando il thread
+     * corrente
+     * @param request richiesta ricevuta dal client
+     * @param outputStream 
+     * @param inputStream
+     * @param socket
+     * @param loggedInChecker
+     * @param gameListHandler
+     */
     public void handleJoinGame(
         JoinGameRequest request, 
         ObjectOutputStream outputStream, 

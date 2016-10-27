@@ -1,9 +1,20 @@
 package utility;
 
 
+/**
+ * Classe di utilità per facilitare la stampa a schermo di messaggi
+ * di errore e di debugging; i metodi di default presenti nell'interfaccia
+ * permettono di velocizzare l'implementazione delle funzioni di stampa,
+ * e aiutano a disattivare le stampe in fase di produzione con facilità.
+ * @author gcali
+ *
+ */
 public interface Loggable {
     
     public String getLoggableId();
+    
+    static boolean printDebug = true;
+    static boolean printError = true;
 
     default String getPrefixedMessage(String message) {
         return String.format("[%s] %s", this.getLoggableId(), message);
@@ -22,11 +33,11 @@ public interface Loggable {
     }
     
     default boolean shouldPrintDebug() {
-        return true;
+        return printDebug;
     }
     
     default boolean shouldPrintError() {
-        return true;
+        return printError;
     }
     
 }

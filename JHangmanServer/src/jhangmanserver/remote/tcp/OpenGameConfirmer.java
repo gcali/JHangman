@@ -156,25 +156,6 @@ class OpenGameConfirmer extends TCPHandler
         }
     }
 
-//    private OpenGameData handleEventOrInputClosed() {
-//        synchronized(this.lock) {
-//            switch (this.eventId) {
-//            case FULL:
-//                return handleFullEvent();
-//            case ABORT:
-//                this.printDebugMessage("Game aborted");
-//                this.sendAbort();
-//                return null;
-//            case NOT_HANDLED:
-//                this.printDebugMessage("Client closed connection");
-//                return null;
-//            default:
-//                assert false;
-//                return null;
-//            }
-//        }
-//    }
-
     @ObservationHandler
     public void onGameFull(GameFullEvent event) {
         synchronized(this.lock) {

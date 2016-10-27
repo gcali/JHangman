@@ -52,15 +52,13 @@ public class GameMasterFrame extends HangmanFrame
     
     private Thread timeoutThread;
     
-    private long longTimeout = 10000000;
-    
     public GameMasterFrame(GameMasterController controller) {
         super(10);
         timeoutThread = new Thread() {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(longTimeout);
+                    Thread.sleep(controller.getGameTimeout());
                     if (controller != null) {
                         controller.close();
                         submitButton.setEnabled(false);
@@ -199,7 +197,7 @@ public class GameMasterFrame extends HangmanFrame
         String addressName = "239.255.54.67";
         int port = 49312;
         InetAddress address = InetAddress.getByName(addressName);
-        GameMasterController controller = new GameMasterController("master", address, port, "ciao", 2);
+        GameMasterController controller = new GameMasterController("master", address, port, "ciao", 2, 5000000);
         System.out.println(controller);
         //TODO stub
         JFrame frame = new GameMasterFrame(controller);

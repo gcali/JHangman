@@ -65,12 +65,14 @@ public class GameMasterController
         new JHObservableSupport();
     private MessageSender sender;
     private int maxLives;
+    private long gameTimeout;
 
     public GameMasterController(String nick, 
                             InetAddress address,
                             int port,
                             String key,
-                            int lives) throws IOException {
+                            int lives,
+                            long gameTimeout) throws IOException {
         this.nick = nick;
         this.address = address;
         this.port = port;
@@ -80,6 +82,7 @@ public class GameMasterController
         this.socket = new MulticastSocket(this.port); 
         this.socket.joinGroup(this.address);
         this.sender = new MessageSender(this.socket, address, port);
+        this.gameTimeout = gameTimeout;
         this.printDebugMessage("Address: " + address);
         this.printDebugMessage("Key: " + key);
         this.printDebugMessage("Constructor done");
@@ -405,7 +408,8 @@ public class GameMasterController
                 address, 
                 port, 
                 key, 
-                5
+                5,
+                500000
             );
         
         controller.setWord(word);
@@ -472,5 +476,9 @@ public class GameMasterController
 
     public int getMaxLives() {
         return maxLives;
+    }
+
+    public long getGameTimeout() {
+        return gameTimeout;
     }
 }

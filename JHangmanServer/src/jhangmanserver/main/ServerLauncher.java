@@ -2,7 +2,7 @@ package jhangmanserver.main;
 
 import java.rmi.RemoteException;
 
-import jhangmanserver.config.ConfigData;
+import jhangmanserver.config.ServerConfigData;
 import jhangmanserver.game_data.GameListHandler;
 import jhangmanserver.remote.rmi.ConcurrentRMIServer;
 import jhangmanserver.remote.tcp.ConcurrentTCPServer;
@@ -11,7 +11,7 @@ public class ServerLauncher {
 
     public static void main(String[] args) {
         
-        ConfigData config = new ConfigData();
+        ServerConfigData config = new ServerConfigData();
         try {
             config.setShouldEncrypt(Boolean.parseBoolean(args[0]));
             config.setRMIPort(Integer.parseInt(args[1]));
@@ -23,9 +23,12 @@ public class ServerLauncher {
         }
         
         System.setProperty("java.rmi.server.hostname", config.getHostName());
+        System.out.println("Hostname set");
         GameListHandler gameListHandler = new GameListHandler(
             config.getMaxGames()
         );
+
+        System.out.println("Creating server");
         ConcurrentRMIServer server = new ConcurrentRMIServer(
             gameListHandler, 
             config.getShouldEncrypt()

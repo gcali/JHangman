@@ -19,6 +19,12 @@ import rmi_interface.UserAlreadyRegisteredException;
 import rmi_interface.UserNotLoggedInException;
 import rmi_interface.WrongPasswordException;
 
+/**
+ * Implementazione delle funzionalità offerte tramite RMI server side;
+ * la classe implementa anche il {@link LoggedInChecker}.
+ * @author gcali
+ *
+ */
 public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
     private Map<String,User> userData = new ConcurrentHashMap<String, User>(); 
 	private Registry registry = null;
@@ -50,6 +56,7 @@ public class ConcurrentRMIServer implements RMIServer, LoggedInChecker {
 	}
 
     public void export(String bindingName, int port) throws RemoteException {
+        System.out.println("Exporting to " + port);
         if (this.registry == null) {
                 this.registry = LocateRegistry.createRegistry(port);
         }

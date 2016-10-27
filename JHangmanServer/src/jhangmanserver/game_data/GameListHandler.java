@@ -13,14 +13,16 @@ import rmi_interface.ClientCallbackRMI;
 import rmi_interface.SingleGameData;
 import utility.Cleaner;
 import utility.Loggable;
-import utility.observer.JHObservable;
-import utility.observer.JHObservableSupport;
 import utility.observer.JHObserver;
 
-public class GameListHandler implements Loggable, JHObservable {
+/**
+ * Classe usata per mantenere la lista delle partite in apertura e
+ * dei callback registrati dagli utenti;
+ * @author gcali
+ *
+ */
+public class GameListHandler implements Loggable {
     
-    private JHObservableSupport observableSupport = new JHObservableSupport();
-
     private Map<String, ServerGameData> gameDataMap = 
             new ConcurrentSkipListMap<String, ServerGameData>();
     private Map<String, ClientCallbackRMI> callbacks =
@@ -30,10 +32,20 @@ public class GameListHandler implements Loggable, JHObservable {
     private int openGames = 0;
     private int maxOpenGames;
     
+    /**
+     * 
+     * @param maxOpenGames numero massimo di partite che possono essere
+     *                     in apertura in contemporanea
+     */
     public GameListHandler(int maxOpenGames) {
         this.maxOpenGames = maxOpenGames;
     }
     
+    /**
+     * Aggiunge un nuovo callback alla lista
+     * @param nick utente che ha richiesto la registrazione del callback
+     * @param notifier callback
+     */
     public void addCallback(String nick, ClientCallbackRMI notifier) {
         this.callbacks.put(nick, notifier); 
         this.executeCallback(c -> c.setGameData(this.getGameList()));
@@ -56,10 +68,25 @@ public class GameListHandler implements Loggable, JHObservable {
         return gameList;
     }
 
+    /**
+     * Rimuove il callback registrato da un utente
+     * @param nick
+     */
     public void removeCallback(String nick) {
         this.callbacks.remove(nick); 
     }
     
+    /**
+     * Apre una nuova partita
+     * @param name nome dell'utente che ha richiesto l'apertura
+     * @param maxPlayers numero di giocatori richiesti dalla partita
+     * @param observer osservatore da notificare; gli eventi sono quelli
+     *                 di {@link ServerGameData}
+     * @return un {@link Cleaner} per gestire la rimozione di osservatori
+     *         
+     * @throws FullListException in caso la partita non potesse essere aperta
+     *                           perché la lista era piena
+     */
     public Cleaner openGame(String name, int maxPlayers, JHObserver observer) 
         throws FullListException {
         System.out.println("Hi, I've been called!");
@@ -89,6 +116,11 @@ public class GameListHandler implements Loggable, JHObservable {
         };
     }
     
+    /**
+     * Annulla una partita
+     * 
+     * @param name nome della partita
+     */
     public void cancelGame(String name) {
         synchronized(openGamesLock) {
             openGames--;
@@ -97,6 +129,12 @@ public class GameListHandler implements Loggable, JHObservable {
         this.executeCallback(c -> c.removeGame(name));
     }
     
+    /**
+     * Verifica se una partita è aperta
+     * 
+     * @param name nome della partita
+     * @return true se e solo se la partita era aperta
+     */
     public boolean isGameOpen(String name) {
         if (this.gameDataMap.get(name) == null) {
             return false;
@@ -132,6 +170,11 @@ public class GameListHandler implements Loggable, JHObservable {
         return cleaner;
     }
     
+    /**
+     * Annulla la richiesta di partecipazione di un utente ad una partita
+     * @param nick nome dell'utente
+     * @param name nome della partita
+     */
     public void leaveGame(String nick, String name) {
         ServerGameData data = this.gameDataMap.get(name);
         if (data == null) {
@@ -155,15 +198,12 @@ public class GameListHandler implements Loggable, JHObservable {
         }
     }
 
-    @Override
-    public void addObserver(JHObserver observer) {
-        this.observableSupport.add(observer);
-    }
-    
-    public void removeObserver(JHObserver observer) {
-        this.observableSupport.remove(observer);
-    }
 
+    /**
+     * Annulla tutte le partite legate in qualche modo all'utente
+     * 
+     * @param nick nome dell'utente
+     */
     public void abortUserGames(String nick) {
         printDebugMessage("Abort for " + nick +"!");
         ServerGameData data = this.gameDataMap.get(nick);
@@ -180,6 +220,14 @@ public class GameListHandler implements Loggable, JHObservable {
         }
     }
 
+    /**
+     * Assegna ad una partita aperta la chiave di cifratura, l'indirizzo
+     * del gruppo e la porta
+     * @param gameName nome della partita
+     * @param key chiave di cifratura
+     * @param address indirizzo
+     * @param port porta
+     */
     public void setKeyAddressPort(
         String gameName, 
         String key, 

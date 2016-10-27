@@ -4,6 +4,14 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Classe per modellare le situazioni in cui un metodo necessita di avere
+ * alcune azioni eseguite al termine del suo funzionamento; la classe
+ * serve soprattuto a permettere di facilitare la costruzione di una funzione
+ * di chiusura che può essere chiamata più volte senza conseguenze negative
+ * @author gcali
+ *
+ */
 public abstract class Cleaner implements Closeable {
     
     private final AtomicBoolean shouldClose = new AtomicBoolean(true);

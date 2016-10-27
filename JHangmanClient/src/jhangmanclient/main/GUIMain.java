@@ -11,6 +11,7 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import jhangmanclient.config.ClientConfigData;
 import jhangmanclient.controller.common.AuthController;
 import jhangmanclient.gui.frames.AuthFrame;
 import jhangmanclient.gui.utility.Switcher;
@@ -53,17 +54,29 @@ public class GUIMain {
     
     public static void main(String[] args) throws RemoteException {
         
-        String hostName = RMIServer.defaultHost;
+        ClientConfigData configData = new ClientConfigData();
+        System.out.println(configData.getRmiAddress());
         try {
-            hostName = args[0];
+            configData.setRmiAddress(args[0]);
+            try {
+                configData.setRmiPort(Integer.parseInt(args[1])); 
+            } catch (NumberFormatException e) {
+            }
+            configData.setTcpAddress(args[2]);
+            try {
+                configData.setTcpPort(Integer.parseInt(args[3])); 
+            } catch (NumberFormatException e) {
+                
+            }
         } catch (ArrayIndexOutOfBoundsException e) {
-            
         }
-        AuthController authController = initConnection(hostName);
+        AuthController authController = 
+            initConnection(configData);
         start(authController);
     }
 
-    static AuthController initConnection(String hostName) throws RemoteException {
+    static AuthController initConnection(ClientConfigData configData) 
+        throws RemoteException {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException | InstantiationException
@@ -71,9 +84,10 @@ public class GUIMain {
             System.err.println("Couldn't set look and feel");
         }
         Registry registry = null;
+        System.out.println(configData.getRmiAddress());
         try {
-            registry = LocateRegistry.getRegistry(hostName, 
-                                                  RMIServer.defaultPort);
+            registry = LocateRegistry.getRegistry(configData.getRmiAddress(),
+                                                  configData.getRmiPort());
         } catch (RemoteException e) {
             System.err.println("Connection error");
             showTopFatalError("Couldn't reach the server");
@@ -81,19 +95,19 @@ public class GUIMain {
         
         RMIServer server = null;
         try {
-            server = (RMIServer) registry.lookup(RMIServer.name);
+            server = (RMIServer) registry.lookup(configData.getRmiName());
         } catch (RemoteException e) {
             e.printStackTrace();
             showTopFatalError("Couldn't reach the server");
         } catch (NotBoundException e) {
-            System.err.println("No " + RMIServer.name + " found");
+            System.err.println("No " + configData.getRmiName() + " found");
             e.printStackTrace();
             showTopFatalError("Couldn't reach the server");
         }
         
         assert server != null;
         
-        AuthController authController = new AuthController(server);
+        AuthController authController = new AuthController(server, configData);
         return authController;
     } 
     

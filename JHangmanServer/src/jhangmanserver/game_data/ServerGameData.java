@@ -16,6 +16,7 @@ import utility.observer.JHObserver;
  *  <ul>
  *      <li>{@link GameFullEvent}</li>
  *      <li>{@link AbortedGameEvent}</li>
+ *      <li>{@link GameStartingEvent}</li>
  *  </ul>
  * @author gcali
  *

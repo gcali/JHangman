@@ -4,6 +4,15 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Classe per facilitare l'esecuzione di hook in fase di shutdown;
+ * un'azione può essere facilmente aggiunta a e rimossa da (tramite l'id ottenuto
+ * al momento dell'aggiunta) l'ActionExecutor.
+ * Le azioni presenti nell'ActionExecutor vengono eseguite al momento della
+ * chiusura dell'applicazione
+ * @author gcali
+ *
+ */
 public class ActionExecutor {
     
     private List<Action> actions;

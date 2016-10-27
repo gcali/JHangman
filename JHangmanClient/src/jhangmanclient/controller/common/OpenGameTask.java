@@ -26,6 +26,8 @@ public class OpenGameTask
     private Socket socket = null;
     private int players;
     private String nick;
+    private long gameTimeout;
+    private int lives;
     
 //    private static final int TIMEOUT = 10000;
 
@@ -33,12 +35,16 @@ public class OpenGameTask
                         int cookie, 
                         int players,
                         InetAddress address, 
-                        int port) {
+                        int port,
+                        long gameTimeout,
+                        int lives) {
         this.nick = nick;
         this.cookie = cookie;
         this.address = address;
         this.port = port; 
         this.players = players;
+        this.gameTimeout = gameTimeout;
+        this.lives = lives;
     }
     
     @Override
@@ -73,7 +79,8 @@ public class OpenGameTask
                                         gameCompleteAnswer.getAddress(),
                                         gameCompleteAnswer.getPort(),
                                         gameCompleteAnswer.getKey(),
-                                        10);
+                                        lives,
+                                        gameTimeout);
         }
     }
 

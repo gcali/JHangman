@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 
+import jhangmanclient.config.ClientConfigData;
 import jhangmanclient.game_data.GameListViewer;
 import rmi_interface.RMIServer;
 import rmi_interface.UserNotLoggedInException;
@@ -24,14 +25,18 @@ public class GameChooserController implements JHObservable {
     private final int port;
     
     private JHObservableSupport observableSupport = new JHObservableSupport();
+    private long gameTimeout;
+    private int lives;
 
     public GameChooserController(RMIServer server, 
                                  String nick, 
                                  int cookie, 
-                                 GameListViewer viewer) {
-        this.address = getAddress();
-        this.port = getPort(); 
-//        this.threadPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+                                 GameListViewer viewer,
+                                 ClientConfigData configData) {
+        this.address = getAddress(configData);
+        this.port = configData.getTcpPort();
+        this.lives = configData.getLives();
+        this.gameTimeout = configData.getGameTimeout();
         this.server = server;
         this.nick = nick;
         this.cookie = cookie;
@@ -54,26 +59,19 @@ public class GameChooserController implements JHObservable {
         System.err.println("[" + prefix + "] " + message);
     }
     
-    private static void temporary() {
-        printError("", "Using temporary function");
-    }
-    
-    private static InetAddress getAddress() {
-        temporary();
+    private static InetAddress getAddress(ClientConfigData configData) {
         try {
-            return tcp_interface.Defaults.getAddress();
+            return InetAddress.getByName(configData.getTcpAddress());
         } catch (UnknownHostException e) {
-            assert false;
-            return null;
+            try {
+                return InetAddress.getByName(tcp_interface.Defaults.getAddress());
+            } catch (UnknownHostException e1) {
+                assert false;
+                throw new RuntimeException(e);
+            }
         }
     }
     
-    private static int getPort() {
-        temporary();
-        return tcp_interface.Defaults.getPort();
-    }
-    
-
     private void basicHandleLogout() throws RemoteException {
         try {
             this.server.logOut(this.nick, this.cookie);
@@ -95,7 +93,9 @@ public class GameChooserController implements JHObservable {
                                 this.cookie, 
                                 maxPlayers, 
                                 this.address, 
-                                this.port);
+                                this.port,
+                                gameTimeout,
+                                lives);
     }
     
     public JoinGameTask joinGame(String name) {
